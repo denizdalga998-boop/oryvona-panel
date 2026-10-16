@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12112e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="logo.webp">
+<link rel="apple-touch-icon" href="logo.webp">
+<link rel="manifest" href="manifest.json">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<title>Oryvona Games Paneli</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: Oryvona Games house look — the logo's deep navy for the header band and the "right now" card, warm paper for the rest, the gamepad's cyan/gold/purple only as accents (OpenAI / Claude / Deniz). Single light theme by choice. */
+:root{
+  color-scheme:light;
+  --bg:#f4f2ee; --surface:#ffffff; --surface-2:#eeedf3; --line:#dddbe6;
+  --fg:#1b1a2e; --fg-2:#524f66; --fg-3:#827f94;
+  --navy:#12112e; --navy-2:#1d1b45;
+  --brand:#2a2860; --brand-deep:#1b1a3e; --brand-soft:#e9e6f7; --brand-ink:#12112e;
+  --cyan:#22c3ee; --gold:#f0b429; --violet:#9b4ddb;
+  --sun:#f0b429; --sun-soft:#fbefd3;
+  --good:#2b8a4e; --good-soft:#def3e4; --warn:#b26a0c; --warn-soft:#fbead0; --bad:#c23b3b; --bad-soft:#f9e0e0; --info:#2f7be0; --info-soft:#e3ecfb;
+  --claude:#b8811a; --claude-soft:#fbefd3; --work:#2f7be0; --work-soft:#e3ecfb; --deniz:#8b3fd9; --deniz-soft:#efe4fb;
+  --sans:"Nunito",ui-rounded,"Segoe UI",system-ui,Roboto,Arial,sans-serif;
+  --r:18px; --r-s:12px;
+  --shadow:0 1px 2px rgba(27,26,46,.05),0 8px 24px rgba(27,26,46,.08);
+}
+.band{background:var(--navy);margin:-14px calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0 calc(-1 * max(16px,env(safe-area-inset-right,0px)));padding:10px max(16px,env(safe-area-inset-left,0px)) 14px;border-radius:0 0 26px 26px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.band img{display:block;width:min(240px,70%);height:auto;max-width:100%}
+.band .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.band .sub{color:#cfcbe6;font-size:.86rem;font-weight:700}
+.chip.onnavy{background:rgba(255,255,255,.1);color:#e9e6f7}
+.chip.onnavy.good{background:rgba(66,196,120,.18);color:#8fe3ad} .chip.onnavy.warn{background:rgba(240,180,41,.18);color:#f6cf6d} .chip.onnavy.bad{background:rgba(236,96,96,.2);color:#ff9c9c}
+.hero{position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,var(--cyan),var(--gold),var(--violet))}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.45;margin:0}
+.wrap{max-width:720px;margin:0 auto;padding-block:14px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+h1,h2,h3,p{margin:0} h1,h2,h3{text-wrap:balance}
+h1{font-size:1.3rem;font-weight:900;letter-spacing:-.01em;line-height:1.15}
+h2{font-size:1.2rem;font-weight:900}
+.muted{color:var(--fg-2)} .small{font-size:.9rem} .num{font-variant-numeric:tabular-nums}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.studio{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:44px;height:44px;flex:none}
+.studio small{display:block;color:var(--fg-2);font-size:.86rem;font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;font-size:.86rem;font-weight:800;white-space:nowrap;background:var(--surface-2);color:var(--fg-2)}
+.chip.dot::before{content:"";width:9px;height:9px;border-radius:50%;background:currentColor;flex:none}
+.chip.good{background:var(--good-soft);color:var(--good)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.info{background:var(--info-soft);color:var(--info)} .chip.brand{background:var(--brand-soft);color:var(--brand-deep)}
+.tabs{display:flex;gap:10px;flex-wrap:wrap}
+.tab{border:1.5px solid var(--line);background:var(--surface);color:var(--fg-2);border-radius:14px;padding:10px 16px;font:inherit;font-weight:800;cursor:pointer;display:inline-flex;gap:10px;align-items:center;box-shadow:var(--shadow)}
+.tab .code{font-size:.78rem;font-weight:800;color:var(--fg-3);background:var(--surface-2);padding:2px 8px;border-radius:999px}
+.tab[aria-selected="true"]{background:var(--brand);border-color:var(--brand);color:#fff} .tab[aria-selected="true"] .code{background:rgba(255,255,255,.18);color:#fff}
+button:focus-visible,a:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+/* home cards */
+.cards{display:flex;flex-direction:column;gap:12px}
+.cardbtn{width:100%;text-align:left;border:0;background:var(--surface);border-radius:var(--r);padding:16px 16px 16px 14px;box-shadow:var(--shadow);display:grid;grid-template-columns:48px minmax(0,1fr) 20px;gap:14px;align-items:center;cursor:pointer;font:inherit;color:inherit}
+.cardbtn:active{transform:scale(.995)}
+.cardbtn .ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:var(--surface-2);color:var(--brand)}
+.cardbtn .ic svg{width:24px;height:24px}
+.cardbtn .ic.claude{background:var(--claude-soft);color:var(--claude)} .cardbtn .ic.work{background:var(--work-soft);color:var(--work)} .cardbtn .ic.deniz{background:var(--deniz-soft);color:var(--deniz)}
+.cardbtn .ic.good{background:var(--good-soft);color:var(--good)} .cardbtn .ic.warn{background:var(--warn-soft);color:var(--warn)} .cardbtn .ic.bad{background:var(--bad-soft);color:var(--bad)}
+.cardbtn .tx{min-width:0;display:flex;flex-direction:column;gap:2px}
+.cardbtn .k{font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3)}
+.cardbtn .v{font-size:1.15rem;font-weight:900;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cardbtn .s{font-size:.9rem;color:var(--fg-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cardbtn .chev{color:var(--fg-3)} .cardbtn .chev svg{width:20px;height:20px}
+.hero{background:var(--navy-2);color:#fff;border-radius:var(--r);padding:22px 20px 20px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow)}
+.hero .k{font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
+.hero .v{font-size:1.6rem;font-weight:900;line-height:1.15}
+.hero .s{opacity:.92;font-size:1rem}
+.foot{color:var(--fg-3);font-size:.82rem;text-align:center}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(29,43,42,.38);display:none;z-index:9}
+.scrim.open{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-radius:24px 24px 0 0;box-shadow:0 -8px 40px rgba(29,43,42,.18);max-height:min(88vh,88dvh);display:none;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+.sheet.open{display:flex}
+.sheet .grab{width:44px;height:5px;border-radius:999px;background:var(--line);margin:10px auto 6px}
+.sheet header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 4px 12px}
+.sheet .close{border:0;background:var(--surface-2);color:var(--fg);width:40px;height:40px;border-radius:50%;font:inherit;font-weight:900;font-size:1.1rem;cursor:pointer}
+.sheet .body{overflow:auto;padding:0 4px 8px;display:flex;flex-direction:column;gap:14px;min-width:0}
+@media (min-width:760px){.sheet{left:50%;right:auto;transform:translateX(-50%);width:680px;border-radius:24px;bottom:24px;max-height:84vh;padding-left:20px;padding-right:20px;padding-bottom:20px}}
+/* detail blocks */
+.block{background:var(--surface-2);border-radius:var(--r-s);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.block .t{font-weight:900} .block .d{color:var(--fg-2);font-size:.95rem}
+.who{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.person{display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;border-radius:999px;background:var(--surface-2);font-weight:800;color:var(--fg-2);font-size:.95rem}
+.person .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.9rem}
+.av.claude{background:var(--claude-soft);color:var(--claude)} .av.work{background:var(--work-soft);color:var(--work)} .av.deniz{background:var(--deniz-soft);color:var(--deniz)} .av.ci{background:var(--surface-2);color:var(--fg-2)}
+.person.active{background:var(--brand-soft);color:var(--brand-ink);outline:2px solid var(--brand)}
+.arrow{color:var(--fg-3);font-weight:900}
+.path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.step{display:flex;flex-direction:column;gap:6px;min-width:0}
+.bar{height:10px;border-radius:999px;background:var(--surface-2);position:relative;overflow:hidden} .bar i{position:absolute;inset:0;border-radius:999px;background:var(--line)}
+.step.pass .bar i{background:var(--good)} .step.partial .bar i{background:linear-gradient(90deg,var(--good) 0 60%,var(--warn) 60% 100%)} .step.active .bar i{background:var(--brand)} .step.blocked .bar i{background:var(--bad)}
+.step .lbl{font-size:.84rem;font-weight:800;color:var(--fg-2);line-height:1.25} .step .st{font-size:.8rem;font-weight:800}
+.step.pass .st{color:var(--good)} .step.partial .st{color:var(--warn)} .step.active .st{color:var(--brand)} .step.blocked .st{color:var(--bad)} .step.pending .st{color:var(--fg-3)}
+.results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.res{border-radius:var(--r-s);padding:14px;display:flex;flex-direction:column;gap:4px;background:var(--surface-2);min-width:0}
+.res .k{font-size:.82rem;font-weight:800;color:var(--fg-2)} .res .v{font-size:1.5rem;font-weight:900;line-height:1.1} .res .e{font-size:.84rem;color:var(--fg-2)}
+.res.good{background:var(--good-soft)} .res.good .v{color:var(--good)} .res.warn{background:var(--warn-soft)} .res.warn .v{color:var(--warn)} .res.bad{background:var(--bad-soft)} .res.bad .v{color:var(--bad)}
+.row{display:flex;gap:12px;align-items:flex-start}
+.row .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--surface-2)} .row .ic svg{width:20px;height:20px}
+.row .tt{font-weight:800} .row .dd{color:var(--fg-2);font-size:.92rem}
+.feed{display:flex;flex-direction:column;gap:12px}
+.msg{display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px}
+.msg .av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.9rem;align-self:start}
+.bubble{background:var(--surface-2);border-radius:14px;border-top-left-radius:4px;padding:10px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.msg.claude .bubble{background:var(--claude-soft)} .msg.work .bubble{background:var(--work-soft)} .msg.deniz .bubble{background:var(--deniz-soft)}
+.bubble .h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap} .bubble .h b{font-weight:900} .bubble .h .k{font-size:.8rem;font-weight:800;color:var(--fg-2)} .bubble .h time{font-size:.78rem;color:var(--fg-3);margin-left:auto}
+.bubble .m{font-size:.93rem;overflow-wrap:anywhere}
+.empty{padding:22px 14px;text-align:center;color:var(--fg-3);border:2px dashed var(--line);border-radius:var(--r-s)}
+.detail{font-size:.86rem;color:var(--fg-3)} .detail a,a{color:var(--brand-deep);font-weight:800}
+dl.terms{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;font-size:.95rem;margin:0}
+dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms dd{margin:0;color:var(--fg-2)}
+/* charts */
+.hero{flex-direction:row;align-items:center;gap:16px}
+.hero .txt{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.ring{width:92px;height:92px;flex:none}
+.ring text{font-family:var(--sans);font-weight:900;fill:#fff}
+.strip{background:var(--surface);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+.strip .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.strip .hd b{font-weight:900} .strip .hd span{font-size:.84rem;color:var(--fg-3)}
+.tl{width:100%;height:auto;display:block}
+.tl .tick{stroke:var(--line);stroke-width:1.5} .tl .lab{font-family:var(--sans);font-size:20px;fill:var(--fg-2);font-weight:800}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--fg-2);font-weight:700}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:6px}
+.legend i.claude{background:#d99a1e} .legend i.work{background:var(--work)} .legend i.wait{background:repeating-linear-gradient(135deg,var(--line) 0 3px,var(--surface-2) 3px 6px)}
+.hist{overflow-x:auto} .hist table{border-collapse:separate;border-spacing:6px 6px;font-size:.84rem;min-width:100%}
+.hist th{font-weight:800;color:var(--fg-2);text-align:left;white-space:nowrap;padding:0 4px} .hist thead th{font-size:.72rem;color:var(--fg-3);text-align:center;vertical-align:bottom;line-height:1.15}
+.hist td{text-align:center;padding:0} .cell{display:inline-grid;place-items:center;width:34px;height:30px;border-radius:9px;font-weight:900;font-size:.9rem;background:var(--surface-2);color:var(--fg-3)}
+.cell.good{background:var(--good-soft);color:var(--good)} .cell.warn{background:var(--warn-soft);color:var(--warn)} .cell.bad{background:var(--bad-soft);color:var(--bad)}
+@media (max-width:420px){.ring{width:78px;height:78px}}
+@media (prefers-reduced-motion:no-preference){.chip.good.dot::before{animation:beat 2.6s ease-in-out infinite}@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}}
+</style>
+
+<div class="wrap">
+  <div class="band">
+    <img src="logo.webp" alt="Oryvona Games" width="240" height="135">
+    <div class="meta"><span class="sub">Stüdyo paneli · ekip içi</span><span class="chip dot onnavy" id="fresh">Bağlanıyor…</span></div>
+  </div>
+
+  <div class="tabs" id="tabs" role="tablist" aria-label="Projeler"><span class="muted small">Projeler yükleniyor…</span></div>
+
+  <div class="hero" id="hero">
+    <div class="txt">
+      <span class="k">Şu an</span>
+      <span class="v" id="heroV">Veri bekleniyor</span>
+      <span class="s" id="heroS">Projenin durumu ilk güncellemeyle burada görünür.</span>
+    </div>
+    <svg class="ring" id="ring" viewBox="0 0 100 100" role="img" aria-label="Aşama ilerlemesi"></svg>
+  </div>
+  <div class="strip" id="strip" hidden>
+    <div class="hd"><b>Son 24 saat · kim çalıştı</b><span id="stripSub"></span></div>
+    <svg class="tl" id="tl" viewBox="0 0 600 58" role="img" aria-label="Son 24 saatte sıra kimdeydi"></svg>
+    <div class="legend"><span><i class="claude"></i>Claude</span><span><i class="work"></i>OpenAI</span><span><i class="wait"></i>Bekleme</span></div>
+  </div>
+
+  <div class="cards">
+    <button class="cardbtn" type="button" data-sheet="turn"><span class="ic" id="icTurn"></span><span class="tx"><span class="k">Sıra kimde</span><span class="v" id="cTurn">—</span><span class="s" id="cTurnS"></span></span><span class="chev"></span></button>
+    <button class="cardbtn" type="button" data-sheet="stage"><span class="ic" id="icStage"></span><span class="tx"><span class="k">Oyun nerede</span><span class="v" id="cStage">—</span><span class="s" id="cStageS"></span></span><span class="chev"></span></button>
+    <button class="cardbtn" type="button" data-sheet="qa"><span class="ic" id="icQa"></span><span class="tx"><span class="k">Son test</span><span class="v" id="cQa">—</span><span class="s" id="cQaS"></span></span><span class="chev"></span></button>
+    <button class="cardbtn" type="button" data-sheet="auto"><span class="ic" id="icAuto"></span><span class="tx"><span class="k">Otomasyon</span><span class="v" id="cAuto">—</span><span class="s" id="cAutoS"></span></span><span class="chev"></span></button>
+    <button class="cardbtn" type="button" data-sheet="worknote" id="cardWork" hidden><span class="ic work" id="icWork"></span><span class="tx"><span class="k">OpenAI'dan son not</span><span class="v" id="cWork">—</span><span class="s" id="cWorkS"></span></span><span class="chev"></span></button>
+    <button class="cardbtn" type="button" data-sheet="feed"><span class="ic" id="icFeed"></span><span class="tx"><span class="k">Ekip akışı</span><span class="v" id="cFeed">—</span><span class="s" id="cFeedS"></span></span><span class="chev"></span></button>
+    <button class="cardbtn" type="button" data-sheet="terms"><span class="ic" id="icTerms"></span><span class="tx"><span class="k">Yardım</span><span class="v">Terimler ve roller</span><span class="s">Claude, OpenAI, sıra, engel ne demek?</span></span><span class="chev"></span></button>
+  </div>
+  <p class="foot" id="footNote">Oryvona Games · ekip içi</p>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="grab"></div>
+  <header><h2 id="sheetTitle">Ayrıntı</h2><button class="close" type="button" id="sheetClose" aria-label="Kapat">×</button></header>
+  <div class="body" id="sheetBody"></div>
+</section>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const I={clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+    cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 18a4 4 0 0 1-.6-7.95A6 6 0 0 1 18 9a4.5 4.5 0 0 1-1 8.9z"/></svg>',
+    flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-1.5 3.5L16 11H5"/></svg>',
+    check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>',
+    chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+    help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>',
+    user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+    chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>'};
+  document.querySelectorAll(".chev").forEach(e=>e.innerHTML=I.chev);
+  $("icTerms").innerHTML=I.help;$("icFeed").innerHTML=I.chat;$("icWork").innerHTML=I.bolt;$("icStage").innerHTML=I.flag;$("icQa").innerHTML=I.check;$("icAuto").innerHTML=I.clock;$("icTurn").innerHTML=I.user;
+  const TURN={READY_CLAUDE:{v:"Claude",s:"Görev bekliyor",text:"Claude görevi almak için bekliyor. 20 dakikalık kontrol sırayı görünce işe başlar.",who:"claude"},
+    CLAUDE_WORKING:{v:"Claude çalışıyor",s:"Görev yapılıyor",text:"Claude görevi yapıyor; bitince GitHub'a gönderip sırayı OpenAI'a verir.",who:"claude"},
+    READY_WORK:{v:"OpenAI",s:"İnceleme bekliyor",text:"Claude teslimini gönderdi. OpenAI bulut testinin bitmesini ve kanıtı incelemeyi bekliyor.",who:"work"},
+    WORK_WORKING:{v:"OpenAI inceliyor",s:"Kanıt inceleniyor",text:"OpenAI bulut test kanıtını inceliyor; bitince sonraki görevi yazıp sırayı Claude'a bırakır.",who:"work"},
+    BLOCKED:{v:"Engel var",s:"Oyun hatası değil",text:"Bir altyapı ya da erişim engeli kaydedildi; oyun hatası değil.",who:""},
+    USER_TEST_READY:{v:"Deniz",s:"Son test senin",text:"Zorunlu testlerin hepsi geçti. Deniz son oyuncu testini yapar; APK kararı sonra.",who:"deniz"}};
+  const PEOPLE=[["claude","Claude","C"],["work","OpenAI","O"],["deniz","Deniz","D"]];
+  const NAME={claude:"Claude",work:"OpenAI",deniz:"Deniz",ci:"GitHub"};
+  const STATE_TR={READY_CLAUDE:"sıra Claude'da",CLAUDE_WORKING:"Claude çalışıyor",READY_WORK:"sıra OpenAI'da",WORK_WORKING:"OpenAI inceliyor",BLOCKED:"engel",USER_TEST_READY:"Deniz testi"};
+  const VERB_TR={claim:"işe başladı",release:"sırayı devretti",resume:"devam etti",run:"otomatik kontrol"};
+  const kindTr=e=>{const to=(e.kindTr||"").split("→").pop().trim();return (VERB_TR[e.kind]||e.kindTr||e.kind||"")+(STATE_TR[to]?" · "+STATE_TR[to]:"");};
+  const fmt=iso=>{if(!iso)return"—";const d=new Date(iso);if(isNaN(d))return String(iso);return d.toLocaleString("tr-TR",{day:"2-digit",month:"long",hour:"2-digit",minute:"2-digit"});};
+  const ago=iso=>{const ms=Date.now()-new Date(iso).getTime();if(!isFinite(ms))return"";const m=Math.round(ms/60000);if(m<1)return"az önce";if(m<60)return m+" dk önce";const h=Math.floor(m/60);if(h<24)return h+" sa önce";return Math.floor(h/24)+" gün önce";};
+  let status=null,feedDocs=[],runsDocs=[],openSheet=null;
+  // Progress ring: stage statuses as a donut (status colors + labelled centre; details in the stage sheet).
+  function renderRing(stages){const svg=$("ring");const n=stages.length;if(!n){svg.innerHTML="";return;}
+    const C={PASS:"#5fd48c",PARTIAL:"#f0b429",ACTIVE:"#22c3ee",BLOCKED:"#ff8a8a",PENDING:"rgba(255,255,255,.18)"};
+    const r=40,cx=50,cy=50,circ=2*Math.PI*r,seg=circ/n,gap=3;let out="",off=0;
+    for(const g of stages){out+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C[g.status]||C.PENDING}" stroke-width="11" stroke-dasharray="${Math.max(0,seg-gap)} ${circ-Math.max(0,seg-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"><title>${esc(g.title)}: ${esc(g.statusTr||g.status)}</title></circle>`;off+=seg;}
+    const done=stages.filter(g=>g.status==="PASS").length;
+    out+=`<text x="50" y="47" text-anchor="middle" font-size="22">${done}/${n}</text><text x="50" y="64" text-anchor="middle" font-size="9" opacity=".85">aşama geçti</text>`;svg.innerHTML=out;}
+  // Turn timeline: who held the turn over a window, built only from real claim/release events.
+  function segments(hours){const now=Date.now(),start=now-hours*3600e3;const ev=[...feedDocs].map(d=>d.data()).filter(e=>["claim","release","resume"].includes(e.kind)).sort((a,b)=>new Date(a.at)-new Date(b.at));
+    const segs=[];let cur=null;
+    for(const e of ev){const t=new Date(e.at).getTime();
+      if(e.kind==="claim"){if(cur&&cur.kind==="wait"){cur.end=t;segs.push(cur);}cur={kind:"work",actor:e.actor,start:t,text:e.text};}
+      else{if(cur&&cur.kind==="work"){cur.end=t;cur.text=e.text||cur.text;segs.push(cur);}const to=(e.kindTr||"").split("→").pop().trim();cur={kind:"wait",actor:to.includes("CLAUDE")?"claude":to.includes("WORK")?"work":"",start:t,text:"Bekleme: "+to};}}
+    if(cur){cur.end=now;segs.push(cur);}
+    return {start,now,segs:segs.filter(s=>s.end>start).map(s=>({...s,start:Math.max(s.start,start)}))};}
+  function renderTimeline(svgId,hours){const svg=$(svgId);if(!svg)return;const {start,now,segs}=segments(hours);const W=600,H=58,y=4,h=24;const x=t=>(t-start)/(now-start)*W;
+    let out=`<defs><pattern id="hatch-${svgId}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(135)"><rect width="6" height="6" fill="#eeedf3"/><rect width="3" height="6" fill="#dddbe6"/></pattern></defs><rect x="0" y="${y}" width="${W}" height="${h}" rx="6" fill="#eeedf3"/>`;
+    for(const s of segs){const x0=x(s.start),w=Math.max(1.5,x(s.end)-x0);const fill=s.kind==="work"?(s.actor==="claude"?"#d99a1e":"#2f7be0"):`url(#hatch-${svgId})`;
+      const mins=Math.round((s.end-s.start)/60000);const who=s.kind==="work"?(NAME[s.actor]||s.actor)+" çalıştı":s.text;
+      out+=`<rect x="${x0.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${h}" rx="4" fill="${fill}"><title>${esc(who)} · ${esc(fmt(new Date(s.start).toISOString()))} · ${mins} dk</title></rect>`;}
+    const step=hours<=24?6:24;for(let k=0;k<=hours;k+=step){const t=now-(hours-k)*3600e3,px=x(t);const d=new Date(t);
+      out+=`<line class="tick" x1="${px}" y1="${y+h}" x2="${px}" y2="${y+h+5}"/><text class="lab" x="${Math.min(W-24,Math.max(24,px))}" y="${H-3}" text-anchor="middle" font-size="15">${hours<=24?(k===hours?"şimdi":d.getHours().toString().padStart(2,"0")+":00"):(k===hours?"şimdi":d.getDate()+" "+["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"][d.getMonth()])}</text>`;}
+    svg.innerHTML=out;
+    if(svgId==="tl"){const strip=$("strip");strip.hidden=segs.length===0;const worked=segs.filter(s=>s.kind==="work");const c=worked.filter(s=>s.actor==="claude").reduce((a,s)=>a+s.end-s.start,0),w=worked.filter(s=>s.actor==="work").reduce((a,s)=>a+s.end-s.start,0);
+      $("stripSub").textContent=`${worked.length} tur · Claude ${Math.round(c/60000)} dk · OpenAI ${Math.round(w/60000)} dk`;}}
+  // Test history: one column per cloud run, one row per test; glyph + colour, never colour alone.
+  function historyTable(){const runs=[...runsDocs].map(d=>d.data()).sort((a,b)=>(a.startedAt||"")<(b.startedAt||"")?-1:1);if(!runs.length)return '<div class="empty">Koşu geçmişi yok.</div>';
+    const rows=[["Kod",r=>r.code===99?"PASS":r.code!=null?"FAIL":null],["Tarayıcı",r=>r.suites?.baseline?.status||null],["Oynanış",r=>r.suites?.natural?.status||null],["Sekme / çıkış",r=>r.suites?.lifecycle?.status||null]];
+    const G={PASS:["✓","good","geçti"],BLOCKED:["!","warn","engel"],FAIL:["×","bad","hata"]};
+    let t='<div class="hist"><table><thead><tr><th></th>'+runs.map(r=>`<th title="${esc(r.run_id)}">${r.startedAt?esc(fmt(r.startedAt).replace(/ \d{2}:\d{2}$/,""))+"<br>"+esc(fmt(r.startedAt).slice(-5)):esc(r.label||r.run_id)}</th>`).join("")+'</tr></thead><tbody>';
+    for(const [name,get] of rows){t+=`<tr><th>${name}</th>`+runs.map(r=>{const s=get(r);const g=s?G[s]:null;return `<td><span class="cell ${g?g[1]:""}" title="${esc(r.label||r.run_id)}: ${g?g[2]:"koşmadı"}">${g?g[0]:"–"}</span></td>`;}).join("")+'</tr>';}
+    t+='</tbody></table></div>';const last=runs[runs.length-1];return t+(last?.note?`<p class="muted small">Son koşu: ${esc(last.note)}</p>`:"");}
+  function freshness(){const el=$("fresh");if(!status){el.className="chip dot onnavy";el.textContent="Veri yok";return;}
+    const m=(Date.now()-new Date(status.updatedAt).getTime())/60000;
+    if(m<25){el.className="chip dot onnavy good";el.textContent="Canlı · "+ago(status.updatedAt);}else if(m<60){el.className="chip dot onnavy warn";el.textContent="Gecikti · "+ago(status.updatedAt);}else{el.className="chip dot onnavy bad";el.textContent="Güncel değil · "+ago(status.updatedAt);}}
+  const stageCls=g=>g.status==="PASS"?"pass":g.status==="PARTIAL"?"partial":g.status==="ACTIVE"?"active":g.status==="BLOCKED"?"blocked":"pending";
+  function liveClaude(s){const ct=s?.automation?.claudeTask||{};return ct.lastRunAt&&(Date.now()-new Date(ct.lastRunAt).getTime())<40*60000;}
+  function qaSummary(q){const parts=[q.code_passed===99,q.browser_passed===45,q.natural_passed===33,q.lifecycle_status==="PASS"];const ok=parts.filter(Boolean).length;
+    const blocked=q.lifecycle_status==="BLOCKED";return {ok,total:4,blocked,fail:q.lifecycle_status==="FAIL"||[q.code_passed,q.browser_passed,q.natural_passed].some(v=>v!=null&&v<99&&false)};}
+  function renderHome(s){
+    const h=s.handoff||{},t=TURN[h.status]||{v:h.status||"—",s:"",text:"",who:""};
+    $("heroV").textContent=t.v==="Claude"||t.v==="OpenAI"?"Sıra "+t.v+"'"+"da":t.v;$("heroS").textContent=s.summaryTr||t.text;
+    $("cTurn").textContent=t.v;$("cTurnS").textContent=t.s+(h.lease?` · ${ago(h.lease.claimed_at)} başladı`:"");$("icTurn").className="ic "+(t.who||"");
+    const active=(s.stages||[]).find(g=>["PARTIAL","ACTIVE","BLOCKED"].includes(g.status))||(s.stages||[]).filter(g=>g.status==="PASS").pop();
+    $("cStage").textContent=active?active.title:(s.phaseTr||"—");$("cStageS").textContent=active?`${active.id} · ${active.statusTr||active.status}`:"";
+    $("icStage").className="ic "+(active?({PASS:"good",PARTIAL:"warn",BLOCKED:"bad"}[active.status]||""):"");
+    const q=s.lastQa||{},qs=qaSummary(q);
+    $("cQa").textContent=q.run_id?`${qs.ok}/${qs.total} geçti`:"Henüz yok";$("cQaS").textContent=q.run_id?(qs.blocked?"1 testte altyapı engeli":qs.ok===qs.total?"Hepsi geçti":"Bekleyen var"):"";
+    $("icQa").className="ic "+(q.run_id?(qs.fail?"bad":qs.blocked?"warn":"good"):"");
+    const live=liveClaude(s),ct=s.automation?.claudeTask||{};
+    $("cAuto").textContent=live?"Çalışıyor":"Beklemede";$("cAutoS").textContent=ct.lastRunAt?`Son kontrol ${ago(ct.lastRunAt)}`:"Henüz çalışmadı";$("icAuto").className="ic "+(live?"good":"warn");
+    $("footNote").textContent=`Oryvona Games · ekip içi · son güncelleme ${fmt(s.updatedAt)}`;
+    renderRing(s.stages||[]);
+    const wn=s.workNote;$("cardWork").hidden=!(wn&&wn.textTr);
+    if(wn&&wn.textTr){$("cWork").textContent=wn.titleTr||wn.textTr;$("cWorkS").textContent=`${ago(wn.at)}${wn.titleTr?" · "+wn.textTr:""}`;}
+  }
+  function renderFeedCard(){const e=feedDocs[0]?.data();if(!e){$("cFeed").textContent="Henüz kayıt yok";$("cFeedS").textContent="";return;}
+    $("cFeed").textContent=`${NAME[e.actor]||e.actor} ${kindTr(e)}`;$("cFeedS").textContent=`${ago(e.at)} · dokunup ayrıntıyı gör`;}
+  // sheets
+  function sheetTurn(s){const h=s.handoff||{},t=TURN[h.status]||{text:"",who:""};
+    let who='<div class="who">';PEOPLE.forEach(([id,name,ini],i)=>{if(i)who+='<span class="arrow">›</span>';who+=`<span class="person ${t.who===id?"active":""}"><span class="av ${id}">${ini}</span>${name}</span>`;});who+='</div>';
+    return `<p>${esc(t.text)}</p>${who}<div class="block"><span class="t">${esc(s.taskTitleTr||h.task_id||"Görev yok")}</span><span class="d">${esc(s.taskTextTr||"")}</span><span class="detail">${h.task_id?`Görev kodu ${esc(h.task_id)} · tur ${esc(h.turn??"—")}`:""}${h.lease?` · kilit: ${esc(NAME[h.lease.actor]||h.lease.actor)}, ${esc(fmt(h.lease.claimed_at))}`:" · kilit boş"}</span></div>`;}
+  function sheetStage(s){let path='<div class="path">';for(const g of (s.stages||[])){const c=stageCls(g);path+=`<div class="step ${c}"><div class="bar"><i></i></div><div class="lbl">${esc(g.title)}</div><div class="st">${esc(g.statusTr||g.status||"")}</div></div>`;}path+='</div>';
+    const notes=(s.stages||[]).filter(g=>g.note).map(g=>`<div class="block"><span class="t">${esc(g.id)} · ${esc(g.title)}</span><span class="d">${esc(g.note)}</span></div>`).join("");
+    return `<p class="muted">${esc(s.lineSubTr||"")}</p>${path}${notes}`;}
+  function sheetQa(s){const q=s.lastQa||{},repoUrl=s.repo?.url||"";
+    const res=(k,v,e,cls)=>`<div class="res ${cls}"><span class="k">${k}</span><span class="v num">${esc(v)}</span><span class="e">${e}</span></div>`;const lc=q.lifecycle_status;
+    return `<div class="results">${res("Kod testleri",q.code_passed!=null?`${q.code_passed}/99`:"—",q.code_passed===99?"Hepsi geçti":"Bekleniyor",q.code_passed===99?"good":"")}
+      ${res("Tarayıcı testleri",q.browser_passed!=null?`${q.browser_passed}/45`:"—",q.browser_passed===45?"Hepsi geçti":"Bekleniyor",q.browser_passed===45?"good":"")}
+      ${res("Gerçek oynanış",q.natural_passed!=null?`${q.natural_passed}/33`:"—",q.natural_passed===33?"6 dalga tamam":"Bekleniyor",q.natural_passed===33?"good":"")}
+      ${res("Sekme / Turu bitir",lc==="PASS"?"Geçti":lc==="BLOCKED"?"Engel":lc==="FAIL"?"Hata":"—",lc==="BLOCKED"?"Altyapı sınırı, oyun hatası değil":lc==="PASS"?"Hepsi geçti":lc==="FAIL"?"Gerçek bir sorun bulundu":"Henüz koşmadı",lc==="PASS"?"good":lc==="BLOCKED"?"warn":lc==="FAIL"?"bad":"")}</div>
+      ${q.limitsTr?`<p class="muted">${esc(q.limitsTr)}</p>`:""}<div class="detail">${q.run_id?`Koşu kaydı: ${repoUrl?`<a href="${esc(repoUrl)}/actions/runs/${esc(q.run_id)}" target="_blank" rel="noopener">${esc(q.run_id)}</a>`:esc(q.run_id)}`:"Henüz bulut koşusu yok."}${q.source_commit?` · kaynak ${esc(q.source_commit.slice(0,7))}`:""}</div>
+      <h2 style="font-size:1rem;margin-top:6px">Koşu geçmişi</h2>${historyTable()}`;}
+  function sheetAuto(s){const a=s.automation||{},ct=a.claudeTask||{},ww=a.workWebhook||{},live=liveClaude(s),repo=s.repo||{},hd=s.head||{};
+    return `<div class="row"><div class="ic" style="color:var(--claude)">${I.clock}</div><div><div class="tt">Claude kontrolü <span class="chip ${live?"good":"warn"}">${live?"çalışıyor":"beklemede"}</span></div><div class="dd">Her ${esc(ct.intervalMin||20)} dakikada GitHub'a bakar, sıra Claude'daysa görevi yapar. Son çalışma: ${esc(fmt(ct.lastRunAt))}${ct.lastResult?` — ${esc(ct.lastResult)}`:""}</div></div></div>
+      <div class="row"><div class="ic" style="color:var(--work)">${I.bolt}</div><div><div class="tt">OpenAI uyandırma <span class="chip ${ww.enabled?"good":"warn"}">${ww.enabled?"etkin":"kapalı"}</span></div><div class="dd">Claude GitHub'a gönderince OpenAI kendiliğinden uyanır. Son OpenAI hareketi: ${esc(fmt(ww.lastSeenAt))}</div></div></div>
+      <div class="row"><div class="ic" style="color:var(--cyan)">${I.cloud}</div><div><div class="tt">Bulut testleri</div><div class="dd">Her gönderimde GitHub otomatik test koşar.</div></div></div>
+      <div class="detail">${repo.url?`Depo: <a href="${esc(repo.prUrl||repo.url)}" target="_blank" rel="noopener">${esc(repo.name||repo.url)}</a>`:""}${hd.commit?` · son gönderim ${esc(fmt(hd.at))} (<a href="${esc(repo.url||"")}/commit/${esc(hd.commit)}" target="_blank" rel="noopener">${esc(hd.commit.slice(0,7))}</a>)`:""}</div>
+      <h2 style="font-size:1rem;margin-top:6px">Son 3 gün · sıra kimdeydi</h2><svg class="tl" id="tl3" viewBox="0 0 600 58" role="img" aria-label="Son üç günde sıra kimdeydi"></svg>
+      <div class="legend"><span><i class="claude"></i>Claude çalıştı</span><span><i class="work"></i>OpenAI çalıştı</span><span><i class="wait"></i>Bekleme</span></div>`;}
+  function sheetFeed(){if(!feedDocs.length)return '<div class="empty">Henüz akış kaydı yok.</div>';let out='<div class="feed">';
+    for(const d of feedDocs){const e=d.data();const who=e.actor||"ci";const ini=who==="ci"?"GH":(NAME[who]||who).slice(0,1);
+      out+=`<div class="msg ${esc(who)}"><div class="av ${esc(who)}">${esc(ini)}</div><div class="bubble"><div class="h"><b>${esc(NAME[who]||who)}</b><span class="k">${esc(kindTr(e))}</span><time datetime="${esc(e.at)}">${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;}
+    return out+'</div>';}
+  const TERMS=`<dl class="terms"><dt>Claude</dt><dd>Kaynak mühendisi. Testleri ve yamaları yazar, GitHub'a gönderir.</dd><dt>OpenAI</dt><dd>Bağımsız kalite kontrol (ChatGPT). Bulut testinin ham kanıtını inceler, sonraki görevi yazar.</dd><dt>Deniz</dt><dd>Stüdyo sahibi. Zorunlu testler bitince son oyuncu testini yapar; yayın ve APK kararı onda.</dd><dt>Sıra</dt><dd>Aynı anda tek kişi çalışır; sıra kimdeyse diğerleri bekler, dosyalar çakışmaz.</dd><dt>Engel</dt><dd>Oyun hatası değil; altyapı ya da erişim sınırı. Kanıtıyla kaydedilir.</dd><dt>Testler</dt><dd>Kod birim testleri · sabit senaryolu tarayıcı testi · gerçek tuşlarla 6 dalga · sekme değiştirme, Turu bitir, tekrar oyna.</dd></dl>`;
+  function sheetWork(){const wn=status?.workNote;const notes=feedDocs.map(d=>d.data()).filter(e=>e.actor==="work"&&e.kind==="note");
+    let out=wn&&wn.textTr?`<div class="block"><span class="t">${esc(wn.titleTr||"OpenAI'nin notu")}</span><span class="d">${esc(wn.textTr)}</span><span class="detail">${esc(fmt(wn.at))}${wn.run_id?` · koşu ${esc(wn.run_id)}`:""}</span></div>`:'<div class="empty">OpenAI henüz not bırakmadı.</div>';
+    if(notes.length>1){out+='<h2 style="font-size:1rem;margin-top:6px">Önceki notlar</h2><div class="feed">';for(const e of notes.slice(1))out+=`<div class="msg work"><div class="av work">W</div><div class="bubble"><div class="h"><b>OpenAI</b><time datetime="${esc(e.at)}">${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;out+='</div>';}
+    return out+'<p class="detail">OpenAI (ChatGPT) her incelemeden sonra depoya kısa bir Türkçe not bırakır; Claude\'un 20 dakikalık kontrolü notu buraya taşır.</p>';}
+  const SHEETS={worknote:["OpenAI'dan son not",sheetWork],turn:["Sıra kimde",()=>status?sheetTurn(status):'<div class="empty">Veri yok.</div>'],stage:["Oyun nerede",()=>status?sheetStage(status):'<div class="empty">Veri yok.</div>'],
+    qa:["Son bulut testi",()=>status?sheetQa(status):'<div class="empty">Veri yok.</div>'],auto:["Otomasyon",()=>status?sheetAuto(status):'<div class="empty">Veri yok.</div>'],feed:["Ekip akışı",sheetFeed],terms:["Terimler ve roller",()=>TERMS]};
+  function show(key){openSheet=key;const [title,body]=SHEETS[key];$("sheetTitle").textContent=title;$("sheetBody").innerHTML=body();if(key==="auto")renderTimeline("tl3",72);$("sheet").classList.add("open");$("scrim").classList.add("open");$("sheetClose").focus();}
+  function hide(){openSheet=null;$("sheet").classList.remove("open");$("scrim").classList.remove("open");}
+  function refreshSheet(){if(openSheet){$("sheetBody").innerHTML=SHEETS[openSheet][1]();if(openSheet==="auto")renderTimeline("tl3",72);}}
+  document.querySelectorAll(".cardbtn").forEach(b=>b.addEventListener("click",()=>show(b.dataset.sheet)));
+  $("scrim").addEventListener("click",hide);$("sheetClose").addEventListener("click",hide);document.addEventListener("keydown",e=>{if(e.key==="Escape")hide();});
+  setInterval(()=>{freshness();if(status)renderHome(status);renderTimeline("tl",24);},60000);
+  // Data layer: Supabase Postgres + Realtime. projects / project_status / events / runs tables.
+  const CFG=window.ORYVONA||{};
+  let sb=null,current=null,channel=null;
+  const asDoc=row=>({id:row.id,data:()=>row});
+  function remember(id){try{localStorage.setItem("oryvona.project",id);}catch{}} function recall(){try{return localStorage.getItem("oryvona.project");}catch{return null;}}
+  function applyStatus(row){if(row&&row.data){status=row.data;freshness();renderHome(status);}else{status=null;freshness();$("heroV").textContent="Henüz kayıt yok";$("heroS").textContent="Bu proje için durum verisi gelince burada görünür.";}refreshSheet();}
+  async function loadAll(id){
+    const [st,ev,rn]=await Promise.all([
+      sb.from("project_status").select("data,updated_at").eq("project_id",id).maybeSingle(),
+      sb.from("events").select("*").eq("project_id",id).order("at",{ascending:false}).limit(60),
+      sb.from("runs").select("run_id,data,started_at").eq("project_id",id).order("started_at",{ascending:true,nullsFirst:true}).limit(60)]);
+    if(st.error||ev.error||rn.error){console.error(st.error||ev.error||rn.error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
+    feedDocs=(ev.data||[]).map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));
+    runsDocs=(rn.data||[]).map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));
+    renderFeedCard();renderTimeline("tl",24);applyStatus(st.data);
+  }
+  function select(id){
+    if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];freshness();
+    document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.id===id)));
+    if(channel){sb.removeChannel(channel);channel=null;}
+    loadAll(id);
+    // One channel per project: any change to its rows reloads that project's data.
+    channel=sb.channel("panel-"+id)
+      .on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id))
+      .on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id))
+      .on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id))
+      .subscribe(state=>{if(state==="CHANNEL_ERROR"||state==="TIMED_OUT")console.warn("realtime",state);});
+  }
+  function renderTabs(list){const t=$("tabs");t.innerHTML="";
+    if(!list.length){t.innerHTML='<span class="muted small">Henüz proje yok.</span>';return;}
+    for(const p of list){const b=document.createElement("button");b.className="tab";b.type="button";b.setAttribute("role","tab");b.dataset.id=p.id;b.innerHTML=`${esc(p.name||p.id)}${p.code?` <span class="code">${esc(p.code)}</span>`:""}`;b.addEventListener("click",()=>select(p.id));t.appendChild(b);}
+    const want=recall();select(list.some(p=>p.id===want)?want:list[0].id);}
+  (async()=>{
+    if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Veri kaynağı ayarlı değil";$("tabs").innerHTML="";return;}
+    sb=window.supabase.createClient(CFG.url,CFG.anonKey,{realtime:{params:{eventsPerSecond:5}}});
+    const {data,error}=await sb.from("projects").select("id,name,code,sort_order").order("sort_order",{ascending:true});
+    if(error){console.error(error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
+    renderTabs(data||[]);
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&current)loadAll(current);});
+  })();
+})();
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "Oryvona Games Paneli",
+  "short_name": "Oryvona",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#12112e",
+  "theme_color": "#12112e",
+  "icons": [
+    {
+      "src": "logo.webp",
+      "sizes": "1664x936",
+      "type": "image/webp"
+    }
+  ]
+}
