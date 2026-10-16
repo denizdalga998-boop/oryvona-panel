@@ -390,7 +390,10 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
     teamCard.hidden=!isOwner;$("cTeam").textContent=`${team.length} kişi`;refreshSheet();}
   function sheetTeam(){if(!isOwner)return '<div class="empty">Bu bölüm yalnız stüdyo sahibine açık.</div>';
     const me=(session?.user?.email||"").toLowerCase();
-    let out=`<p class="muted">Listedeki e-postalar panele girebilir. Herhangi bir e-posta sağlayıcısı olur.</p><form id="teamForm" style="display:flex;gap:8px;flex-wrap:wrap"><input id="teamEmail" type="email" required placeholder="yeni@ekip.com" style="flex:1;min-width:200px;font:inherit;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line)"><input id="teamName" placeholder="Ad (isteğe bağlı)" style="flex:1;min-width:140px;font:inherit;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line)"><button type="submit" style="font:inherit;font-weight:900;padding:10px 16px;border-radius:12px;border:0;background:var(--brand);color:#fff;cursor:pointer">Ekle</button></form><div id="teamMsg" class="detail"></div><div class="feed">`;
+    let out=`<div class="block"><span class="t">Davet bağlantısı</span><span class="d">Bağlantıyı gönderdiğin kişi kendi e-postasıyla girer; bağlantı bir kez kullanılır ve süresi dolunca çalışmaz.</span>
+      <form id="inviteForm" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><select id="inviteHours" style="font:inherit;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line)"><option value="1">1 saat</option><option value="24" selected>1 gün</option><option value="168">7 gün</option></select><input id="inviteEmail" type="email" placeholder="Sadece bu e-posta (isteğe bağlı)" style="flex:1;min-width:200px;font:inherit;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line)"><button type="submit" style="font:inherit;font-weight:900;padding:10px 16px;border-radius:12px;border:0;background:var(--brand);color:#fff;cursor:pointer">Bağlantı oluştur</button></form>
+      <div id="inviteOut" hidden style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px"><input id="inviteLink" readonly style="flex:1;min-width:220px;font:inherit;font-size:.85rem;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface)"><button type="button" id="inviteCopy" style="font:inherit;font-weight:900;padding:10px 14px;border-radius:12px;border:0;background:var(--sun);color:#12112e;cursor:pointer">Kopyala</button></div><div id="inviteMsg" class="detail"></div></div>
+      <p class="muted" style="margin-top:8px">Listedeki e-postalar panele girebilir. Herhangi bir e-posta sağlayıcısı olur.</p><form id="teamForm" style="display:flex;gap:8px;flex-wrap:wrap"><input id="teamEmail" type="email" required placeholder="yeni@ekip.com" style="flex:1;min-width:200px;font:inherit;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line)"><input id="teamName" placeholder="Ad (isteğe bağlı)" style="flex:1;min-width:140px;font:inherit;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line)"><button type="submit" style="font:inherit;font-weight:900;padding:10px 16px;border-radius:12px;border:0;background:var(--brand);color:#fff;cursor:pointer">Ekle</button></form><div id="teamMsg" class="detail"></div><div class="feed">`;
     for(const m of team){out+=`<div class="block" style="flex-direction:row;align-items:center;justify-content:space-between;gap:10px"><div><div class="t">${esc(m.name||m.email)}</div><div class="d">${esc(m.email)} · ${m.role==="owner"?"sahip":"üye"}</div></div>${m.email!==me?`<button type="button" data-remove="${esc(m.email)}" style="font:inherit;font-weight:800;padding:8px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer">Çıkar</button>`:'<span class="chip brand">sen</span>'}</div>`;}
     return out+'</div>';}
   document.addEventListener("submit",async e=>{if(e.target.id!=="teamForm")return;e.preventDefault();const email=$("teamEmail").value.trim().toLowerCase(),name=$("teamName").value.trim();
@@ -398,8 +401,21 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
     $("teamMsg").textContent=error?"Eklenemedi: "+error.message:"Eklendi: "+email;if(!error)loadTeam();});
   document.addEventListener("click",async e=>{const b=e.target.closest("[data-remove]");if(!b)return;b.disabled=true;const {error}=await sb.from("team_members").delete().eq("email",b.dataset.remove);
     if(error){$("teamMsg").textContent="Çıkarılamadı: "+error.message;b.disabled=false;}else loadTeam();});
+  document.addEventListener("submit",async e=>{if(e.target.id!=="inviteForm")return;e.preventDefault();const hours=Number($("inviteHours").value),forEmail=$("inviteEmail").value.trim()||null;
+    $("inviteMsg").textContent="Oluşturuluyor…";const {data,error}=await sb.rpc("create_invite",{hours,for_email:forEmail,note:null});
+    if(error){$("inviteMsg").textContent="Oluşturulamadı: "+error.message;return;}const row=Array.isArray(data)?data[0]:data;
+    const link=location.origin+location.pathname+"#davet="+row.token;$("inviteLink").value=link;$("inviteOut").hidden=false;
+    $("inviteMsg").textContent=`Geçerlilik: ${fmt(row.expires_at)}'e kadar · tek kullanımlık${forEmail?` · yalnız ${forEmail}`:""}`;});
+  document.addEventListener("click",async e=>{if(e.target.id!=="inviteCopy")return;const v=$("inviteLink").value;try{await navigator.clipboard.writeText(v);$("inviteMsg").textContent="Kopyalandı. WhatsApp vb. ile gönderebilirsin.";}catch{$("inviteLink").select();$("inviteMsg").textContent="Kopyalamak için bağlantıyı seçip kopyala.";}});
+  // Invite redemption: the token arrives in the URL hash, is remembered until sign-in, then redeemed once.
+  function pendingInvite(){const m=location.hash.match(/davet=([a-f0-9]+)/);if(m){try{localStorage.setItem("oryvona.invite",m[1]);}catch{}history.replaceState(null,"",location.pathname);}try{return localStorage.getItem("oryvona.invite");}catch{return null;}}
+  async function redeemIfPending(){const t=pendingInvite();if(!t||!session)return;const {data,error}=await sb.rpc("redeem_invite",{invite_token:t});
+    try{localStorage.removeItem("oryvona.invite");}catch{}
+    if(error){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Davet geçersiz";$("tabs").innerHTML=`<span class="muted small">Davet kullanılamadı: ${esc(error.message)}. Daveti gönderen kişiden yeni bağlantı iste.</span>`;return false;}
+    return true;}
   SHEETS.team=["Ekip",sheetTeam];
   async function start(){
+    const ok=await redeemIfPending();if(ok===false)return;
     const {data,error}=await sb.from("projects").select("id,name,code,sort_order").order("sort_order",{ascending:true});
     if(error){console.error(error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
     renderTabs(data||[]);loadTeam();
@@ -411,6 +427,7 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
     sb=window.supabase.createClient(CFG.url,CFG.anonKey,{auth:{flowType:"implicit",detectSessionInUrl:true,persistSession:true,autoRefreshToken:true},realtime:{params:{eventsPerSecond:5}}});
     sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"&&location.hash.includes("access_token"))history.replaceState(null,"",location.pathname);});
     const apply=s=>{session=s;const signedIn=!!s;gate.hidden=signedIn;out.hidden=!signedIn;if(signedIn){start();}else{stop();$("fresh").className="chip dot onnavy";$("fresh").textContent="Giriş gerekli";}};
+    if(pendingInvite()){gate.querySelector("#gateText").textContent="Davet bağlantısıyla geldin. Kendi e-postanı yaz; gelen bağlantıya dokununca ekibe eklenirsin.";}
     const {data:{session:s0}}=await sb.auth.getSession();apply(s0);
     sb.auth.onAuthStateChange((_e,s)=>{if(!!s!==!!session)apply(s);});
     document.addEventListener("visibilitychange",()=>{if(!document.hidden&&current)loadAll(current);});
