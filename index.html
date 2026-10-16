@@ -39,6 +39,7 @@
   --hatch-a:#2a2952; --hatch-b:#353466; --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 30px -12px rgba(0,0,0,.5); color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 button{font:inherit}
@@ -49,7 +50,14 @@ a{color:var(--brand);font-weight:800}
 .top{position:sticky;top:0;z-index:20;background:linear-gradient(100deg,var(--ink) 0%,var(--ink-2) 100%);color:var(--on-ink);padding:calc(10px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:12px}
 .top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--gold),var(--violet))}
 .top img{height:40px;width:auto;display:block}
-.top .title{display:flex;flex-direction:column;min-width:0;flex:1}
+.top .title{display:flex;flex-direction:column;min-width:0;flex:1;align-items:flex-start;border:0;background:transparent;color:inherit;padding:0;text-align:left;cursor:pointer}
+.crumb button{border:0;background:transparent;color:var(--brand);font-weight:800;padding:0 2px;cursor:pointer;font-size:.92rem}
+.games{display:flex;flex-direction:column;gap:12px}
+.games .tile.wide .v{font-size:1.15rem} .games .ic{width:46px;height:46px;border-radius:14px;font-weight:900;font-size:1rem}
+.wk{width:100%;height:auto;display:block} .wk .lab{font-family:var(--sans);font-size:19px;fill:var(--fg-2);font-weight:800} .wk .val{font-family:var(--sans);font-size:17px;fill:var(--fg-3);font-weight:800} .wk .grid{stroke:var(--line);stroke-width:1}
+.legend i.run{background:var(--good)}
+.checks{flex:1 1 100%;display:flex;flex-direction:column;gap:8px;padding-left:48px} .checks label{display:flex;gap:10px;align-items:center;font-size:.92rem;color:var(--fg-2);font-weight:700} .checks input{width:20px;height:20px;accent-color:var(--brand);margin:0;padding:0}
+.act.on{background:var(--good-soft);color:var(--good);border-color:transparent}
 .top .title b{font-weight:900;font-size:1.02rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top .title span{font-size:.78rem;color:var(--on-ink-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
@@ -169,7 +177,7 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
 <body>
 <header class="top">
   <img src="logo.png" alt="Oryvona Games">
-  <div class="title"><b id="topTitle">Oryvona Games</b><span id="topSub">Stüdyo paneli</span></div>
+  <button class="title" id="titleBtn" type="button" aria-label="Oyunlar"><b id="topTitle">Oryvona Games</b><span id="topSub">Stüdyo paneli</span></button>
   <span class="chip dot onnavy" id="fresh">Bağlanıyor…</span>
   <button class="iconbtn" id="refreshBtn" type="button" aria-label="Yenile" title="Yenile"></button>
 </header>
@@ -177,7 +185,14 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
 <main>
   <div id="banner" class="banner" hidden></div>
 
+  <section class="view" id="view-games" hidden>
+    <div class="pagehead"><h1>Oyunlar</h1></div>
+    <div class="secthead">Stüdyodaki projeler · dokununca paneli açılır</div>
+    <div class="games" id="gamesList"></div>
+  </section>
+
   <section class="view" id="view-home">
+    <div class="crumb" id="crumb" hidden><button type="button" id="crumbBtn">‹ Oyunlar</button></div>
     <div class="hero">
       <div class="txt"><span class="k">Şu an</span><span class="v" id="heroV">Veri bekleniyor</span><span class="s" id="heroS">Projenin durumu ilk güncellemeyle burada görünür.</span></div>
       <svg class="ring" id="ring" viewBox="0 0 100 100" role="img" aria-label="Aşama ilerlemesi"></svg>
@@ -199,6 +214,13 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
 
   <section class="view" id="view-feed" hidden>
     <div class="pagehead"><h1>Ekip akışı</h1></div>
+    <div class="card strip" id="weekCard">
+      <div class="hd"><b>Bu hafta</b><span id="weekSub"></span></div>
+      <div class="results" id="weekStats"></div>
+      <svg class="wk" id="wk" viewBox="0 0 600 170" role="img" aria-label="Günlere göre çalışma süresi"></svg>
+      <div class="legend"><span><i class="claude"></i>Claude</span><span><i class="work"></i>OpenAI</span><span><i class="run"></i>Bulut testi</span></div>
+    </div>
+    <div class="secthead">Kayıtlar</div>
     <div class="filters" id="feedFilters"><button aria-pressed="true" data-f="all">Hepsi</button><button data-f="work">OpenAI</button><button data-f="claude">Claude</button><button data-f="note">Notlar</button></div>
     <div class="card"><div class="feed" id="feedList"><div class="empty">Henüz akış kaydı yok.</div></div></div>
   </section>
@@ -222,6 +244,13 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     <div class="list">
       <div class="item"><span class="ic" id="icProj"></span><div class="tx"><b>Proje</b><span>Hangi oyun gösterilsin</span></div><select id="projectSel"></select></div>
       <div class="item"><span class="ic" id="icLive"></span><div class="tx"><b>Canlı bağlantı</b><span id="liveInfo">—</span></div><button class="act" id="reloadBtn" type="button">Yenile</button></div>
+    </div>
+    <div class="secthead">Bildirimler</div>
+    <div class="list" id="pushList">
+      <div class="item"><span class="ic" id="icBell"></span><div class="tx"><b>Telefona bildirim</b><span id="pushInfo">Uygulama kapalıyken de haber verir</span></div><button class="act" id="pushToggle" type="button">Aç</button></div>
+      <div class="item wrap" id="pushPrefs" hidden><span class="ic" id="icPrefs"></span><div class="tx"><b>Ne zaman?</b><span>Seçtiklerin olunca bildirim gelir</span></div>
+        <div class="checks"><label><input type="checkbox" data-pref="mine" checked> Sıra bana geçince (son test)</label><label><input type="checkbox" data-pref="blocked" checked> Bir engel kaydedilince</label><label><input type="checkbox" data-pref="turns"> Her sıra değişiminde (Claude ↔ OpenAI)</label><label><input type="checkbox" data-pref="runs"> Bulut testi bitince</label></div>
+        <button class="act" id="pushTest" type="button" style="margin-left:auto">Deneme bildirimi</button></div>
     </div>
     <div id="teamSection" hidden>
       <div class="secthead">Ekip (sahip)</div>
@@ -276,8 +305,10 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>',
     moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
     box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>',
-    phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>'};
-  for(const [id,ic] of [["refreshBtn","refresh"],["backBtn","back"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icTheme","moon"],["icProj","box"],["icLive","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["tabHome","home"],["tabFeed","list"],["tabTests","check"],["tabSettings","gear"]])$(id).innerHTML=I[ic];
+    phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
+    bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>',
+    sliders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>'};
+  for(const [id,ic] of [["refreshBtn","refresh"],["backBtn","back"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icTheme","moon"],["icProj","box"],["icLive","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabFeed","list"],["tabTests","check"],["tabSettings","gear"]])$(id).innerHTML=I[ic];
 
   // ---------- language tables ----------
   const TURN={READY_CLAUDE:{v:"Claude",s:"Görev bekliyor",text:"Claude görevi almak için bekliyor; otomatik kontrol sırayı görünce işe başlar.",who:"claude"},
@@ -297,7 +328,7 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   const TERMS=`<dl style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;margin:0;font-size:.95rem">${term("Claude","Kaynak mühendisi. Testleri ve yamaları yazar, GitHub'a gönderir.")}${term("OpenAI","Bağımsız kalite kontrol (ChatGPT). Bulut testinin ham kanıtını inceler, sonraki görevi yazar.")}${term("Deniz","Stüdyo sahibi. Zorunlu testler bitince son oyuncu testini yapar; yayın ve APK kararı onda.")}${term("Sıra","Aynı anda tek kişi çalışır; sıra kimdeyse diğerleri bekler, dosyalar çakışmaz.")}${term("Engel","Oyun hatası değil; altyapı ya da erişim sınırı. Kanıtıyla kaydedilir.")}${term("Testler","Kod birim testleri · sabit senaryolu tarayıcı testi · gerçek tuşlarla 6 dalga · sekme değiştirme, Turu bitir, tekrar oyna.")}</dl>`;
 
   // ---------- state ----------
-  let status=null,feedDocs=[],runsDocs=[],projects=[],current=null,session=null,team=[],isOwner=false,feedFilter="all",demo=false;
+  let status=null,feedDocs=[],runsDocs=[],projects=[],current=null,session=null,team=[],isOwner=false,feedFilter="all",demo=false,allStatus={};
   let sb=null,channel=null;
 
   // ---------- theme ----------
@@ -309,10 +340,12 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   $("themeSeg").addEventListener("click",e=>{const b=e.target.closest("button[data-t]");if(!b)return;try{localStorage.setItem("oryvona.theme",b.dataset.t);}catch{}applyTheme(b.dataset.t);});
 
   // ---------- navigation ----------
-  const VIEWS=["home","feed","tests","settings","detail"];let view="home",detailKey=null;
+  const VIEWS=["games","home","feed","tests","settings","detail"];let view="home",detailKey=null;
   const emptyMsg='<div class="empty">Veri yok.</div>';
-  function showView(v){view=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===(v==="detail"?"home":v))));window.scrollTo({top:0});
-    if(v==="feed")renderFeedList();if(v==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg;if(v==="settings")renderSettings();}
+  function showView(v){view=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===(v==="detail"||v==="games"?"home":v))));window.scrollTo({top:0});
+    if(v==="games")renderGames();if(v==="feed"){renderWeek();renderFeedList();}if(v==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg;if(v==="settings")renderSettings();}
+  function openGames(){history.pushState({view:"games"},"");showView("games");}
+  $("titleBtn").addEventListener("click",()=>{if(projects.length>1)openGames();});$("crumbBtn").addEventListener("click",openGames);
   document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b){history.pushState({view:b.dataset.view},"");showView(b.dataset.view);}});
   function fillDetail(key){detailKey=key;const [title,body]=DETAILS[key];$("detailTitle").textContent=title;$("detailBody").innerHTML=body();if(key==="auto")renderTimeline("tl3",72);}
   function openDetail(key){fillDetail(key);history.pushState({view:"detail",key},"");showView("detail");}
@@ -320,7 +353,37 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   $("backBtn").addEventListener("click",()=>history.back());
   addEventListener("popstate",e=>{const s=e.state||{view:"home"};if(s.view==="detail"&&s.key)fillDetail(s.key);showView(s.view||"home");});
   history.replaceState({view:"home"},"");
-  function refreshOpen(){if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg;if(view==="feed")renderFeedList();if(view==="settings")renderSettings();}
+  function refreshOpen(){if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg;if(view==="feed"){renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();}
+
+  // ---------- games list (one card per project; shown first when the studio has more than one) ----------
+  function renderGames(){const L=$("gamesList");if(!projects.length){L.innerHTML=emptyMsg;return;}
+    L.innerHTML=projects.map(p=>{const s=allStatus[p.id];const h=s?.handoff||{};const t=TURN[h.status];const cls=h.status==="BLOCKED"?"bad":h.status==="USER_TEST_READY"?"deniz":t?.who||"";
+      const turn=t?(t.v==="Claude"||t.v==="OpenAI"?"Sıra "+t.v+"'da":t.v):"Veri yok";
+      return `<button class="tile wide" data-game="${esc(p.id)}"><span class="ic ${cls}">${esc((p.code||p.name).slice(0,3))}</span><span class="tx"><span class="v">${esc(p.name)}${p.code?` <span class="muted" style="font-weight:800">· ${esc(p.code)}</span>`:""}</span><span class="s">${esc(s?.phaseTr||"Henüz durum verisi yok")}</span><span class="s"><span class="chip ${cls==="bad"?"bad":cls?"brand":""}" style="padding:3px 9px;font-size:.74rem">${esc(turn)}</span>${s?` · ${esc(ago(s.updatedAt))}`:""}</span></span></button>`;}).join("");}
+  document.addEventListener("click",e=>{const g=e.target.closest("[data-game]");if(!g)return;const id=g.dataset.game;if(id!==current)select(id);history.pushState({view:"home"},"");showView("home");});
+  async function loadGames(){if(demo)return;const {data}=await sb.from("project_status").select("project_id,data");allStatus={};for(const r of (data||[]))allStatus[r.project_id]=r.data;if(view==="games")renderGames();}
+
+  // ---------- weekly summary (7 days: minutes worked per actor per day + cloud runs) ----------
+  function renderWeek(){const card=$("weekCard");const {segs}=segments(24*7);const runs=runsDocs.map(d=>d.data()).filter(r=>r.startedAt&&Date.now()-new Date(r.startedAt).getTime()<7*864e5);
+    if(!segs.length&&!runs.length){card.hidden=true;return;}card.hidden=false;
+    const dayKey=t=>{const d=new Date(t);return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();};const today=dayKey(Date.now());const days=[];for(let i=6;i>=0;i--)days.push(today-i*864e5);
+    const per=Object.fromEntries(days.map(d=>[d,{claude:0,work:0,runs:0}]));
+    for(const s of segs){if(s.kind!=="work")continue;let a=s.start;while(a<s.end){const k=dayKey(a);const dayEnd=k+864e5;const b=Math.min(s.end,dayEnd);if(per[k])per[k][s.actor==="claude"?"claude":"work"]+=(b-a)/60000;a=b;}}
+    for(const r of runs){const k=dayKey(new Date(r.startedAt).getTime());if(per[k])per[k].runs++;}
+    const turns=feedDocs.map(d=>d.data()).filter(e=>e.kind==="claim"&&Date.now()-new Date(e.at).getTime()<7*864e5).length;
+    const cMin=Math.round(days.reduce((a,d)=>a+per[d].claude,0)),wMin=Math.round(days.reduce((a,d)=>a+per[d].work,0));
+    const passed=runs.filter(r=>!Object.values(r.suites||{}).some(s=>s?.status==="FAIL")&&r.code!==null&&r.code!==undefined?r.code===99||r.code===null:true).length;
+    const hm=m=>m>=60?`${Math.floor(m/60)} sa ${m%60} dk`:`${m} dk`;
+    $("weekSub").textContent=`son 7 gün`;
+    $("weekStats").innerHTML=`<div class="res"><span class="k">Tur</span><span class="v num">${turns}</span><span class="e">sıra el değiştirdi</span></div><div class="res"><span class="k">Bulut testi</span><span class="v num">${runs.length}</span><span class="e">${runs.length?`${passed} tanesi sorunsuz`:"koşu yok"}</span></div><div class="res" style="border-top-color:var(--claude-bar)"><span class="k">Claude</span><span class="v num" style="font-size:1.15rem">${hm(cMin)}</span><span class="e">çalışma süresi</span></div><div class="res" style="border-top-color:var(--work)"><span class="k">OpenAI</span><span class="v num" style="font-size:1.15rem">${hm(wMin)}</span><span class="e">inceleme süresi</span></div>`;
+    const W=600,H=170,top=14,bottom=34,left=6,right=6;const bw=(W-left-right)/7;const max=Math.max(30,...days.map(d=>per[d].claude+per[d].work));const cs=getComputedStyle(document.documentElement);const v=n=>cs.getPropertyValue(n).trim();const DN=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
+    let out="";[0.5,1].forEach(f=>{const y=top+(H-top-bottom)*(1-f);out+=`<line class="grid" x1="${left}" y1="${y.toFixed(1)}" x2="${W-right}" y2="${y.toFixed(1)}"/><text class="val" x="${W-right}" y="${(y-4).toFixed(1)}" text-anchor="end">${Math.round(max*f)} dk</text>`;});
+    days.forEach((d,i)=>{const x=left+i*bw+bw*0.18,w=bw*0.64;const base=H-bottom;const hC=(per[d].claude/max)*(H-top-bottom),hW=(per[d].work/max)*(H-top-bottom);
+      out+=`<rect x="${x.toFixed(1)}" y="${(base-hC).toFixed(1)}" width="${w.toFixed(1)}" height="${hC.toFixed(1)}" rx="4" fill="${v('--claude-bar')}"><title>${DN[new Date(d).getDay()]} · Claude ${Math.round(per[d].claude)} dk</title></rect>`;
+      out+=`<rect x="${x.toFixed(1)}" y="${(base-hC-hW-(hW&&hC?2:0)).toFixed(1)}" width="${w.toFixed(1)}" height="${hW.toFixed(1)}" rx="4" fill="${v('--work')}"><title>${DN[new Date(d).getDay()]} · OpenAI ${Math.round(per[d].work)} dk</title></rect>`;
+      for(let r=0;r<per[d].runs;r++)out+=`<circle cx="${(x+w/2).toFixed(1)}" cy="${(base-hC-hW-10-r*12).toFixed(1)}" r="4" fill="${v('--good')}"><title>Bulut testi</title></circle>`;
+      out+=`<text class="lab" x="${(x+w/2).toFixed(1)}" y="${H-10}" text-anchor="middle" ${d===today?'font-weight="900"':''}>${d===today?"Bugün":DN[new Date(d).getDay()]}</text>`;});
+    $("wk").innerHTML=out;}
 
   // ---------- render: home ----------
   function freshness(){const el=$("fresh");if(!status){el.className="chip dot onnavy";el.textContent=session||demo?"Veri yok":"Giriş gerekli";return;}
@@ -343,7 +406,8 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     const live=liveFeed(s);$("cAuto").textContent=live?"Çalışıyor":"Beklemede";$("cAutoS").textContent=s.automation?.liveFeed?`Son sinyal ${ago(s.automation.liveFeed.at)}`:(s.automation?.claudeTask?.lastRunAt?`Son kontrol ${ago(s.automation.claudeTask.lastRunAt)}`:"Henüz sinyal yok");$("icAuto").className="ic "+(live?"good":"warn");
     renderRing(s.stages||[]);
     const wn=s.workNote;$("cardWork").hidden=!(wn&&wn.textTr);if(wn&&wn.textTr){$("cWork").textContent=wn.titleTr||wn.textTr;$("cWorkS").textContent=`${ago(wn.at)}${wn.titleTr?" · "+wn.textTr:""}`;}
-    const p=projects.find(x=>x.id===current);$("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=s.phaseTr||p?.code||"Stüdyo paneli";
+    const p=projects.find(x=>x.id===current);$("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=(s.phaseTr||p?.code||"Stüdyo paneli")+(projects.length>1?" · oyunlar ›":"");$("crumb").hidden=projects.length<2;
+    allStatus[current]=s;
   }
   // timeline
   function segments(hours){const now=Date.now(),start=now-hours*3600e3;const ev=feedDocs.map(d=>d.data()).filter(e=>["claim","release","resume"].includes(e.kind)).sort((a,b)=>new Date(a.at)-new Date(b.at));const segs=[];let cur=null;
@@ -390,7 +454,31 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   function renderSettings(){$("accEmail").textContent=session?.user?.email||(demo?"Örnek görünüm":"—");$("accRole").textContent=demo?"Giriş yapılmadı":isOwner?"Stüdyo sahibi":"Ekip üyesi";
     const sel=$("projectSel");sel.innerHTML=projects.map(p=>`<option value="${esc(p.id)}" ${p.id===current?"selected":""}>${esc(p.name)}${p.code?" · "+esc(p.code):""}</option>`).join("")||'<option>—</option>';
     $("liveInfo").textContent=status?`Son güncelleme ${fmt(status.updatedAt)} · kaynak: ${status.source==="github-webhook"?"GitHub sinyali":status.source||"—"}`:"Henüz veri yok";
-    $("teamSection").hidden=!isOwner;if(isOwner)$("teamBody").innerHTML=sheetTeam();}
+    $("teamSection").hidden=!isOwner;if(isOwner)$("teamBody").innerHTML=sheetTeam();renderPush();}
+
+  // ---------- push notifications (Web Push; the GitHub webhook function sends them, no AI involved) ----------
+  const b64ToU8=s=>{const pad="=".repeat((4-s.length%4)%4);const bin=atob((s+pad).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(bin,c=>c.charCodeAt(0));};
+  const pushOk=()=>"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window&&!!(window.ORYVONA||{}).vapidPublicKey;
+  let pushSub=null,pushPrefs={mine:true,blocked:true,turns:false,runs:false};
+  function renderPush(){const on=!!pushSub;$("pushToggle").textContent=on?"Açık":"Aç";$("pushToggle").className="act"+(on?" on":"");$("pushPrefs").hidden=!on;
+    $("pushInfo").textContent=demo?"Örnek görünümde kapalı":!pushOk()?"Bu tarayıcı desteklemiyor":Notification.permission==="denied"?"Bildirim izni kapalı; telefonun uygulama ayarlarından aç":on?"Bu cihaza bildirim gelir":"Uygulama kapalıyken de haber verir";
+    document.querySelectorAll("#pushPrefs input[data-pref]").forEach(i=>{i.checked=!!pushPrefs[i.dataset.pref];});}
+  async function initPush(){if(demo||!pushOk()){renderPush();return;}
+    try{const reg=await navigator.serviceWorker.ready;pushSub=await reg.pushManager.getSubscription();
+      if(pushSub){const {data}=await sb.from("push_subscriptions").select("prefs").eq("endpoint",pushSub.endpoint).maybeSingle();if(data?.prefs)pushPrefs={...pushPrefs,...data.prefs};else await savePush();}}catch(e){console.warn(e);}
+    renderPush();}
+  async function savePush(){if(!pushSub)return;const j=pushSub.toJSON();
+    const {error}=await sb.from("push_subscriptions").upsert({endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,email:(session?.user?.email||"").toLowerCase(),prefs:pushPrefs,ua:navigator.userAgent.slice(0,120),updated_at:new Date().toISOString()});
+    if(error)$("pushInfo").textContent="Kaydedilemedi: "+error.message;}
+  $("pushToggle").addEventListener("click",async()=>{if(demo||!pushOk()){renderPush();return;}
+    if(pushSub){const ep=pushSub.endpoint;await pushSub.unsubscribe().catch(()=>{});pushSub=null;await sb.from("push_subscriptions").delete().eq("endpoint",ep);renderPush();return;}
+    $("pushInfo").textContent="İzin isteniyor…";const perm=await Notification.requestPermission();if(perm!=="granted"){renderPush();return;}
+    try{const reg=await navigator.serviceWorker.ready;pushSub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(CFG.vapidPublicKey)});await savePush();}catch(e){console.warn(e);$("pushInfo").textContent="Açılamadı: "+(e.message||e);renderPush();return;}
+    renderPush();});
+  $("pushPrefs").addEventListener("change",async e=>{const i=e.target.closest("input[data-pref]");if(!i)return;pushPrefs[i.dataset.pref]=i.checked;await savePush();});
+  $("pushTest").addEventListener("click",async()=>{if(!sb||!session)return;$("pushTest").disabled=true;$("pushInfo").textContent="Gönderiliyor…";
+    const {data,error}=await sb.functions.invoke("push-notify",{body:{test:true}});$("pushTest").disabled=false;
+    $("pushInfo").textContent=error?"Gönderilemedi: "+error.message:`Deneme gönderildi · ${data?.sent??0} cihaz. Birkaç saniye içinde gelir.`;});
   $("projectSel").addEventListener("change",e=>select(e.target.value));
   $("reloadBtn").addEventListener("click",()=>{if(current)loadAll(current);});$("refreshBtn").addEventListener("click",()=>{if(current)loadAll(current);});
   $("signOut").addEventListener("click",async()=>{if(sb)await sb.auth.signOut();});
@@ -430,18 +518,20 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   async function start(){const ok=await redeemIfPending();if(ok===false)return;sb.rpc("touch_login").then(()=>{},()=>{});
     const {data,error}=await sb.from("projects").select("id,name,code,sort_order").order("sort_order",{ascending:true});if(error){console.error(error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
     projects=data||[];if(!projects.length){$("banner").hidden=false;$("banner").textContent="Bu hesap ekip listesinde değil. Stüdyo sahibinden davet bağlantısı iste.";$("fresh").className="chip dot onnavy warn";$("fresh").textContent="Yetki yok";return;}
-    $("banner").hidden=true;const want=recall();select(projects.some(p=>p.id===want)?want:projects[0].id);loadTeam();}
+    $("banner").hidden=true;const want=recall();const known=projects.some(p=>p.id===want);select(known?want:projects[0].id);loadTeam();loadGames();initPush();
+    if(projects.length>1&&!known){history.replaceState({view:"games"},"");showView("games");}}
   function stop(){if(channel&&sb){sb.removeChannel(channel);channel=null;}current=null;status=null;feedDocs=[];runsDocs=[];projects=[];team=[];isOwner=false;freshness();}
 
   // ---------- demo (design preview without sign-in; clearly marked as sample data) ----------
   function startDemo(){demo=true;$("gate").hidden=true;$("banner").hidden=false;$("banner").textContent="ÖRNEK VERİ · tasarım önizlemesi, gerçek durum değil";
     const now=Date.now();const iso=ms=>new Date(now-ms).toISOString();
-    projects=[{id:"koza",name:"KOZA",code:"K01"}];current="koza";
+    projects=[{id:"koza",name:"KOZA",code:"K01"},{id:"ornek",name:"Örnek Oyun",code:"K02"}];current="koza";
+    allStatus.ornek={updatedAt:iso(5*3600e3),phaseTr:"C00 · Kaynak aktarımı",handoff:{status:"READY_CLAUDE"}};
     status={updatedAt:iso(3*60000),source:"github-webhook",repo:{name:"oryvona/koza",url:"https://github.com",branch:"koza-work",pr:2},lineSubTr:"K01 · Ayışığı Bahçesi kabul aşamaları",handoff:{status:"WORK_WORKING",task_id:"C02-RETRY-CARD",turn:2,lease:{actor:"work",claimed_at:iso(9*60000)}},lastQa:{run_id:"38869107902",code_passed:99,browser_passed:45,natural_passed:33,lifecycle_status:"BLOCKED",limitsTr:"Kod 99/99, tarayıcı 45/45, gerçek oynanış 33/33. Sekme/çıkış testi altyapı engelinde, oyun hatası değil.",source_commit:"39d672b4"},head:{commit:"e4c1913770a8",at:iso(12*60000),subject:"Kart testi için gerçek kart seçimi"},automation:{liveFeed:{at:iso(3*60000)},workWebhook:{enabled:true,lastSeenAt:iso(9*60000)},claudeTask:null},phaseTr:"C02 · Gerçek oyun akışı",summaryTr:"8 aşamadan 2 tanesi geçti. Gerçek oynanış testleri geçiyor; sekme testi tarayıcı engelinde (oyun hatası değil).",taskTitleTr:"Kart alıp tekrar oynama testi",taskTextTr:"Claude çıkıştan önce gerçek bir kart seçilmesini sağlayacak; böylece tekrar sonrası temizlik kontrolü boş kalmayacak.",workNote:{at:iso(9*60000),titleTr:"İnceleme başladı",textTr:"Son koşunun ham kanıtını inceliyorum; sonucu 10 dakikaya yazarım."},
       stages:[{id:"C00",title:"Kaynak aktarımı",status:"PASS",statusTr:"Geçti",note:"205 dosya"},{id:"C01",title:"Temel kabul",status:"PASS",statusTr:"Geçti",note:"99 kod / 45 tarayıcı"},{id:"C02",title:"Gerçek oyun akışı",status:"PARTIAL",statusTr:"Kısmi",note:"6 dalga geçti; sekme testi engelde"},{id:"C03",title:"Oynanış ve denge",status:"PENDING",statusTr:"Sırada"},{id:"C04",title:"Yeniden doğrulama",status:"PENDING",statusTr:"Sırada"},{id:"UT",title:"Deniz son testi",status:"PENDING",statusTr:"Sırada"}]};
-    const ev=[[9,"work","claim","WORK_WORKING","İnceleme için kilidi aldı."],[14,"claude","release","READY_WORK","Kart testi düzeltmesi gönderildi; yerel kontroller 14/14."],[52,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[75,"work","release","READY_CLAUDE","Koşu incelendi: 99/45/33 geçti, sekme testi engelde. Sonraki görev: gerçek kart testi."],[80,"work","note","","Kartsız temizlik kontrolü anlamlı değil; gerçek kartla tekrar."],[110,"work","claim","WORK_WORKING","İnceleme için kilidi aldı."],[140,"claude","release","READY_WORK","Sıra değişikliği gönderildi."],[200,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[260,"work","release","READY_CLAUDE","Headed koşu da engelde; sıra değişikliği istendi."]];
+    const ev=[[9,"work","claim","WORK_WORKING","İnceleme için kilidi aldı."],[14,"claude","release","READY_WORK","Kart testi düzeltmesi gönderildi; yerel kontroller 14/14."],[52,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[75,"work","release","READY_CLAUDE","Koşu incelendi: 99/45/33 geçti, sekme testi engelde. Sonraki görev: gerçek kart testi."],[80,"work","note","","Kartsız temizlik kontrolü anlamlı değil; gerçek kartla tekrar."],[110,"work","claim","WORK_WORKING","İnceleme için kilidi aldı."],[140,"claude","release","READY_WORK","Sıra değişikliği gönderildi."],[200,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[260,"work","release","READY_CLAUDE","Headed koşu da engelde; sıra değişikliği istendi."],[1440,"work","release","READY_CLAUDE","Xvfb koşusu incelendi; sıra değişikliği istendi."],[1500,"work","claim","WORK_WORKING","İnceleme."],[1560,"claude","release","READY_WORK","Xvfb koşusu gönderildi."],[1650,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[2900,"work","release","READY_CLAUDE","Tam kanal koşusu istendi."],[2930,"work","claim","WORK_WORKING","İnceleme."],[3010,"claude","release","READY_WORK","Yaşam döngüsü testi eklendi."],[3200,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[4300,"work","release","READY_CLAUDE","C01 kabul edildi."],[4330,"work","claim","WORK_WORKING","İnceleme."],[4400,"claude","release","READY_WORK","Temel kabul paketi."],[4600,"claude","claim","CLAUDE_WORKING","Görevi aldı."]];
     feedDocs=ev.map(([m,a,k,to,t],i)=>asDoc({id:"d"+i,at:iso(m*60000),actor:a,kind:k,kindTr:(VERB_TR[k]||k)+" → "+to,text:t,textTr:t}));
-    runsDocs=[["C01",10*3600e3,{baseline:{status:"PASS"}},null],["Doğal",8*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"}},null],["Shell",6*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Tam",4*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Xvfb",2*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},"Turu bitir ve tekrar geçti; odak engelde."]].map(([l,ms,s,n],i)=>asDoc({run_id:"r"+i,label:l,startedAt:iso(ms),code:99,suites:s,note:n}));
+    runsDocs=[["C01",75*3600e3,{baseline:{status:"PASS"}},null],["Doğal",50*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"}},null],["Shell",6*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Tam",4*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Xvfb",2*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},"Turu bitir ve tekrar geçti; odak engelde."]].map(([l,ms,s,n],i)=>asDoc({run_id:"r"+i,label:l,startedAt:iso(ms),code:99,suites:s,note:n}));
     team=[{email:"sahip@oryvona.games",name:"Deniz",role:"owner",last_seen_at:iso(60000),login_count:12},{email:"uye@ornek.com",name:"Ekip üyesi",role:"member",last_seen_at:iso(3*3600e3),login_count:3}];isOwner=true;session={user:{email:"sahip@oryvona.games"}};
     renderTimeline("tl",24);applyStatus({data:status});requestAnimationFrame(()=>scrollTo(0,0));}
 
