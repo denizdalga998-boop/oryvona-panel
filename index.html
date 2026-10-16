@@ -311,12 +311,37 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
   document.querySelectorAll(".cardbtn").forEach(b=>b.addEventListener("click",()=>show(b.dataset.sheet)));
   $("scrim").addEventListener("click",hide);$("sheetClose").addEventListener("click",hide);document.addEventListener("keydown",e=>{if(e.key==="Escape")hide();});
   setInterval(()=>{freshness();if(status)renderHome(status);renderTimeline("tl",24);},60000);
-  // Data layer: Supabase Postgres + Realtime. projects / project_status / events / runs tables.
+  // Data layer: Supabase Postgres + Realtime, behind team sign-in (magic link). Tables: projects / project_status / events / runs.
   const CFG=window.ORYVONA||{};
-  let sb=null,current=null,channel=null;
+  let sb=null,current=null,channel=null,session=null;
   const asDoc=row=>({id:row.id,data:()=>row});
   function remember(id){try{localStorage.setItem("oryvona.project",id);}catch{}} function recall(){try{return localStorage.getItem("oryvona.project");}catch{return null;}}
   function applyStatus(row){if(row&&row.data){status=row.data;freshness();renderHome(status);}else{status=null;freshness();$("heroV").textContent="Henüz kayıt yok";$("heroS").textContent="Bu proje için durum verisi gelince burada görünür.";}refreshSheet();}
+  // Sign-in screen (built here so the page design stays untouched).
+  const gate=document.createElement("div");gate.id="gate";gate.hidden=true;
+  gate.style.cssText="position:fixed;inset:0;z-index:50;background:#12112e;color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;font-family:var(--sans)";
+  gate.innerHTML=`<form id="gateForm" style="width:min(420px,100%);background:#1d1b45;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 12px 40px rgba(0,0,0,.4)">
+    <img id="gateLogo" alt="Oryvona Games" style="width:200px;align-self:center;max-width:100%">
+    <div style="font-weight:900;font-size:1.15rem">Ekip girişi</div>
+    <p id="gateText" style="margin:0;color:#cfcbe6;font-size:.95rem">E-postanı yaz; sana tek kullanımlık bir giriş bağlantısı gönderelim. Şifre yok.</p>
+    <input id="gateEmail" type="email" required autocomplete="email" placeholder="ad@ornek.com" style="font:inherit;font-size:1rem;padding:12px 14px;border-radius:12px;border:1.5px solid #3a3870;background:#12112e;color:#fff">
+    <button id="gateBtn" type="submit" style="font:inherit;font-weight:900;font-size:1rem;padding:12px;border-radius:12px;border:0;background:#f0b429;color:#12112e;cursor:pointer">Giriş bağlantısı gönder</button>
+    <div id="gateMsg" style="min-height:1.2em;font-size:.9rem;color:#8fe3ad"></div>
+  </form>`;
+  document.body.appendChild(gate);
+  const logoEl=document.querySelector(".band img");if(logoEl)gate.querySelector("#gateLogo").src=logoEl.getAttribute("src");
+  const gateMsg=(t,bad)=>{const m=gate.querySelector("#gateMsg");m.textContent=t;m.style.color=bad?"#ff9c9c":"#8fe3ad";};
+  gate.querySelector("#gateForm").addEventListener("submit",async e=>{e.preventDefault();const email=gate.querySelector("#gateEmail").value.trim();if(!email){gateMsg("Önce e-posta yaz.",true);return;}
+    gate.querySelector("#gateBtn").disabled=true;gateMsg("Gönderiliyor…");
+    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+    gate.querySelector("#gateBtn").disabled=false;
+    if(error){gateMsg("Gönderilemedi: "+error.message,true);return;}
+    gateMsg("Bağlantı gönderildi. E-postanı (gerekirse gereksiz klasörünü) aç ve bağlantıya dokun.");});
+  // Sign-out control appended to the header band.
+  const out=document.createElement("button");out.type="button";out.textContent="Çıkış";out.hidden=true;
+  out.style.cssText="font:inherit;font-weight:800;font-size:.8rem;padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#cfcbe6;cursor:pointer";
+  document.querySelector(".band .meta")?.appendChild(out);
+  out.addEventListener("click",async()=>{await sb.auth.signOut();});
   async function loadAll(id){
     const [st,ev,rn]=await Promise.all([
       sb.from("project_status").select("data,updated_at").eq("project_id",id).maybeSingle(),
@@ -332,7 +357,6 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
     document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.id===id)));
     if(channel){sb.removeChannel(channel);channel=null;}
     loadAll(id);
-    // One channel per project: any change to its rows reloads that project's data.
     channel=sb.channel("panel-"+id)
       .on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id))
       .on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id))
@@ -340,15 +364,21 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
       .subscribe(state=>{if(state==="CHANNEL_ERROR"||state==="TIMED_OUT")console.warn("realtime",state);});
   }
   function renderTabs(list){const t=$("tabs");t.innerHTML="";
-    if(!list.length){t.innerHTML='<span class="muted small">Henüz proje yok.</span>';return;}
+    if(!list.length){t.innerHTML='<span class="muted small">Bu hesap ekip listesinde değil. Deniz\'den e-postanı ekletmesini iste.</span>';$("fresh").className="chip dot onnavy warn";$("fresh").textContent="Yetki yok";return;}
     for(const p of list){const b=document.createElement("button");b.className="tab";b.type="button";b.setAttribute("role","tab");b.dataset.id=p.id;b.innerHTML=`${esc(p.name||p.id)}${p.code?` <span class="code">${esc(p.code)}</span>`:""}`;b.addEventListener("click",()=>select(p.id));t.appendChild(b);}
     const want=recall();select(list.some(p=>p.id===want)?want:list[0].id);}
-  (async()=>{
-    if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Veri kaynağı ayarlı değil";$("tabs").innerHTML="";return;}
-    sb=window.supabase.createClient(CFG.url,CFG.anonKey,{realtime:{params:{eventsPerSecond:5}}});
+  async function start(){
     const {data,error}=await sb.from("projects").select("id,name,code,sort_order").order("sort_order",{ascending:true});
     if(error){console.error(error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
     renderTabs(data||[]);
+  }
+  function stop(){if(channel){sb.removeChannel(channel);channel=null;}current=null;status=null;feedDocs=[];runsDocs=[];freshness();$("tabs").innerHTML="";}
+  (async()=>{
+    if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Veri kaynağı ayarlı değil";$("tabs").innerHTML="";return;}
+    sb=window.supabase.createClient(CFG.url,CFG.anonKey,{realtime:{params:{eventsPerSecond:5}}});
+    const apply=s=>{session=s;const signedIn=!!s;gate.hidden=signedIn;out.hidden=!signedIn;if(signedIn){start();}else{stop();$("fresh").className="chip dot onnavy";$("fresh").textContent="Giriş gerekli";}};
+    const {data:{session:s0}}=await sb.auth.getSession();apply(s0);
+    sb.auth.onAuthStateChange((_e,s)=>{if(!!s!==!!session)apply(s);});
     document.addEventListener("visibilitychange",()=>{if(!document.hidden&&current)loadAll(current);});
   })();
 })();
