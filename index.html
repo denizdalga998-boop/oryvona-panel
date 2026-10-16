@@ -157,7 +157,12 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .bubble{background:var(--surface-2);border-left:3px solid var(--line-2);border-radius:14px;border-top-left-radius:4px;padding:10px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .msg.claude .bubble{border-left-color:var(--claude)} .msg.work .bubble{border-left-color:var(--work)} .msg.deniz .bubble{border-left-color:var(--deniz)}
 .bubble .h{display:flex;gap:4px 8px;align-items:baseline;flex-wrap:wrap} .bubble .h b{font-weight:900} .bubble .h .k{font-size:.8rem;font-weight:800;color:var(--fg-2)} .bubble .h time{font-size:.76rem;color:var(--fg-3);flex-basis:100%}
-.bubble .m{font-size:.93rem;overflow-wrap:anywhere}
+.bubble .m{font-size:.93rem;overflow-wrap:anywhere;color:var(--fg-2)}
+.tag{font-size:.66rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:6px;line-height:1.3}
+.tag.is{background:var(--surface);color:var(--fg-3);border:1px solid var(--line)} .tag.yorum{background:var(--brand);color:#fff}
+.msg.note .bubble{background:var(--surface);border:1px solid var(--line-2);border-left-width:3px}
+.msg.note .m{color:var(--fg);font-size:1rem;font-style:italic;line-height:1.5} .msg.note .m::before{content:"“";color:var(--fg-3);margin-right:2px} .msg.note .m::after{content:"”";color:var(--fg-3);margin-left:2px}
+.quote{font-style:italic;color:var(--fg);font-size:1rem;line-height:1.5}
 .filters{display:flex;gap:8px;flex-wrap:wrap}
 .filters button{border:1px solid var(--line);background:var(--surface);color:var(--fg-2);border-radius:999px;padding:7px 14px;font-weight:800;font-size:.86rem;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
@@ -207,13 +212,9 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     <div class="dhead"><img src="logo.png" alt=""><div><b>Oryvona Games</b><span id="drawerUser">Stüdyo paneli</span></div></div>
     <div class="secthead">Oyunlar</div>
     <div class="dlist" id="drawerGames"></div>
-    <div class="secthead">Diğer</div>
+    <div class="secthead">Yardım</div>
     <div class="dlist">
-      <button type="button" class="ditem" data-go="feed"><span class="ic" id="dIcFeed"></span>Ekip akışı</button>
-      <button type="button" class="ditem" data-go="tests"><span class="ic" id="dIcTests"></span>Testler</button>
-      <button type="button" class="ditem" data-go="settings"><span class="ic" id="dIcSettings"></span>Ayarlar</button>
       <button type="button" class="ditem" data-detail="terms"><span class="ic" id="dIcHelp"></span>Terimler ve roller</button>
-      <button type="button" class="ditem" id="drawerSignOut"><span class="ic" id="dIcOut"></span>Çıkış</button>
     </div>
   </aside>
 </div>
@@ -280,7 +281,6 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     </div>
     <div class="secthead">Veri</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icProj"></span><div class="tx"><b>Proje</b><span>Hangi oyun gösterilsin</span></div><select id="projectSel"></select></div>
       <div class="item"><span class="ic" id="icLive"></span><div class="tx"><b>Canlı bağlantı</b><span id="liveInfo">—</span></div><button class="act" id="reloadBtn" type="button">Yenile</button></div>
     </div>
     <div class="secthead">Bildirimler</div>
@@ -348,7 +348,7 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     sliders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>',
     menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
     out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5"/><path d="M14 8l4 4-4 4M18 12H9"/></svg>'};
-  for(const [id,ic] of [["menuBtn","menu"],["dIcFeed","list"],["dIcTests","check"],["dIcSettings","gear"],["dIcHelp","help"],["dIcOut","out"],["refreshBtn","refresh"],["backBtn","back"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icTheme","moon"],["icProj","box"],["icLive","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabFeed","list"],["tabTests","check"],["tabSettings","gear"]])$(id).innerHTML=I[ic];
+  for(const [id,ic] of [["menuBtn","menu"],["dIcHelp","help"],["refreshBtn","refresh"],["backBtn","back"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icTheme","moon"],["icLive","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabFeed","list"],["tabTests","check"],["tabSettings","gear"]])$(id).innerHTML=I[ic];
 
   // ---------- language tables ----------
   const TURN={READY_CLAUDE:{v:"Claude",s:"Görev bekliyor",text:"Claude görevi almak için bekliyor; otomatik kontrol sırayı görünce işe başlar.",who:"claude"},
@@ -393,7 +393,6 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   function closeDrawer(){$("drawer").hidden=true;document.body.style.overflow="";}
   $("menuBtn").addEventListener("click",openDrawer);$("titleBtn").addEventListener("click",openDrawer);$("drawerScrim").addEventListener("click",closeDrawer);
   $("drawer").addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){closeDrawer();history.pushState({view:g.dataset.go},"");showView(g.dataset.go);return;}if(e.target.closest("[data-game]")||e.target.closest("[data-detail]"))closeDrawer();});
-  $("drawerSignOut").addEventListener("click",async()=>{closeDrawer();if(sb)await sb.auth.signOut();});
   document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b){history.pushState({view:b.dataset.view},"");showView(b.dataset.view);}});
   function fillDetail(key){detailKey=key;const [title,body]=DETAILS[key];$("detailTitle").textContent=title;$("detailBody").innerHTML=body();if(key==="auto")renderTimeline("tl3",72);}
   function openDetail(key){fillDetail(key);history.pushState({view:"detail",key},"");showView("detail");}
@@ -425,7 +424,7 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     $("weekSub").textContent=`son 7 gün`;
     $("weekStats").innerHTML=`<div class="res"><span class="k">Tur</span><span class="v num">${turns}</span><span class="e">sıra el değiştirdi</span></div><div class="res"><span class="k">Bulut testi</span><span class="v num">${runs.length}</span><span class="e">${runs.length?`${passed} tanesi sorunsuz`:"koşu yok"}</span></div><div class="res" style="border-top-color:var(--claude-bar)"><span class="k">Claude</span><span class="v num" style="font-size:1.15rem">${hm(cMin)}</span><span class="e">çalışma süresi</span></div><div class="res" style="border-top-color:var(--work)"><span class="k">OpenAI</span><span class="v num" style="font-size:1.15rem">${hm(wMin)}</span><span class="e">inceleme süresi</span></div>`;
     const W=600,H=170,top=14,bottom=34,left=6,right=6;const bw=(W-left-right)/7;const max=Math.max(30,...days.map(d=>per[d].claude+per[d].work));const cs=getComputedStyle(document.documentElement);const v=n=>cs.getPropertyValue(n).trim();const DN=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
-    let out="";[0.5,1].forEach(f=>{const y=top+(H-top-bottom)*(1-f);out+=`<line class="grid" x1="${left}" y1="${y.toFixed(1)}" x2="${W-right}" y2="${y.toFixed(1)}"/><text class="val" x="${W-right}" y="${(y-4).toFixed(1)}" text-anchor="end">${Math.round(max*f)} dk</text>`;});
+    let out="";[0.5,1].forEach(f=>{const y=top+(H-top-bottom)*(1-f);const mins=Math.round(max*f);out+=`<line class="grid" x1="${left}" y1="${y.toFixed(1)}" x2="${W-right}" y2="${y.toFixed(1)}"/><text class="val" x="${W-right}" y="${(y-4).toFixed(1)}" text-anchor="end">${mins>=90?(mins/60).toFixed(1).replace(/\.0$/,"")+" sa":mins+" dk"}</text>`;});
     days.forEach((d,i)=>{const x=left+i*bw+bw*0.18,w=bw*0.64;const base=H-bottom;const hC=(per[d].claude/max)*(H-top-bottom),hW=(per[d].work/max)*(H-top-bottom);
       out+=`<rect x="${x.toFixed(1)}" y="${(base-hC).toFixed(1)}" width="${w.toFixed(1)}" height="${hC.toFixed(1)}" rx="4" fill="${v('--claude-bar')}"><title>${DN[new Date(d).getDay()]} · Claude ${Math.round(per[d].claude)} dk</title></rect>`;
       out+=`<rect x="${x.toFixed(1)}" y="${(base-hC-hW-(hW&&hC?2:0)).toFixed(1)}" width="${w.toFixed(1)}" height="${hW.toFixed(1)}" rx="4" fill="${v('--work')}"><title>${DN[new Date(d).getDay()]} · OpenAI ${Math.round(per[d].work)} dk</title></rect>`;
@@ -497,11 +496,13 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   const DETAILS={turn:["Sıra kimde",()=>status?sheetTurn(status):emptyMsg],stage:["Oyun nerede",()=>status?sheetStage(status):emptyMsg],qa:["Son bulut testi",()=>status?sheetQa(status):emptyMsg],auto:["Otomasyon",()=>status?sheetAuto(status):emptyMsg],worknote:["OpenAI'dan son not",sheetWork],terms:["Terimler ve roller",()=>TERMS]};
   // feed
   function renderFeedList(){const f=$("feedList");const docs=feedDocs.map(d=>d.data()).filter(e=>feedFilter==="all"||(feedFilter==="note"?e.kind==="note":e.actor===feedFilter));
-    if(!docs.length){f.innerHTML='<div class="empty">Bu süzgeçte kayıt yok.</div>';return;}f.innerHTML=docs.map(e=>{const who=e.actor||"ci";const ini=who==="ci"?"GH":(NAME[who]||who).slice(0,1);return `<div class="msg ${esc(who)}"><div class="av ${esc(who)}">${esc(ini)}</div><div class="bubble"><div class="h"><b>${esc(NAME[who]||who)}</b><span class="k">${esc(kindTr(e))}</span><time datetime="${esc(e.at)}">${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;}).join("");}
+    if(!docs.length){f.innerHTML='<div class="empty">Bu süzgeçte kayıt yok.</div>';return;}
+    // Two tones: "iş" rows are what actually happened (lock, handover, run); "yorum" rows are what someone said about it.
+    f.innerHTML=docs.map(e=>{const who=e.actor||"ci";const ini=who==="ci"?"GH":(NAME[who]||who).slice(0,1);const note=e.kind==="note";
+      return `<div class="msg ${esc(who)}${note?" note":""}"><div class="av ${esc(who)}">${esc(ini)}</div><div class="bubble"><div class="h"><b>${esc(NAME[who]||who)}</b><span class="tag ${note?"yorum":"is"}">${note?"Yorum":"İş"}</span><span class="k">${note?esc(e.titleTr||""):esc(kindTr(e))}</span><time datetime="${esc(e.at)}">${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;}).join("");}
   $("feedFilters").addEventListener("click",e=>{const b=e.target.closest("button[data-f]");if(!b)return;feedFilter=b.dataset.f;document.querySelectorAll("#feedFilters button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderFeedList();});
   // settings
   function renderSettings(){$("accEmail").textContent=session?.user?.email||(demo?"Örnek görünüm":"—");$("accRole").textContent=demo?"Giriş yapılmadı":isOwner?"Stüdyo sahibi":"Ekip üyesi";
-    const sel=$("projectSel");sel.innerHTML=projects.map(p=>`<option value="${esc(p.id)}" ${p.id===current?"selected":""}>${esc(p.name)}${p.code?" · "+esc(p.code):""}</option>`).join("")||'<option>—</option>';
     $("liveInfo").textContent=status?`Son güncelleme ${fmt(status.updatedAt)} · kaynak: ${status.source==="github-webhook"?"GitHub sinyali":status.source||"—"}`:"Henüz veri yok";
     $("teamSection").hidden=!isOwner;if(isOwner)$("teamBody").innerHTML=sheetTeam();renderPush();}
 
@@ -534,7 +535,6 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   $("pushTest").addEventListener("click",async()=>{if(!sb||!session)return;$("pushTest").disabled=true;$("pushInfo").textContent="Gönderiliyor…";
     const {data,error}=await sb.functions.invoke("push-notify",{body:{test:true}});$("pushTest").disabled=false;
     $("pushInfo").textContent=error?"Gönderilemedi: "+error.message:`Deneme gönderildi · ${data?.sent??0} cihaz. Birkaç saniye içinde gelir.`;});
-  $("projectSel").addEventListener("change",e=>select(e.target.value));
   $("reloadBtn").addEventListener("click",()=>{if(current)loadAll(current);});$("refreshBtn").addEventListener("click",()=>{if(current)loadAll(current);});
   $("signOut").addEventListener("click",async()=>{if(sb)await sb.auth.signOut();});
   function sheetTeam(){const me=(session?.user?.email||"").toLowerCase();
@@ -589,7 +589,9 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     feedDocs=ev.map(([m,a,k,to,t],i)=>asDoc({id:"d"+i,at:iso(m*60000),actor:a,kind:k,kindTr:(VERB_TR[k]||k)+" → "+to,text:t,textTr:t}));
     runsDocs=[["C01",75*3600e3,{baseline:{status:"PASS"}},null],["Doğal",50*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"}},null],["Shell",6*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Tam",4*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Xvfb",2*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},"Turu bitir ve tekrar geçti; odak engelde."]].map(([l,ms,s,n],i)=>asDoc({run_id:"r"+i,label:l,startedAt:iso(ms),code:99,suites:s,note:n}));
     team=[{email:"sahip@oryvona.games",name:"Deniz",role:"owner",last_seen_at:iso(60000),login_count:12},{email:"uye@ornek.com",name:"Ekip üyesi",role:"member",last_seen_at:iso(3*3600e3),login_count:3}];isOwner=true;session={user:{email:"sahip@oryvona.games"}};
-    renderTimeline("tl",24);applyStatus({data:status});requestAnimationFrame(()=>scrollTo(0,0));}
+    renderTimeline("tl",24);applyStatus({data:status});requestAnimationFrame(()=>scrollTo(0,0));
+    // design QA hook: window.__oryvonaInject({status,events,runs}) renders real rows inside the demo shell
+    window.__oryvonaInject=d=>{if(d.status){status=d.status;allStatus[current]=d.status;}if(d.events)feedDocs=d.events.map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));if(d.runs)runsDocs=d.runs.map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));renderTimeline("tl",24);applyStatus({data:status});};}
 
   (async()=>{
     if(location.hash==="#demo"){startDemo();return;}
