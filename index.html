@@ -326,7 +326,12 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
     <div style="font-weight:900;font-size:1.15rem">Ekip girişi</div>
     <p id="gateText" style="margin:0;color:#cfcbe6;font-size:.95rem">E-postanı yaz; sana tek kullanımlık bir giriş bağlantısı gönderelim. Şifre yok.</p>
     <input id="gateEmail" type="email" required autocomplete="email" placeholder="ad@ornek.com" style="font:inherit;font-size:1rem;padding:12px 14px;border-radius:12px;border:1.5px solid #3a3870;background:#12112e;color:#fff">
-    <button id="gateBtn" type="submit" style="font:inherit;font-weight:900;font-size:1rem;padding:12px;border-radius:12px;border:0;background:#f0b429;color:#12112e;cursor:pointer">Giriş bağlantısı gönder</button>
+    <button id="gateBtn" type="submit" style="font:inherit;font-weight:900;font-size:1rem;padding:12px;border-radius:12px;border:0;background:#f0b429;color:#12112e;cursor:pointer">Giriş kodu gönder</button>
+    <div id="gateCodeWrap" hidden style="display:flex;flex-direction:column;gap:8px">
+      <label for="gateCode" style="font-size:.9rem;color:#cfcbe6">E-postadaki 6 haneli kodu yaz:</label>
+      <input id="gateCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456" style="font:inherit;font-size:1.4rem;letter-spacing:.3em;text-align:center;padding:12px 14px;border-radius:12px;border:1.5px solid #3a3870;background:#12112e;color:#fff">
+      <button id="gateVerify" type="button" style="font:inherit;font-weight:900;font-size:1rem;padding:12px;border-radius:12px;border:0;background:#22c3ee;color:#12112e;cursor:pointer">Kodla giriş yap</button>
+    </div>
     <div id="gateMsg" style="min-height:1.2em;font-size:.9rem;color:#8fe3ad"></div>
   </form>`;
   document.body.appendChild(gate);
@@ -334,10 +339,16 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
   const gateMsg=(t,bad)=>{const m=gate.querySelector("#gateMsg");m.textContent=t;m.style.color=bad?"#ff9c9c":"#8fe3ad";};
   gate.querySelector("#gateForm").addEventListener("submit",async e=>{e.preventDefault();const email=gate.querySelector("#gateEmail").value.trim();if(!email){gateMsg("Önce e-posta yaz.",true);return;}
     gate.querySelector("#gateBtn").disabled=true;gateMsg("Gönderiliyor…");
-    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});
     gate.querySelector("#gateBtn").disabled=false;
     if(error){gateMsg("Gönderilemedi: "+error.message,true);return;}
-    gateMsg("Bağlantı gönderildi. E-postanı (gerekirse gereksiz klasörünü) aç ve bağlantıya dokun.");});
+    gate.querySelector("#gateCodeWrap").hidden=false;gate.querySelector("#gateCode").focus();
+    gateMsg("E-posta gönderildi. İçindeki 6 haneli kodu yaz (bağlantıya dokunmak da olur).");});
+  gate.querySelector("#gateVerify").addEventListener("click",async()=>{const email=gate.querySelector("#gateEmail").value.trim();const token=gate.querySelector("#gateCode").value.replace(/\D/g,"");
+    if(token.length!==6){gateMsg("6 haneli kodu eksiksiz yaz.",true);return;}
+    gateMsg("Kontrol ediliyor…");const {error}=await sb.auth.verifyOtp({email,token,type:"email"});
+    if(error){gateMsg("Kod kabul edilmedi: "+error.message,true);return;}gateMsg("Giriş yapıldı.");});
+  gate.querySelector("#gateCode").addEventListener("input",()=>{if(gate.querySelector("#gateCode").value.replace(/\D/g,"").length===6)gate.querySelector("#gateVerify").click();});
   // Sign-out control appended to the header band.
   const out=document.createElement("button");out.type="button";out.textContent="Çıkış";out.hidden=true;
   out.style.cssText="font:inherit;font-weight:800;font-size:.8rem;padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#cfcbe6;cursor:pointer";
@@ -376,7 +387,9 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
   function stop(){if(channel){sb.removeChannel(channel);channel=null;}current=null;status=null;feedDocs=[];runsDocs=[];freshness();$("tabs").innerHTML="";}
   (async()=>{
     if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Veri kaynağı ayarlı değil";$("tabs").innerHTML="";return;}
-    sb=window.supabase.createClient(CFG.url,CFG.anonKey,{realtime:{params:{eventsPerSecond:5}}});
+    // implicit flow: the magic link carries the session in the URL itself, so it works even when the link is opened in another browser/app than the one that requested it.
+    sb=window.supabase.createClient(CFG.url,CFG.anonKey,{auth:{flowType:"implicit",detectSessionInUrl:true,persistSession:true,autoRefreshToken:true},realtime:{params:{eventsPerSecond:5}}});
+    sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"&&location.hash.includes("access_token"))history.replaceState(null,"",location.pathname);});
     const apply=s=>{session=s;const signedIn=!!s;gate.hidden=signedIn;out.hidden=!signedIn;if(signedIn){start();}else{stop();$("fresh").className="chip dot onnavy";$("fresh").textContent="Giriş gerekli";}};
     const {data:{session:s0}}=await sb.auth.getSession();apply(s0);
     sb.auth.onAuthStateChange((_e,s)=>{if(!!s!==!!session)apply(s);});
