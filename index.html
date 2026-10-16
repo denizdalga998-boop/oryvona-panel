@@ -46,20 +46,39 @@ button{font:inherit}
 h1,h2,h3,p{margin:0} h1,h2,h3{text-wrap:balance}
 .muted{color:var(--fg-2)} .small{font-size:.9rem} .num{font-variant-numeric:tabular-nums}
 a{color:var(--brand);font-weight:800}
-/* header */
-.top{position:sticky;top:0;z-index:20;background:linear-gradient(100deg,var(--ink) 0%,var(--ink-2) 100%);color:var(--on-ink);padding:calc(10px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:12px}
-.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--gold),var(--violet))}
-.top img{height:40px;width:auto;display:block}
-.top .title{display:flex;flex-direction:column;min-width:0;flex:1;align-items:flex-start;border:0;background:transparent;color:inherit;padding:0;text-align:left;cursor:pointer}
-.crumb button{border:0;background:transparent;color:var(--brand);font-weight:800;padding:0 2px;cursor:pointer;font-size:.92rem}
+/* header + band: one dark block (app bar and "şu an" hero) with a rounded bottom edge, so the top does not read as a separate page */
+.top{position:sticky;top:0;z-index:20;background:var(--ink);color:var(--on-ink);padding:calc(8px + env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:8px}
+.top img{height:36px;width:auto;display:block;margin-left:auto}
+.band{background:linear-gradient(160deg,var(--ink) 0%,var(--ink-2) 55%,#3a2a7a 100%);color:#fff;margin:-16px -16px 0;padding:10px 16px 22px;border-radius:0 0 28px 28px;box-shadow:0 14px 34px -16px rgba(27,26,62,.6);position:relative;overflow:hidden}
+.band::before{content:"";position:absolute;width:280px;height:280px;right:-100px;top:-140px;border-radius:50%;background:radial-gradient(closest-side,rgba(160,79,224,.45),transparent 70%);pointer-events:none}
+.band::after{content:"";position:absolute;width:220px;height:220px;left:-90px;bottom:-140px;border-radius:50%;background:radial-gradient(closest-side,rgba(25,184,229,.35),transparent 70%);pointer-events:none}
+.band-top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1}
+.band-top .k{font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#cfcbea}
+.band .hero{background:none;box-shadow:none;padding:10px 0 0;border-radius:0}
+.band .hero::before,.band .hero::after{display:none}
+/* drawer */
+.drawer{position:fixed;inset:0;z-index:40}
+.scrim{position:absolute;inset:0;background:rgba(10,9,30,.45)}
+.dpanel{position:absolute;left:0;top:0;bottom:0;width:min(300px,84vw);background:var(--surface);color:var(--fg);box-shadow:12px 0 40px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:6px;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 20px;overflow:auto;animation:slidein .22s ease-out}
+@keyframes slidein{from{transform:translateX(-30px);opacity:0}to{transform:none;opacity:1}}
+.dhead{display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:16px;padding:14px}
+.dhead img{height:44px;width:auto} .dhead div{display:flex;flex-direction:column;min-width:0} .dhead b{font-weight:900} .dhead span{font-size:.8rem;color:var(--on-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dlist{display:flex;flex-direction:column;gap:4px}
+.ditem{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--fg);text-align:left;padding:11px 10px;border-radius:12px;font-weight:800;cursor:pointer;min-width:0}
+.ditem:active,.ditem[aria-current="true"]{background:var(--brand-soft);color:var(--brand-ink)}
+.ditem .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);color:var(--brand);flex:none;font-size:.78rem;font-weight:900} .ditem .ic svg{width:18px;height:18px}
+.ditem .tx{display:flex;flex-direction:column;min-width:0;flex:1} .ditem .tx span{font-size:.8rem;color:var(--fg-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ditem .chip{margin-left:auto;padding:3px 9px;font-size:.72rem}
+.top .title{display:flex;flex-direction:column;min-width:0;flex:1;align-items:flex-start;border:0;background:transparent;color:inherit;padding:2px 4px;text-align:left;cursor:pointer}
 .games{display:flex;flex-direction:column;gap:12px}
 .games .tile.wide .v{font-size:1.15rem} .games .ic{width:46px;height:46px;border-radius:14px;font-weight:900;font-size:1rem}
 .wk{width:100%;height:auto;display:block} .wk .lab{font-family:var(--sans);font-size:19px;fill:var(--fg-2);font-weight:800} .wk .val{font-family:var(--sans);font-size:17px;fill:var(--fg-3);font-weight:800} .wk .grid{stroke:var(--line);stroke-width:1}
 .legend i.run{background:var(--good)}
 .checks{flex:1 1 100%;display:flex;flex-direction:column;gap:8px;padding-left:48px} .checks label{display:flex;gap:10px;align-items:center;font-size:.92rem;color:var(--fg-2);font-weight:700} .checks input{width:20px;height:20px;accent-color:var(--brand);margin:0;padding:0}
 .act.on{background:var(--good-soft);color:var(--good);border-color:transparent}
-.top .title b{font-weight:900;font-size:1.02rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.top .title span{font-size:.78rem;color:var(--on-ink-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .title b{font-weight:900;font-size:1.05rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.top .title b::after{content:" ▾";font-size:.8em;opacity:.7}
+.top .title span{font-size:.78rem;color:var(--on-ink-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
 .iconbtn svg{width:20px;height:20px}
 .chip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;font-size:.8rem;font-weight:800;white-space:nowrap;background:var(--surface-2);color:var(--fg-2)}
@@ -176,11 +195,28 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
 </head>
 <body>
 <header class="top">
+  <button class="iconbtn" id="menuBtn" type="button" aria-label="Menü"></button>
+  <button class="title" id="titleBtn" type="button" aria-label="Oyun seç"><b id="topTitle">Oryvona Games</b><span id="topSub">Stüdyo paneli</span></button>
   <img src="logo.png" alt="Oryvona Games">
-  <button class="title" id="titleBtn" type="button" aria-label="Oyunlar"><b id="topTitle">Oryvona Games</b><span id="topSub">Stüdyo paneli</span></button>
-  <span class="chip dot onnavy" id="fresh">Bağlanıyor…</span>
   <button class="iconbtn" id="refreshBtn" type="button" aria-label="Yenile" title="Yenile"></button>
 </header>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="scrim" id="drawerScrim"></div>
+  <aside class="dpanel" aria-label="Menü">
+    <div class="dhead"><img src="logo.png" alt=""><div><b>Oryvona Games</b><span id="drawerUser">Stüdyo paneli</span></div></div>
+    <div class="secthead">Oyunlar</div>
+    <div class="dlist" id="drawerGames"></div>
+    <div class="secthead">Diğer</div>
+    <div class="dlist">
+      <button type="button" class="ditem" data-go="feed"><span class="ic" id="dIcFeed"></span>Ekip akışı</button>
+      <button type="button" class="ditem" data-go="tests"><span class="ic" id="dIcTests"></span>Testler</button>
+      <button type="button" class="ditem" data-go="settings"><span class="ic" id="dIcSettings"></span>Ayarlar</button>
+      <button type="button" class="ditem" data-detail="terms"><span class="ic" id="dIcHelp"></span>Terimler ve roller</button>
+      <button type="button" class="ditem" id="drawerSignOut"><span class="ic" id="dIcOut"></span>Çıkış</button>
+    </div>
+  </aside>
+</div>
 
 <main>
   <div id="banner" class="banner" hidden></div>
@@ -192,10 +228,12 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   </section>
 
   <section class="view" id="view-home">
-    <div class="crumb" id="crumb" hidden><button type="button" id="crumbBtn">‹ Oyunlar</button></div>
-    <div class="hero">
-      <div class="txt"><span class="k">Şu an</span><span class="v" id="heroV">Veri bekleniyor</span><span class="s" id="heroS">Projenin durumu ilk güncellemeyle burada görünür.</span></div>
-      <svg class="ring" id="ring" viewBox="0 0 100 100" role="img" aria-label="Aşama ilerlemesi"></svg>
+    <div class="band">
+      <div class="band-top"><span class="k">Şu an</span><span class="chip dot onnavy" id="fresh">Bağlanıyor…</span></div>
+      <div class="hero">
+        <div class="txt"><span class="v" id="heroV">Veri bekleniyor</span><span class="s" id="heroS">Projenin durumu ilk güncellemeyle burada görünür.</span></div>
+        <svg class="ring" id="ring" viewBox="0 0 100 100" role="img" aria-label="Aşama ilerlemesi"></svg>
+      </div>
     </div>
     <div class="card strip" id="strip" hidden>
       <div class="hd"><b>Son 24 saat · kim çalıştı</b><span id="stripSub"></span></div>
@@ -307,8 +345,10 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>',
     phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
     bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>',
-    sliders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>'};
-  for(const [id,ic] of [["refreshBtn","refresh"],["backBtn","back"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icTheme","moon"],["icProj","box"],["icLive","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabFeed","list"],["tabTests","check"],["tabSettings","gear"]])$(id).innerHTML=I[ic];
+    sliders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>',
+    menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+    out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5"/><path d="M14 8l4 4-4 4M18 12H9"/></svg>'};
+  for(const [id,ic] of [["menuBtn","menu"],["dIcFeed","list"],["dIcTests","check"],["dIcSettings","gear"],["dIcHelp","help"],["dIcOut","out"],["refreshBtn","refresh"],["backBtn","back"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icTheme","moon"],["icProj","box"],["icLive","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabFeed","list"],["tabTests","check"],["tabSettings","gear"]])$(id).innerHTML=I[ic];
 
   // ---------- language tables ----------
   const TURN={READY_CLAUDE:{v:"Claude",s:"Görev bekliyor",text:"Claude görevi almak için bekliyor; otomatik kontrol sırayı görünce işe başlar.",who:"claude"},
@@ -345,7 +385,15 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   function showView(v){view=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===(v==="detail"||v==="games"?"home":v))));window.scrollTo({top:0});
     if(v==="games")renderGames();if(v==="feed"){renderWeek();renderFeedList();}if(v==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg;if(v==="settings")renderSettings();}
   function openGames(){history.pushState({view:"games"},"");showView("games");}
-  $("titleBtn").addEventListener("click",()=>{if(projects.length>1)openGames();});$("crumbBtn").addEventListener("click",openGames);
+  // left drawer: game switcher + shortcuts
+  function turnChip(s){const h=s?.handoff||{};const t=TURN[h.status];const cls=h.status==="BLOCKED"?"bad":h.status==="USER_TEST_READY"?"deniz":t?.who||"";return {cls,text:t?(t.v==="Claude"||t.v==="OpenAI"?"Sıra "+t.v+"'da":t.v):"Veri yok"};}
+  function renderDrawer(){$("drawerUser").textContent=session?.user?.email||"Stüdyo paneli";
+    $("drawerGames").innerHTML=(projects.length?projects.map(p=>{const s=allStatus[p.id];const c=turnChip(s);return `<button type="button" class="ditem" data-game="${esc(p.id)}" aria-current="${p.id===current}"><span class="ic">${esc((p.code||p.name).slice(0,3))}</span><span class="tx"><b>${esc(p.name)}</b><span>${esc(s?.phaseTr||"Henüz durum verisi yok")}</span></span><span class="chip ${c.cls==="bad"?"bad":"brand"}">${esc(c.text)}</span></button>`;}).join(""):'<div class="empty">Henüz proje yok.</div>')+(projects.length>1?'<button type="button" class="ditem" data-go="games"><span class="ic">…</span>Tüm oyunlar</button>':"");}
+  function openDrawer(){renderDrawer();$("drawer").hidden=false;document.body.style.overflow="hidden";}
+  function closeDrawer(){$("drawer").hidden=true;document.body.style.overflow="";}
+  $("menuBtn").addEventListener("click",openDrawer);$("titleBtn").addEventListener("click",openDrawer);$("drawerScrim").addEventListener("click",closeDrawer);
+  $("drawer").addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){closeDrawer();history.pushState({view:g.dataset.go},"");showView(g.dataset.go);return;}if(e.target.closest("[data-game]")||e.target.closest("[data-detail]"))closeDrawer();});
+  $("drawerSignOut").addEventListener("click",async()=>{closeDrawer();if(sb)await sb.auth.signOut();});
   document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b){history.pushState({view:b.dataset.view},"");showView(b.dataset.view);}});
   function fillDetail(key){detailKey=key;const [title,body]=DETAILS[key];$("detailTitle").textContent=title;$("detailBody").innerHTML=body();if(key==="auto")renderTimeline("tl3",72);}
   function openDetail(key){fillDetail(key);history.pushState({view:"detail",key},"");showView("detail");}
@@ -406,7 +454,7 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     const live=liveFeed(s);$("cAuto").textContent=live?"Çalışıyor":"Beklemede";$("cAutoS").textContent=s.automation?.liveFeed?`Son sinyal ${ago(s.automation.liveFeed.at)}`:(s.automation?.claudeTask?.lastRunAt?`Son kontrol ${ago(s.automation.claudeTask.lastRunAt)}`:"Henüz sinyal yok");$("icAuto").className="ic "+(live?"good":"warn");
     renderRing(s.stages||[]);
     const wn=s.workNote;$("cardWork").hidden=!(wn&&wn.textTr);if(wn&&wn.textTr){$("cWork").textContent=wn.titleTr||wn.textTr;$("cWorkS").textContent=`${ago(wn.at)}${wn.titleTr?" · "+wn.textTr:""}`;}
-    const p=projects.find(x=>x.id===current);$("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=(s.phaseTr||p?.code||"Stüdyo paneli")+(projects.length>1?" · oyunlar ›":"");$("crumb").hidden=projects.length<2;
+    const p=projects.find(x=>x.id===current);$("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=s.phaseTr||p?.code||"Stüdyo paneli";
     allStatus[current]=s;
   }
   // timeline
@@ -461,7 +509,7 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   const pushOk=()=>"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window&&!!(window.ORYVONA||{}).vapidPublicKey;
   let pushSub=null,pushPrefs={mine:true,blocked:true,turns:false,runs:false};
   function renderPush(){const on=!!pushSub;$("pushToggle").textContent=on?"Açık":"Aç";$("pushToggle").className="act"+(on?" on":"");$("pushPrefs").hidden=!on;
-    $("pushInfo").textContent=demo?"Örnek görünümde kapalı":!pushOk()?"Bu tarayıcı desteklemiyor":Notification.permission==="denied"?"Bildirim izni kapalı; telefonun uygulama ayarlarından aç":on?"Bu cihaza bildirim gelir":"Uygulama kapalıyken de haber verir";
+    $("pushInfo").textContent=demo?"Örnek görünümde kapalı":!pushOk()?"Bu tarayıcı desteklemiyor":Notification.permission==="denied"?"Bildirim izni kapalı; telefonun uygulama ayarlarından aç":on?"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.":"Uygulama kapalıyken de haber verir";
     document.querySelectorAll("#pushPrefs input[data-pref]").forEach(i=>{i.checked=!!pushPrefs[i.dataset.pref];});}
   async function initPush(){if(demo||!pushOk()){renderPush();return;}
     try{const reg=await navigator.serviceWorker.ready;pushSub=await reg.pushManager.getSubscription();
@@ -509,6 +557,7 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     feedDocs=(ev.data||[]).map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));runsDocs=(rn.data||[]).map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));
     renderTimeline("tl",24);applyStatus(st.data);}
   function select(id){if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];freshness();
+    if(demo||!sb){applyStatus({data:allStatus[id]||null});renderTimeline("tl",24);return;}
     if(channel){sb.removeChannel(channel);channel=null;}loadAll(id);
     channel=sb.channel("panel-"+id).on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id)).subscribe();}
   async function loadTeam(){const {data,error}=await sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(error){console.warn(error);return;}team=data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>m.email===me&&m.role==="owner");if(view==="settings")renderSettings();}
