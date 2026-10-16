@@ -436,7 +436,8 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   // ---------- render: home ----------
   function freshness(){const el=$("fresh");if(!status){el.className="chip dot onnavy";el.textContent=session||demo?"Veri yok":"Giriş gerekli";return;}
     const m=(Date.now()-new Date(status.updatedAt).getTime())/60000;
-    if(m<25){el.className="chip dot onnavy good";el.textContent="Canlı · "+ago(status.updatedAt);}else if(m<60){el.className="chip dot onnavy warn";el.textContent="Gecikti · "+ago(status.updatedAt);}else{el.className="chip dot onnavy bad";el.textContent="Güncel değil · "+ago(status.updatedAt);}}
+    // The feed only moves when GitHub moves; quiet hours are normal, so say "son hareket" instead of implying a fault.
+    if(m<25){el.className="chip dot onnavy good";el.textContent="Canlı · "+ago(status.updatedAt);}else{el.className="chip dot onnavy";el.textContent="Son hareket "+ago(status.updatedAt);}}
   const stageCls=g=>g.status==="PASS"?"pass":g.status==="PARTIAL"?"partial":g.status==="ACTIVE"?"active":g.status==="BLOCKED"?"blocked":"pending";
   function liveFeed(s){const lf=s?.automation?.liveFeed;const ct=s?.automation?.claudeTask;const t=lf?.at||ct?.lastRunAt;return t&&(Date.now()-new Date(t).getTime())<40*60000;}
   function qaSummary(q){const ok=[q.code_passed===99,q.browser_passed===45,q.natural_passed===33,q.lifecycle_status==="PASS"].filter(Boolean).length;return {ok,total:4,blocked:q.lifecycle_status==="BLOCKED",fail:q.lifecycle_status==="FAIL"};}
