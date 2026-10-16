@@ -1,0 +1,16 @@
+# Keeps the Supabase free project awake (it pauses after 7 idle days) and checks GitHub access for every game.
+# The function writes a "heartbeat" row and pushes an alert to the owners if a repo cannot be read.
+name: panel-keepalive
+on:
+  schedule:
+    - cron: "17 6 * * 1,4"   # Monday and Thursday 06:17 UTC
+  workflow_dispatch:
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health ping
+        run: |
+          code=$(curl -s -o /tmp/out -w '%{http_code}' 'https://infqtlukckjrnigeqlbf.supabase.co/functions/v1/github-webhook?health=1')
+          cat /tmp/out; echo; echo "HTTP $code"
+          test "$code" = "200"
