@@ -1,15 +1,33 @@
 {
+  "id": "/oryvona-panel/",
   "name": "Oryvona Games Paneli",
   "short_name": "Oryvona",
-  "start_url": "./index.html",
+  "description": "Oryvona Games ekip içi stüdyo paneli",
+  "start_url": "/oryvona-panel/",
+  "scope": "/oryvona-panel/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#12112e",
   "theme_color": "#12112e",
+  "lang": "tr",
   "icons": [
     {
-      "src": "logo.webp",
-      "sizes": "1664x936",
-      "type": "image/webp"
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
