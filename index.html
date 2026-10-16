@@ -15,7 +15,7 @@
 <script src="config.js"></script>
 <script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
 <style>
-/* Oryvona Games Paneli v3 — light-first app shell. Brand: deep indigo header/hero with the cyan→gold→violet logo gradient as accent; cards are white with hairline borders, dark mode is a soft indigo, not black. */
+/* Oryvona Games Paneli v4 — light-first app shell, TR/EN. Brand: deep indigo header/hero with the cyan→gold→violet logo gradient as accent; cards are white with hairline borders, dark mode is a soft indigo, not black. */
 :root{
   --bg:#f4f4fa; --surface:#ffffff; --surface-2:#f1f0f8; --line:#e3e2ef; --line-2:#d2d0e4;
   --fg:#17162f; --fg-2:#5a5876; --fg-3:#8e8ca8;
@@ -46,7 +46,6 @@ button{font:inherit}
 h1,h2,h3,p{margin:0} h1,h2,h3{text-wrap:balance}
 .muted{color:var(--fg-2)} .small{font-size:.9rem} .num{font-variant-numeric:tabular-nums}
 a{color:var(--brand);font-weight:800}
-/* header + band: one dark block (app bar and "şu an" hero) with a rounded bottom edge, so the top does not read as a separate page */
 .top{position:sticky;top:0;z-index:20;background:var(--ink);color:var(--on-ink);padding:calc(8px + env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:8px}
 .top img{height:36px;width:auto;display:block;margin-left:auto}
 .band{background:linear-gradient(160deg,var(--ink) 0%,var(--ink-2) 55%,#3a2a7a 100%);color:#fff;margin:-16px -16px 0;padding:10px 16px 22px;border-radius:0 0 28px 28px;box-shadow:0 14px 34px -16px rgba(27,26,62,.6);position:relative;overflow:hidden}
@@ -56,7 +55,6 @@ a{color:var(--brand);font-weight:800}
 .band-top .k{font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#cfcbea}
 .band .hero{background:none;box-shadow:none;padding:10px 0 0;border-radius:0}
 .band .hero::before,.band .hero::after{display:none}
-/* drawer */
 .drawer{position:fixed;inset:0;z-index:40}
 .scrim{position:absolute;inset:0;background:rgba(10,9,30,.45)}
 .dpanel{position:absolute;left:0;top:0;bottom:0;width:min(300px,84vw);background:var(--surface);color:var(--fg);box-shadow:12px 0 40px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:6px;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 20px;overflow:auto;animation:slidein .22s ease-out}
@@ -85,40 +83,35 @@ a{color:var(--brand);font-weight:800}
 .chip.dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
 .chip.good{background:var(--good-soft);color:var(--good)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.info{background:var(--info-soft);color:var(--info)} .chip.brand{background:var(--brand-soft);color:var(--brand-ink)}
 .chip.onnavy{background:rgba(255,255,255,.12);color:#ece9ff} .chip.onnavy.good{background:rgba(95,212,140,.2);color:#9af0bb} .chip.onnavy.warn{background:rgba(242,182,50,.22);color:#ffd77a} .chip.onnavy.bad{background:rgba(255,120,120,.22);color:#ffb0b0}
-/* layout */
+.chip.sm{padding:3px 9px;font-size:.72rem}
 main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(var(--tabbar) + 24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
-.view[hidden]{display:none}
 .view{display:flex;flex-direction:column;gap:14px}
 .pagehead{display:flex;align-items:center;gap:10px;padding:2px 2px 0}
-.pagehead h1{font-size:1.45rem;font-weight:900;letter-spacing:-.01em}
-.back{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);display:grid;place-items:center;cursor:pointer}
+.pagehead h1{font-size:1.45rem;font-weight:900;letter-spacing:-.01em;flex:1;min-width:0}
+.back{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);display:grid;place-items:center;cursor:pointer;flex:none}
 .back svg{width:20px;height:20px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;min-width:0}
 .card h2{font-size:1.05rem;font-weight:900}
 .secthead{font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);padding:6px 4px 0}
-/* hero */
 .hero{background:linear-gradient(135deg,var(--ink) 0%,var(--ink-2) 55%,#3a2a7a 100%);color:#fff;border-radius:var(--r);padding:20px 18px;display:flex;align-items:center;gap:16px;box-shadow:0 14px 34px -14px rgba(27,26,62,.55);position:relative;overflow:hidden}
-.hero::before{content:"";position:absolute;width:260px;height:260px;right:-90px;top:-120px;border-radius:50%;background:radial-gradient(closest-side,rgba(160,79,224,.45),transparent 70%);pointer-events:none}
-.hero::after{content:"";position:absolute;width:220px;height:220px;left:-80px;bottom:-130px;border-radius:50%;background:radial-gradient(closest-side,rgba(25,184,229,.35),transparent 70%);pointer-events:none}
 .hero .txt{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;position:relative}
 .hero .k{font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#cfcbea}
 .hero .v{font-size:1.6rem;font-weight:900;line-height:1.12;letter-spacing:-.01em}
 .hero .s{font-size:.95rem;color:#dcd8f2;line-height:1.4}
 .ring{width:92px;height:92px;flex:none;position:relative} .ring text{font-family:var(--sans);font-weight:900;fill:#fff}
-/* tiles */
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.tile{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 14px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:7px;min-width:0;text-align:left;color:inherit;cursor:pointer}
+.tile{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:7px;min-width:0;text-align:left;color:inherit;cursor:pointer}
 .tile:active{transform:scale(.985)}
 .tile::after{content:"›";position:absolute;right:14px;top:10px;font-size:1.3rem;font-weight:900;color:var(--line-2);line-height:1}
+.tile.flat{cursor:default} .tile.flat::after{display:none}
 .tile .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
 .tile .ic svg{width:21px;height:21px}
-.tile .ic.claude{background:var(--claude-soft);color:var(--claude)} .tile .ic.work{background:var(--work-soft);color:var(--work)} .tile .ic.deniz{background:var(--deniz-soft);color:var(--deniz)} .tile .ic.good{background:var(--good-soft);color:var(--good)} .tile .ic.warn{background:var(--warn-soft);color:var(--warn)} .tile .ic.bad{background:var(--bad-soft);color:var(--bad)}
+.tile .ic.claude{background:var(--claude-soft);color:var(--claude)} .tile .ic.work{background:var(--work-soft);color:var(--work)} .tile .ic.deniz{background:var(--deniz-soft);color:var(--deniz)} .tile .ic.good{background:var(--good-soft);color:var(--good)} .tile .ic.warn{background:var(--warn-soft);color:var(--warn)} .tile .ic.bad{background:var(--bad-soft);color:var(--bad)} .tile .ic.info{background:var(--info-soft);color:var(--info)}
 .tile .k{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);margin-top:2px}
 .tile .v{font-size:1.08rem;font-weight:900;line-height:1.2;overflow-wrap:anywhere;color:var(--fg)}
 .tile .s{font-size:.85rem;color:var(--fg-2);line-height:1.35}
 .tile.wide{flex-direction:row;align-items:center;gap:12px} .tile.wide .ic{flex:none} .tile.wide .tx{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
 .tile.quote-tile{background:linear-gradient(180deg,var(--brand-soft),var(--surface) 70%);border-left:4px solid var(--work)} .tile.quote-tile .k{display:flex;align-items:center;gap:6px}
-/* rows and blocks */
 .row{display:flex;gap:12px;align-items:flex-start}
 .row .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--surface-2)} .row .ic svg{width:20px;height:20px}
 .row .tt{font-weight:800} .row .dd{color:var(--fg-2);font-size:.92rem}
@@ -129,7 +122,7 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .who{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .person{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--surface-2);font-weight:800;color:var(--fg-2);font-size:.92rem}
 .person .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.85rem}
-.av.claude{background:var(--claude-soft);color:var(--claude)} .av.work{background:var(--work-soft);color:var(--work)} .av.deniz{background:var(--deniz-soft);color:var(--deniz)} .av.ci{background:var(--surface-2);color:var(--fg-2)}
+.av.claude{background:var(--claude-soft);color:var(--claude)} .av.work{background:var(--work-soft);color:var(--work)} .av.deniz{background:var(--deniz-soft);color:var(--deniz)} .av.ci{background:var(--surface-2);color:var(--fg-2)} .av.team{background:var(--brand-soft);color:var(--brand-ink)}
 .person.active{background:var(--brand-soft);color:var(--brand-ink);outline:2px solid var(--brand)}
 .arrow{color:var(--fg-3);font-weight:900}
 .path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
@@ -138,11 +131,10 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .step.pass .bar i{background:var(--good)} .step.partial .bar i{background:linear-gradient(90deg,var(--good) 0 60%,var(--warn) 60% 100%)} .step.active .bar i{background:var(--brand)} .step.blocked .bar i{background:var(--bad)}
 .step .lbl{font-size:.84rem;font-weight:800;color:var(--fg-2);line-height:1.25} .step .st{font-size:.8rem;font-weight:800}
 .step.pass .st{color:var(--good)} .step.partial .st{color:var(--warn)} .step.active .st{color:var(--brand)} .step.blocked .st{color:var(--bad)} .step.pending .st{color:var(--fg-3)}
-/* test results */
 .results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .res{border-radius:var(--r-s);padding:14px;display:flex;flex-direction:column;gap:4px;background:var(--surface-2);min-width:0;border-top:4px solid var(--line-2)}
 .res .k{font-size:.8rem;font-weight:800;color:var(--fg-2)} .res .v{font-size:1.55rem;font-weight:900;line-height:1.1} .res .e{font-size:.84rem;color:var(--fg-2)}
-.res.good{border-top-color:var(--good)} .res.good .v{color:var(--good)} .res.warn{border-top-color:var(--warn)} .res.warn .v{color:var(--warn)} .res.bad{border-top-color:var(--bad)} .res.bad .v{color:var(--bad)}
+.res.good{border-top-color:var(--good)} .res.good .v{color:var(--good)} .res.warn{border-top-color:var(--warn)} .res.warn .v{color:var(--warn)} .res.bad{border-top-color:var(--bad)} .res.bad .v{color:var(--bad)} .res.info{border-top-color:var(--info)} .res.info .v{color:var(--info)}
 .strip .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap} .strip .hd b{font-weight:900} .strip .hd span{font-size:.84rem;color:var(--fg-3)}
 .tl{width:100%;height:auto;display:block} .tl .tick{stroke:var(--line-2);stroke-width:1.5} .tl .lab{font-family:var(--sans);font-size:20px;fill:var(--fg-2);font-weight:800}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--fg-2);font-weight:700} .legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:6px}
@@ -151,7 +143,6 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .hist th{font-weight:800;color:var(--fg-2);text-align:left;white-space:nowrap;padding:0 4px} .hist thead th{font-size:.72rem;color:var(--fg-3);text-align:center;vertical-align:bottom;line-height:1.15}
 .hist td{text-align:center;padding:0} .cell{display:inline-grid;place-items:center;width:34px;height:30px;border-radius:9px;font-weight:900;font-size:.9rem;background:var(--surface-2);color:var(--fg-3)}
 .cell.good{background:var(--good-soft);color:var(--good)} .cell.warn{background:var(--warn-soft);color:var(--warn)} .cell.bad{background:var(--bad-soft);color:var(--bad)}
-/* feed */
 .feed{display:flex;flex-direction:column;gap:10px}
 .msg{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px}
 .msg .av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.85rem;align-self:start}
@@ -163,7 +154,7 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .msg:not(.note) .bubble{border-left-style:dashed;background:var(--surface-2)}
 .msg:not(.note) .bubble .h b{font-size:.9rem}
 .tag{font-size:.66rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:6px;line-height:1.3}
-.tag.is{background:var(--surface);color:var(--fg-3);border:1px solid var(--line)} .tag.yorum{background:var(--brand);color:#fff}
+.tag.is{background:var(--surface);color:var(--fg-3);border:1px solid var(--line)} .tag.yorum{background:var(--brand);color:#fff} .tag.new{background:var(--gold);color:#17162f}
 .msg.note .bubble{background:linear-gradient(180deg,var(--brand-soft),var(--surface) 70%);border:1px solid var(--line-2);border-left-width:4px;border-radius:16px;border-top-left-radius:4px;padding:12px 16px 14px;position:relative}
 .msg.note .bubble::before{content:"“";position:absolute;right:12px;top:-6px;font-family:"Lora",Georgia,serif;font-size:3rem;line-height:1;color:var(--brand);opacity:.18;pointer-events:none}
 .msg.note .m{font-family:"Lora",Georgia,"Times New Roman",serif;font-style:italic;font-weight:500;color:var(--fg);font-size:1.08rem;line-height:1.55;letter-spacing:.005em}
@@ -173,55 +164,66 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .filters{display:flex;gap:8px;flex-wrap:wrap}
 .filters button{border:1px solid var(--line);background:var(--surface);color:var(--fg-2);border-radius:999px;padding:7px 14px;font-weight:800;font-size:.86rem;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
-/* settings */
 .list{display:flex;flex-direction:column;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}
 .item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);min-width:0}
 .item:last-child{border-bottom:0}
 .item .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);flex:none} .item .ic svg{width:19px;height:19px}
 .item .tx{flex:1;min-width:0;display:flex;flex-direction:column}
 .item .tx b{font-weight:800} .item .tx span{font-size:.86rem;color:var(--fg-2);overflow-wrap:anywhere}
-.item .act{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;text-decoration:none;white-space:nowrap}
+.item .act,.act{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;text-decoration:none;white-space:nowrap;font-size:.9rem}
 .item.wrap{flex-wrap:wrap} .item.wrap .seg{flex:1 1 100%}
 .seg{display:inline-flex;background:var(--surface-2);border-radius:12px;padding:3px;gap:2px}
 .seg button{flex:1;border:0;background:transparent;color:var(--fg-2);border-radius:10px;padding:8px 12px;font-weight:800;font-size:.9rem;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
-select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;max-width:100%}
+select,input,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;max-width:100%}
+textarea{width:100%;min-height:80px;resize:vertical}
 .btn{border:0;border-radius:12px;padding:11px 16px;font-weight:900;cursor:pointer;background:var(--brand);color:#fff}
-.btn.gold{background:var(--gold);color:#17162f} .btn.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--line)}
-/* bottom tabs */
+.btn.gold{background:var(--gold);color:#17162f} .btn.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--line)} .btn:disabled{opacity:.6;cursor:default}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px} .form label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;font-weight:800;color:var(--fg-2);min-width:0} .form label.full{grid-column:1/-1} .form input,.form select{width:100%}
+.form .actions{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+/* store */
+.stars{color:var(--gold);letter-spacing:.05em;font-size:.95rem} .stars.low{color:var(--bad)}
+.mail{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line);min-width:0} .mail:last-child{border-bottom:0}
+.mail .dot{width:10px;height:10px;border-radius:50%;background:var(--brand);flex:none;margin-top:6px} .mail.read .dot{background:var(--line-2)}
+.mail .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px} .mail .sub{font-weight:800;overflow-wrap:anywhere} .mail.read .sub{font-weight:700;color:var(--fg-2)}
+.mail .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.8rem;color:var(--fg-3)} .mail .sn{font-size:.88rem;color:var(--fg-2);overflow-wrap:anywhere}
+.mail .ops{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px} .mail .ops select{padding:5px 8px;font-size:.82rem;border-radius:8px}
+.rev{display:flex;flex-direction:column;gap:4px;padding:12px 0;border-bottom:1px solid var(--line)} .rev:last-child{border-bottom:0}
+.rev .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap} .rev .h b{font-weight:800} .rev .h time{font-size:.78rem;color:var(--fg-3)}
+.rev .m{font-size:.95rem;overflow-wrap:anywhere} .rev .reply{background:var(--surface-2);border-radius:10px;padding:8px 12px;font-size:.88rem;color:var(--fg-2)}
+.track{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:var(--r-s);background:var(--surface-2)} .track b{font-weight:900} .track span{font-size:.88rem;color:var(--fg-2)}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
-.tabs button{flex:1;max-width:160px;border:0;background:transparent;color:var(--fg-3);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:12px;font-weight:800;font-size:.72rem;cursor:pointer}
+.tabs button{flex:1;max-width:140px;border:0;background:transparent;color:var(--fg-3);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:12px;font-weight:800;font-size:.7rem;cursor:pointer;position:relative}
 .tabs button svg{width:24px;height:24px} .tabs button[aria-selected="true"]{color:var(--brand)} .tabs button[aria-selected="true"] .pill{background:var(--brand-soft)}
-.tabs .pill{padding:3px 16px;border-radius:999px;display:grid}
-/* gate */
+.tabs .pill{padding:3px 14px;border-radius:999px;display:grid}
+.tabs .badge{position:absolute;top:2px;right:calc(50% - 22px);min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:900;display:grid;place-items:center;padding:0 5px}
 #gate{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,#1b1a3e,#2a2466 60%,#3a2a7a);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
-#gate[hidden]{display:none}
 #gate form{width:min(420px,100%);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:26px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.35);backdrop-filter:blur(8px)}
 #gate input{background:rgba(0,0,0,.25);color:#fff;border-color:rgba(255,255,255,.2);font-size:1rem}
 #gate .msg{min-height:1.2em;font-size:.9rem;color:#9af0bb;display:block}
+#gate .langs{display:flex;gap:8px;justify-content:center} #gate .langs button{border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:999px;padding:5px 12px;font-weight:800;font-size:.82rem;cursor:pointer} #gate .langs button[aria-pressed="true"]{background:#fff;color:#1b1a3e}
 .banner{background:var(--warn-soft);color:var(--warn);border-radius:var(--r-s);padding:10px 14px;font-weight:800;font-size:.9rem;display:flex;gap:10px;align-items:center;justify-content:space-between}
-.banner[hidden]{display:none}
 @media (prefers-reduced-motion:no-preference){.chip.good.dot::before{animation:beat 2.6s ease-in-out infinite}@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}}
 @media (min-width:720px){.grid2{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
 </head>
 <body>
 <header class="top">
-  <button class="iconbtn" id="menuBtn" type="button" aria-label="Menü"></button>
-  <button class="title" id="titleBtn" type="button" aria-label="Oyun seç"><b id="topTitle">Oryvona Games</b><span id="topSub">Stüdyo paneli</span></button>
+  <button class="iconbtn" id="menuBtn" type="button" aria-label="Menü" data-i18n-aria="ui.menu"></button>
+  <button class="title" id="titleBtn" type="button" aria-label="Oyun seç" data-i18n-aria="ui.pickGame"><b id="topTitle">Oryvona Games</b><span id="topSub" data-i18n="ui.studio">Stüdyo paneli</span></button>
   <img src="logo.png" alt="Oryvona Games">
-  <button class="iconbtn" id="refreshBtn" type="button" aria-label="Yenile" title="Yenile"></button>
+  <button class="iconbtn" id="refreshBtn" type="button" aria-label="Yenile" data-i18n-aria="ui.refresh"></button>
 </header>
 
 <div class="drawer" id="drawer" hidden>
   <div class="scrim" id="drawerScrim"></div>
   <aside class="dpanel" aria-label="Menü">
     <div class="dhead"><img src="logo.png" alt=""><div><b>Oryvona Games</b><span id="drawerUser">Stüdyo paneli</span></div></div>
-    <div class="secthead">Oyunlar</div>
+    <div class="secthead" data-i18n="ui.games">Oyunlar</div>
     <div class="dlist" id="drawerGames"></div>
-    <div class="secthead">Yardım</div>
+    <div class="secthead" data-i18n="ui.help">Yardım</div>
     <div class="dlist">
-      <button type="button" class="ditem" data-detail="terms"><span class="ic" id="dIcHelp"></span>Terimler ve roller</button>
+      <button type="button" class="ditem" data-detail="terms"><span class="ic" id="dIcHelp"></span><span data-i18n="ui.terms">Terimler ve roller</span></button>
     </div>
   </aside>
 </div>
@@ -230,105 +232,124 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   <div id="banner" class="banner" hidden></div>
 
   <section class="view" id="view-games" hidden>
-    <div class="pagehead"><h1>Oyunlar</h1></div>
-    <div class="secthead">Stüdyodaki projeler · dokununca paneli açılır</div>
+    <div class="pagehead"><h1 data-i18n="ui.games">Oyunlar</h1></div>
+    <div class="secthead" data-i18n="games.sub">Stüdyodaki projeler · dokununca paneli açılır</div>
     <div class="games" id="gamesList"></div>
   </section>
 
   <section class="view" id="view-home">
     <div class="band">
-      <div class="band-top"><span class="k">Şu an</span><span class="chip dot onnavy" id="fresh">Bağlanıyor…</span></div>
+      <div class="band-top"><span class="k" data-i18n="home.now">Şu an</span><span class="chip dot onnavy" id="fresh">Bağlanıyor…</span></div>
       <div class="hero">
         <div class="txt"><span class="v" id="heroV">Veri bekleniyor</span><span class="s" id="heroS">Projenin durumu ilk güncellemeyle burada görünür.</span></div>
         <svg class="ring" id="ring" viewBox="0 0 100 100" role="img" aria-label="Aşama ilerlemesi"></svg>
       </div>
     </div>
     <div class="card strip" id="strip" hidden>
-      <div class="hd"><b>Son 24 saat · kim çalıştı</b><span id="stripSub"></span></div>
+      <div class="hd"><b data-i18n="home.last24">Son 24 saat · kim çalıştı</b><span id="stripSub"></span></div>
       <svg class="tl" id="tl" viewBox="0 0 600 58" role="img" aria-label="Son 24 saatte sıra kimdeydi"></svg>
-      <div class="legend"><span><i class="claude"></i>Claude</span><span><i class="work"></i>OpenAI</span><span><i class="wait"></i>Bekleme</span></div>
+      <div class="legend"><span><i class="claude"></i>Claude</span><span><i class="work"></i>OpenAI</span><span><i class="wait"></i><span data-i18n="ui.waiting">Bekleme</span></span></div>
     </div>
-    <div class="secthead">Durum · dokununca ayrıntı açılır</div>
+    <div class="secthead" data-i18n="home.statusSub">Durum · dokununca ayrıntı açılır</div>
     <div class="grid2">
-      <button class="tile" data-detail="turn"><span class="ic" id="icTurn"></span><span class="k">Sıra kimde</span><span class="v" id="cTurn">—</span><span class="s" id="cTurnS"></span></button>
-      <button class="tile" data-detail="stage"><span class="ic" id="icStage"></span><span class="k">Oyun nerede</span><span class="v" id="cStage">—</span><span class="s" id="cStageS"></span></button>
-      <button class="tile" data-detail="qa"><span class="ic" id="icQa"></span><span class="k">Son test</span><span class="v" id="cQa">—</span><span class="s" id="cQaS"></span></button>
-      <button class="tile" data-detail="auto"><span class="ic" id="icAuto"></span><span class="k">Otomasyon</span><span class="v" id="cAuto">—</span><span class="s" id="cAutoS"></span></button>
+      <button class="tile" data-detail="turn"><span class="ic" id="icTurn"></span><span class="k" data-i18n="home.turn">Sıra kimde</span><span class="v" id="cTurn">—</span><span class="s" id="cTurnS"></span></button>
+      <button class="tile" data-detail="stage"><span class="ic" id="icStage"></span><span class="k" data-i18n="home.stage">Oyun nerede</span><span class="v" id="cStage">—</span><span class="s" id="cStageS"></span></button>
+      <button class="tile" data-detail="qa"><span class="ic" id="icQa"></span><span class="k" data-i18n="home.qa">Son test</span><span class="v" id="cQa">—</span><span class="s" id="cQaS"></span></button>
+      <button class="tile" data-detail="auto"><span class="ic" id="icAuto"></span><span class="k" data-i18n="home.auto">Otomasyon</span><span class="v" id="cAuto">—</span><span class="s" id="cAutoS"></span></button>
     </div>
-    <button class="tile wide quote-tile" id="cardWork" data-detail="worknote" hidden><span class="ic work" id="icWork"></span><span class="tx"><span class="k">OpenAI'dan son not <span class="tag yorum">Yorum</span></span><span class="v" id="cWork">—</span><span class="s quote" id="cWorkS" style="font-size:.98rem"></span></span></button>
+    <button class="tile wide quote-tile" id="cardWork" data-detail="worknote" hidden><span class="ic work" id="icWork"></span><span class="tx"><span class="k"><span data-i18n="home.workNote">OpenAI'dan son not</span> <span class="tag yorum" data-i18n="ui.comment">Yorum</span></span><span class="v" id="cWork">—</span><span class="s quote" id="cWorkS" style="font-size:.98rem"></span></span></button>
   </section>
 
   <section class="view" id="view-feed" hidden>
-    <div class="pagehead"><h1>Ekip akışı</h1></div>
+    <div class="pagehead"><h1 data-i18n="feed.title">Ekip akışı</h1></div>
     <div class="card strip" id="weekCard">
-      <div class="hd"><b>Bu hafta</b><span id="weekSub"></span></div>
+      <div class="hd"><b data-i18n="feed.week">Bu hafta</b><span id="weekSub"></span></div>
       <div class="results" id="weekStats"></div>
       <svg class="wk" id="wk" viewBox="0 0 600 170" role="img" aria-label="Günlere göre çalışma süresi"></svg>
-      <div class="legend"><span><i class="claude"></i>Claude</span><span><i class="work"></i>OpenAI</span><span><i class="run"></i>Bulut testi</span></div>
+      <div class="legend"><span><i class="claude"></i>Claude</span><span><i class="work"></i>OpenAI</span><span><i class="run"></i><span data-i18n="ui.cloudTest">Bulut testi</span></span></div>
     </div>
-    <div class="secthead">Kayıtlar</div>
-    <div class="filters" id="feedFilters"><button aria-pressed="true" data-f="all">Hepsi</button><button data-f="work">OpenAI</button><button data-f="claude">Claude</button><button data-f="note">Notlar</button></div>
+    <div class="secthead" data-i18n="feed.records">Kayıtlar</div>
+    <div class="filters" id="feedFilters"><button aria-pressed="true" data-f="all" data-i18n="ui.all">Hepsi</button><button data-f="work">OpenAI</button><button data-f="claude">Claude</button><button data-f="note" data-i18n="feed.notes">Notlar</button></div>
     <div class="card"><div class="feed" id="feedList"><div class="empty">Henüz akış kaydı yok.</div></div></div>
   </section>
 
   <section class="view" id="view-tests" hidden>
-    <div class="pagehead"><h1>Testler</h1></div>
+    <div class="pagehead"><h1 data-i18n="tests.title">Testler</h1></div>
     <div class="card" id="testsBody"></div>
   </section>
 
+  <section class="view" id="view-store" hidden>
+    <div class="pagehead"><h1 data-i18n="store.title">Mağaza</h1><button class="act" id="storeAddBtn" type="button" hidden data-i18n="store.addGame">+ Oyun ekle</button></div>
+    <div class="card" id="storeForm" hidden></div>
+    <div class="grid2" id="storeStats"></div>
+    <div class="secthead" data-i18n="store.gamesSub">Oyunlar · dokununca takip sayfası açılır</div>
+    <div class="games" id="storeGames"></div>
+    <div class="secthead" id="inboxHead">Gelen kutusu</div>
+    <div class="filters" id="mailFilters"><button aria-pressed="true" data-f="all" data-i18n="ui.all">Hepsi</button><button data-f="unread" data-i18n="store.unread">Okunmamış</button><button data-f="console" data-i18n="kind.console">Play Console</button><button data-f="review" data-i18n="kind.review">Yorum</button><button data-f="tester" data-i18n="kind.tester">Testçi</button><button data-f="support" data-i18n="kind.support">Destek</button><button data-f="none" data-i18n="store.unmatched">Eşleşmeyen</button></div>
+    <div class="card"><div id="mailList"></div></div>
+  </section>
+
+  <section class="view" id="view-game" hidden>
+    <div class="pagehead"><button class="back" id="gameBack" type="button" aria-label="Geri" data-i18n-aria="ui.back"></button><h1 id="gameTitle">Oyun</h1><button class="act" id="gameEditBtn" type="button" hidden data-i18n="ui.edit">Düzenle</button></div>
+    <div id="gameBody"></div>
+  </section>
+
   <section class="view" id="view-settings" hidden>
-    <div class="pagehead"><h1>Ayarlar</h1></div>
-    <div class="secthead">Hesap</div>
+    <div class="pagehead"><h1 data-i18n="set.title">Ayarlar</h1></div>
+    <div class="secthead" data-i18n="set.account">Hesap</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icAcc"></span><div class="tx"><b id="accEmail">—</b><span id="accRole">Ekip üyesi</span></div><button class="act" id="signOut" type="button">Çıkış</button></div>
+      <div class="item"><span class="ic" id="icAcc"></span><div class="tx"><b id="accEmail">—</b><span id="accRole">Ekip üyesi</span></div><button class="act" id="signOut" type="button" data-i18n="set.signOut">Çıkış</button></div>
     </div>
-    <div class="secthead">Görünüm</div>
+    <div class="secthead" data-i18n="set.look">Görünüm</div>
     <div class="list">
-      <div class="item wrap"><span class="ic" id="icTheme"></span><div class="tx"><b>Tema</b><span>Telefonun ayarını izler ya da sabit kalır</span></div><div class="seg" id="themeSeg"><button data-t="light" aria-pressed="true">Açık</button><button data-t="dark">Koyu</button><button data-t="system">Telefona göre</button></div></div>
+      <div class="item wrap"><span class="ic" id="icLang"></span><div class="tx"><b data-i18n="set.lang">Dil</b><span data-i18n="set.langSub">Uygulamanın tüm yazıları</span></div><div class="seg" id="langSeg"><button data-l="tr" aria-pressed="true">Türkçe</button><button data-l="en">English</button></div></div>
+      <div class="item wrap"><span class="ic" id="icTheme"></span><div class="tx"><b data-i18n="set.theme">Tema</b><span data-i18n="set.themeSub">Telefonun ayarını izler ya da sabit kalır</span></div><div class="seg" id="themeSeg"><button data-t="light" aria-pressed="true" data-i18n="set.light">Açık</button><button data-t="dark" data-i18n="set.dark">Koyu</button><button data-t="system" data-i18n="set.system">Telefona göre</button></div></div>
     </div>
-    <div class="secthead">Veri</div>
+    <div class="secthead" data-i18n="set.data">Veri</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icLive"></span><div class="tx"><b>Canlı bağlantı</b><span id="liveInfo">—</span></div><button class="act" id="reloadBtn" type="button">Yenile</button></div>
+      <div class="item"><span class="ic" id="icLive"></span><div class="tx"><b data-i18n="set.live">Canlı bağlantı</b><span id="liveInfo">—</span></div><button class="act" id="reloadBtn" type="button" data-i18n="ui.refresh">Yenile</button></div>
     </div>
-    <div class="secthead">Bildirimler</div>
+    <div class="secthead" data-i18n="set.push">Bildirimler</div>
     <div class="list" id="pushList">
-      <div class="item"><span class="ic" id="icBell"></span><div class="tx"><b>Telefona bildirim</b><span id="pushInfo">Uygulama kapalıyken de haber verir</span></div><button class="act" id="pushToggle" type="button">Aç</button></div>
-      <div class="item wrap" id="pushPrefs" hidden><span class="ic" id="icPrefs"></span><div class="tx"><b>Ne zaman?</b><span>Seçtiklerin olunca bildirim gelir</span></div>
-        <div class="checks"><label><input type="checkbox" data-pref="mine" checked> Sıra bana geçince (son test)</label><label><input type="checkbox" data-pref="blocked" checked> Bir engel kaydedilince</label><label><input type="checkbox" data-pref="turns"> Her sıra değişiminde (Claude ↔ OpenAI)</label><label><input type="checkbox" data-pref="runs"> Bulut testi bitince</label></div>
-        <button class="act" id="pushTest" type="button" style="margin-left:auto">Deneme bildirimi</button></div>
+      <div class="item"><span class="ic" id="icBell"></span><div class="tx"><b data-i18n="set.pushTitle">Telefona bildirim</b><span id="pushInfo">Uygulama kapalıyken de haber verir</span></div><button class="act" id="pushToggle" type="button">Aç</button></div>
+      <div class="item wrap" id="pushPrefs" hidden><span class="ic" id="icPrefs"></span><div class="tx"><b data-i18n="set.when">Ne zaman?</b><span data-i18n="set.whenSub">Seçtiklerin olunca bildirim gelir</span></div>
+        <div class="checks"><label><input type="checkbox" data-pref="mine" checked> <span data-i18n="pref.mine">Sıra bana geçince (son test)</span></label><label><input type="checkbox" data-pref="blocked" checked> <span data-i18n="pref.blocked">Bir engel kaydedilince</span></label><label><input type="checkbox" data-pref="turns"> <span data-i18n="pref.turns">Her sıra değişiminde (Claude ↔ OpenAI)</span></label><label><input type="checkbox" data-pref="runs"> <span data-i18n="pref.runs">Bulut testi bitince</span></label><label><input type="checkbox" data-pref="store" checked> <span data-i18n="pref.store">Mağaza: yeni yorum, e-posta, durum değişikliği</span></label></div>
+        <button class="act" id="pushTest" type="button" style="margin-left:auto" data-i18n="set.pushTest">Deneme bildirimi</button></div>
     </div>
     <div id="teamSection" hidden>
-      <div class="secthead">Ekip (sahip)</div>
+      <div class="secthead" data-i18n="set.team">Ekip (sahip)</div>
       <div class="card" id="teamBody"></div>
     </div>
-    <div class="secthead">Uygulama</div>
+    <div class="secthead" data-i18n="set.app">Uygulama</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo">Sürüm 2.0 · Veri: Supabase (canlı) · Kaynak: GitHub</span></div></div>
-      <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b>Android kurulum dosyası</b><span>Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/latest" target="_blank" rel="noopener">İndir</a></div>
-      <div class="item"><span class="ic" id="icHelp"></span><div class="tx"><b>Terimler ve roller</b><span>Claude, OpenAI, sıra, engel ne demek?</span></div><button class="act" type="button" data-detail="terms">Aç</button></div>
+      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 2.1 · Veri: Supabase (canlı) · Kaynak: GitHub</span></div></div>
+      <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b data-i18n="set.apk">Android kurulum dosyası</b><span data-i18n="set.apkSub">Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/latest" target="_blank" rel="noopener" data-i18n="ui.download">İndir</a></div>
+      <div class="item"><span class="ic" id="icHelp"></span><div class="tx"><b data-i18n="ui.terms">Terimler ve roller</b><span data-i18n="set.termsSub">Claude, OpenAI, sıra, engel ne demek?</span></div><button class="act" type="button" data-detail="terms" data-i18n="ui.open">Aç</button></div>
     </div>
   </section>
 
   <section class="view" id="view-detail" hidden>
-    <div class="pagehead"><button class="back" id="backBtn" type="button" aria-label="Geri"></button><h1 id="detailTitle">Ayrıntı</h1></div>
+    <div class="pagehead"><button class="back" id="backBtn" type="button" aria-label="Geri" data-i18n-aria="ui.back"></button><h1 id="detailTitle">Ayrıntı</h1></div>
     <div class="card" id="detailBody"></div>
   </section>
 </main>
 
 <nav class="tabs" role="tablist" aria-label="Bölümler">
-  <button role="tab" data-view="home" aria-selected="true"><span class="pill" id="tabHome"></span>Özet</button>
-  <button role="tab" data-view="feed"><span class="pill" id="tabFeed"></span>Akış</button>
-  <button role="tab" data-view="tests"><span class="pill" id="tabTests"></span>Testler</button>
-  <button role="tab" data-view="settings"><span class="pill" id="tabSettings"></span>Ayarlar</button>
+  <button role="tab" data-view="home" aria-selected="true"><span class="pill" id="tabHome"></span><span data-i18n="tab.home">Özet</span></button>
+  <button role="tab" data-view="feed"><span class="pill" id="tabFeed"></span><span data-i18n="tab.feed">Akış</span></button>
+  <button role="tab" data-view="tests"><span class="pill" id="tabTests"></span><span data-i18n="tab.tests">Testler</span></button>
+  <button role="tab" data-view="store"><span class="pill" id="tabStore"></span><span data-i18n="tab.store">Mağaza</span><span class="badge" id="storeBadge" hidden></span></button>
+  <button role="tab" data-view="settings"><span class="pill" id="tabSettings"></span><span data-i18n="tab.settings">Ayarlar</span></button>
 </nav>
 
 <div id="gate" hidden>
   <form id="gateForm">
     <img src="logo.png" alt="Oryvona Games" style="width:220px;align-self:center;max-width:100%">
-    <div style="font-weight:900;font-size:1.15rem">Ekip girişi</div>
-    <p id="gateText" style="color:#cfcbe6;font-size:.95rem">E-postanı yaz; sana tek kullanımlık bir giriş bağlantısı gönderelim. Şifre yok.</p>
+    <div class="langs"><button type="button" data-l="tr" aria-pressed="true">Türkçe</button><button type="button" data-l="en">English</button></div>
+    <div style="font-weight:900;font-size:1.15rem" data-i18n="gate.title">Ekip girişi</div>
+    <p id="gateText" style="color:#cfcbe6;font-size:.95rem" data-i18n="gate.text">E-postanı yaz; sana tek kullanımlık bir giriş bağlantısı gönderelim. Şifre yok.</p>
     <input id="gateEmail" type="email" required autocomplete="email" placeholder="ad@ornek.com">
-    <button id="gateBtn" type="submit" class="btn gold">Giriş bağlantısı gönder</button>
+    <button id="gateBtn" type="submit" class="btn gold" data-i18n="gate.send">Giriş bağlantısı gönder</button>
     <span class="msg" id="gateMsg"></span>
   </form>
 </div>
@@ -354,29 +375,133 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>',
     sliders:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>',
     menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+    globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+    store:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10 5.5 4h13L20 10"/><path d="M4 10a3 3 0 0 0 5.3 1.9A3 3 0 0 0 12 13a3 3 0 0 0 2.7-1.1A3 3 0 0 0 20 10"/><path d="M5 12.5V20h14v-7.5"/><path d="M10 20v-5h4v5"/></svg>',
+    mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+    star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="m12 3 2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.4l-5.7 3.1 1.2-6.4L2.8 9.7l6.4-.8z"/></svg>',
+    link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
     out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5"/><path d="M14 8l4 4-4 4M18 12H9"/></svg>'};
-  for(const [id,ic] of [["menuBtn","menu"],["dIcHelp","help"],["refreshBtn","refresh"],["backBtn","back"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icTheme","moon"],["icLive","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabFeed","list"],["tabTests","check"],["tabSettings","gear"]])$(id).innerHTML=I[ic];
+  for(const [id,ic] of [["menuBtn","menu"],["dIcHelp","help"],["refreshBtn","refresh"],["backBtn","back"],["gameBack","back"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icLang","globe"],["icTheme","moon"],["icLive","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabFeed","list"],["tabTests","check"],["tabStore","store"],["tabSettings","gear"]])$(id).innerHTML=I[ic];
 
-  // ---------- language tables ----------
-  const TURN={READY_CLAUDE:{v:"Claude",s:"Görev bekliyor",text:"Claude görevi almak için bekliyor; otomatik kontrol sırayı görünce işe başlar.",who:"claude"},
-    CLAUDE_WORKING:{v:"Claude çalışıyor",s:"Görev yapılıyor",text:"Claude görevi yapıyor; bitince GitHub'a gönderip sırayı OpenAI'a verir.",who:"claude"},
-    READY_WORK:{v:"OpenAI",s:"İnceleme bekliyor",text:"Claude teslimini gönderdi. OpenAI bulut testinin bitmesini ve kanıtı incelemeyi bekliyor.",who:"work"},
-    WORK_WORKING:{v:"OpenAI inceliyor",s:"Kanıt inceleniyor",text:"OpenAI bulut test kanıtını inceliyor; bitince sonraki görevi yazıp sırayı Claude'a bırakır.",who:"work"},
-    BLOCKED:{v:"Engel var",s:"Oyun hatası değil",text:"Bir altyapı ya da erişim engeli kaydedildi; oyun hatası değil.",who:""},
-    USER_TEST_READY:{v:"Deniz",s:"Son test senin",text:"Zorunlu testlerin hepsi geçti. Deniz son oyuncu testini yapar; APK kararı sonra.",who:"deniz"}};
+  // ---------- language (TR default, EN) ----------
+  // Static markup carries data-i18n keys; everything rendered by script goes through S() (current dictionary).
+  // Text that arrives from the GitHub webhook (phase names, notes, task text) is written in Turkish by the team and is shown as-is in both languages.
+  const L={};
+  L.tr={
+    ui:{menu:"Menü",pickGame:"Oyun seç",studio:"Stüdyo paneli",refresh:"Yenile",games:"Oyunlar",help:"Yardım",terms:"Terimler ve roller",waiting:"Bekleme",comment:"Yorum",work:"İş",all:"Hepsi",cloudTest:"Bulut testi",back:"Geri",edit:"Düzenle",download:"İndir",open:"Aç",noData:"Veri yok",none:"Henüz yok",save:"Kaydet",cancel:"Vazgeç",add:"Ekle",delete:"Sil",close:"Kapat",yes:"Evet",you:"sen",owner:"sahip",connecting:"Bağlanıyor…",loginNeeded:"Giriş gerekli",connErr:"Bağlantı hatası",live:v=>"Canlı · "+v,lastMove:v=>"Son hareket "+v,optional:"isteğe bağlı"},
+    tab:{home:"Özet",feed:"Akış",tests:"Testler",store:"Mağaza",settings:"Ayarlar"},
+    games:{sub:"Stüdyodaki projeler · dokununca paneli açılır",noStatus:"Henüz durum verisi yok",noProjects:"Henüz proje yok.",allGames:"Tüm oyunlar"},
+    home:{now:"Şu an",last24:"Son 24 saat · kim çalıştı",statusSub:"Durum · dokununca ayrıntı açılır",turn:"Sıra kimde",stage:"Oyun nerede",qa:"Son test",auto:"Otomasyon",workNote:"OpenAI'dan son not",waitingData:"Veri bekleniyor",waitingSub:"Projenin durumu ilk güncellemeyle burada görünür.",noRecord:"Henüz kayıt yok",noRecordSub:"Bu proje için durum verisi gelince burada görünür.",stagesPassed:"aşama geçti",started:v=>`${v} başladı`,passed:(a,b)=>`${a}/${b} geçti`,blockedOne:"1 testte altyapı engeli",allPassed:"Hepsi geçti",pending:"Bekleyen var",running:"Çalışıyor",idle:"Beklemede",lastSignal:v=>"Son sinyal "+v,lastCheck:v=>"Son kontrol "+v,noSignal:"Henüz sinyal yok",note:"Not",strip:(n,c,w)=>`${n} tur · Claude ${c} dk · OpenAI ${w} dk`},
+    turn:{READY_CLAUDE:{v:"Claude",s:"Görev bekliyor",text:"Claude görevi almak için bekliyor; otomatik kontrol sırayı görünce işe başlar."},
+      CLAUDE_WORKING:{v:"Claude çalışıyor",s:"Görev yapılıyor",text:"Claude görevi yapıyor; bitince GitHub'a gönderip sırayı OpenAI'a verir."},
+      READY_WORK:{v:"OpenAI",s:"İnceleme bekliyor",text:"Claude teslimini gönderdi. OpenAI bulut testinin bitmesini ve kanıtı incelemeyi bekliyor."},
+      WORK_WORKING:{v:"OpenAI inceliyor",s:"Kanıt inceleniyor",text:"OpenAI bulut test kanıtını inceliyor; bitince sonraki görevi yazıp sırayı Claude'a bırakır."},
+      BLOCKED:{v:"Engel var",s:"Oyun hatası değil",text:"Bir altyapı ya da erişim engeli kaydedildi; oyun hatası değil."},
+      USER_TEST_READY:{v:"Deniz",s:"Son test senin",text:"Zorunlu testlerin hepsi geçti. Deniz son oyuncu testini yapar; APK kararı sonra."}},
+    turnOf:v=>`Sıra ${v}'da`,
+    state:{READY_CLAUDE:"sıra Claude'da",CLAUDE_WORKING:"Claude çalışıyor",READY_WORK:"sıra OpenAI'da",WORK_WORKING:"OpenAI inceliyor",BLOCKED:"engel",USER_TEST_READY:"Deniz testi"},
+    verb:{claim:"işe başladı",release:"sırayı devretti",resume:"devam etti",run:"otomatik kontrol",note:"not bıraktı"},
+    stageSt:{PASS:"Geçti",PARTIAL:"Kısmi",ACTIVE:"Sürüyor",BLOCKED:"Engel",PENDING:"Sırada"},
+    ago:{now:"az önce",m:v=>v+" dk önce",h:v=>v+" sa önce",d:v=>v+" gün önce"},
+    feed:{title:"Ekip akışı",week:"Bu hafta",records:"Kayıtlar",notes:"Notlar",empty:"Henüz akış kaydı yok.",emptyFilter:"Bu süzgeçte kayıt yok.",last7:"son 7 gün",turns:"Tur",turnsSub:"sıra el değiştirdi",runsSub:n=>`${n} tanesi sorunsuz`,noRuns:"koşu yok",workTime:"çalışma süresi",reviewTime:"inceleme süresi",today:"Bugün",hm:(h,m)=>`${h} sa ${m} dk`,min:m=>`${m} dk`,hr:h=>`${h} sa`,worked:v=>v+" çalıştı",waitFor:v=>"Bekleme: "+v,nowLabel:"şimdi"},
+    tests:{title:"Testler",code:"Kod testleri",browser:"Tarayıcı testleri",natural:"Gerçek oynanış",lifecycle:"Sekme / Turu bitir",allPassed:"Hepsi geçti",missing:"Eksik var",waiting:"Bekleniyor",pass:"Geçti",blocked:"Engel",fail:"Hata",blockedSub:"Altyapı sınırı, oyun hatası değil",failSub:"Gerçek bir sorun bulundu",notRun:"Henüz koşmadı",runLog:"Koşu kaydı: ",noRun:"Henüz bulut koşusu yok.",source:v=>` · kaynak ${v}`,history:"Koşu geçmişi",noHistory:"Koşu geçmişi yok.",rowCode:"Kod",rowBrowser:"Tarayıcı",rowNatural:"Oynanış",rowLife:"Sekme / çıkış",cellPass:"geçti",cellBlocked:"engel",cellFail:"hata",cellNone:"koşmadı",lastRun:"Son koşu: "},
+    det:{turn:"Sıra kimde",stage:"Oyun nerede",qa:"Son bulut testi",auto:"Otomasyon",worknote:"OpenAI'dan son not",terms:"Terimler ve roller",noTask:"Görev yok",taskCode:(id,t)=>`Görev kodu ${id} · tur ${t}`,lock:(who,at)=>` · kilit: ${who}, ${at}`,lockFree:" · kilit boş",
+      pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`GitHub'daki her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI uyandırma",on:"etkin",off:"kapalı",wakeSub:v=>`Claude GitHub'a gönderince OpenAI kendiliğinden uyanır. Son OpenAI hareketi: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Zamanlanmış görev şu an kapalı; Claude elle başlatılıyor.",repo:"Depo: ",lastPush:v=>` · son gönderim ${v}`,last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
+      workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar",run:v=>` · koşu ${v}`},
+    terms:[["Claude","Kaynak mühendisi. Testleri ve yamaları yazar, GitHub'a gönderir."],["OpenAI","Bağımsız kalite kontrol (ChatGPT). Bulut testinin ham kanıtını inceler, sonraki görevi yazar."],["Deniz","Stüdyo sahibi. Zorunlu testler bitince son oyuncu testini yapar; yayın ve APK kararı onda."],["Sıra","Aynı anda tek kişi çalışır; sıra kimdeyse diğerleri bekler, dosyalar çakışmaz."],["Engel","Oyun hatası değil; altyapı ya da erişim sınırı. Kanıtıyla kaydedilir."],["Testler","Kod testleri · sabit senaryolu tarayıcı testi · gerçek tuşlarla oynanış · sekme değiştirme, çıkış ve tekrar oyna."],["Mağaza","Play Store yolundaki oyunlar: test aşaması, yorumlar, gelen e-postalar ve ekip notları tek sayfada."]],
+    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 2.1 · Veri: Supabase (canlı) · Kaynak: GitHub",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Claude, OpenAI, sıra, engel ne demek?",
+      demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · kaynak: ${src}`,ghSignal:"GitHub sinyali",noDataYet:"Henüz veri yok",
+      pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
+    pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
+    team:{invite:"Davet bağlantısı",inviteSub:"Gönderdiğin kişi kendi e-postasıyla girer; bağlantı bir kez kullanılır, süresi dolunca çalışmaz.",h1:"1 saat",d1:"1 gün",d7:"7 gün",onlyEmail:"Sadece bu e-posta (isteğe bağlı)",create:"Bağlantı oluştur",copy:"Kopyala",manual:"Elle eklemek istersen:",newEmail:"yeni@ekip.com",name:"Ad (isteğe bağlı)",who:"Kimler girdi",lastSeen:(a,n)=>`son giriş ${a} · ${n} kez`,never:"henüz giriş yapmadı",remove:"Çıkar",
+      writeEmail:"E-posta yaz.",addFail:"Eklenemedi: ",added:"Eklendi: ",demoInvite:"Örnek görünümde davet oluşturulamaz.",creating:"Oluşturuluyor…",createFail:"Oluşturulamadı: ",valid:(t,e)=>`Geçerlilik: ${t}'e kadar · tek kullanımlık${e?` · yalnız ${e}`:""}`,copied:"Kopyalandı. WhatsApp vb. ile gönderebilirsin.",copyManual:"Kopyalamak için bağlantıyı seçip kopyala.",removeFail:"Çıkarılamadı: "},
+    gate:{title:"Ekip girişi",text:"E-postanı yaz; sana tek kullanımlık bir giriş bağlantısı gönderelim. Şifre yok.",send:"Giriş bağlantısı gönder",invited:"Davet bağlantısıyla geldin. Kendi e-postanı yaz; gelen bağlantıya dokununca ekibe eklenirsin.",writeEmail:"Önce e-posta yaz.",sending:"Gönderiliyor…",sendFail:"Gönderilemedi: ",sent:"Bağlantı gönderildi. E-postanı aç (gerekirse Gereksiz klasörü) ve bağlantıya dokun; uygulama kendiliğinden açılır.",
+      inviteBad:"Davet geçersiz",inviteFail:v=>`Davet kullanılamadı: ${v} Daveti gönderen kişiden yeni bağlantı iste.`,notTeam:"Bu hesap ekip listesinde değil. Stüdyo sahibinden davet bağlantısı iste.",noAuth:"Yetki yok",noConfig:"Veri kaynağı ayarlı değil",demoBanner:"ÖRNEK VERİ · tasarım önizlemesi, gerçek durum değil"},
+    kind:{console:"Play Console",review:"Yorum",tester:"Testçi",support:"Destek",other:"E-posta"},
+    stage:{development:"Geliştirme",closed_testing:"Kapalı test",open_testing:"Açık test",production:"Yayında",paused:"Durduruldu"},
+    track:{internal:"İç test",alpha:"Kapalı test",beta:"Açık test",production:"Yayın"},
+    trackSt:{completed:"tamamlandı",inProgress:"aşamalı yayında",halted:"durduruldu",draft:"taslak"},
+    store:{title:"Mağaza",addGame:"+ Oyun ekle",gamesSub:"Oyunlar · dokununca takip sayfası açılır",inbox:"Gelen kutusu",unread:"Okunmamış",unmatched:"Eşleşmeyen",noGames:"Henüz mağaza oyunu yok. Sahip \"Oyun ekle\" ile ekler.",noMail:"Bu süzgeçte e-posta yok.",mailWaiting:"Gmail bağlanınca e-postalar burada toplanır.",
+      gmail:"Gmail",play:"Play Console",connected:"bağlı",notConnected:"kurulum bekliyor",syncErr:"hata",lastSync:v=>"son eşitleme "+v,neverSync:"henüz eşitlenmedi",unreadMail:"Okunmamış e-posta",newReviews:"Yeni yorum",reviews:"Yorumlar",avg:"ortalama",noReviews:"Henüz yorum yok",reviewsLocked:"Yorumlar açık teste geçince gelir",lastEvent:"Son hareket",
+      openGmail:"Gmail'de aç",markRead:"Okundu",markUnread:"Okunmadı yap",assign:"Oyuna bağla",noGame:"— oyun yok —",seen:"Görüldü",newTag:"Yeni",reply:"Geliştirici yanıtı",
+      tracks:"Mağaza durumu",noTracks:"Play Console bağlanınca test/yayın kanalları burada görünür.",versions:"sürüm",rollout:v=>`%${v} kullanıcıya`,emptyTrack:"boş",
+      notes:"Ekip notları",notePh:"Not yaz… (ör. testçi geri bildirimi, yapılacak)",noNotes:"Henüz not yok.",events:"Olaylar",noEvents:"Henüz olay yok.",mailFor:"Bu oyunun e-postaları",links:"Bağlantılar",storeLink:"Play Store sayfası",consoleLink:"Play Console",pkg:"Paket",syncedAt:v=>"Play eşitlemesi "+v,
+      fName:"Oyun adı",fPkg:"Paket adı (com.oryvonagames.x)",fStage:"Aşama",fStore:"Play Store bağlantısı",fConsole:"Play Console bağlantısı",fKeys:"E-posta eşleştirme sözcükleri (virgülle)",fProject:"Geliştirme projesi",fNone:"— yok —",saveFail:"Kaydedilemedi: ",saved:"Kaydedildi.",needName:"Oyun adı gerekli.",confirmDel:"Bu oyunu ve bağlı yorum/not kayıtlarını silmek istiyor musun?",
+      events_track_change:"Mağaza durumu değişti"}
+  };
+  L.en={
+    ui:{menu:"Menu",pickGame:"Pick a game",studio:"Studio panel",refresh:"Refresh",games:"Games",help:"Help",terms:"Terms and roles",waiting:"Waiting",comment:"Comment",work:"Action",all:"All",cloudTest:"Cloud test",back:"Back",edit:"Edit",download:"Download",open:"Open",noData:"No data",none:"None yet",save:"Save",cancel:"Cancel",add:"Add",delete:"Delete",close:"Close",yes:"Yes",you:"you",owner:"owner",connecting:"Connecting…",loginNeeded:"Sign-in needed",connErr:"Connection error",live:v=>"Live · "+v,lastMove:v=>"Last activity "+v,optional:"optional"},
+    tab:{home:"Overview",feed:"Activity",tests:"Tests",store:"Store",settings:"Settings"},
+    games:{sub:"Projects in the studio · tap to open its panel",noStatus:"No status data yet",noProjects:"No projects yet.",allGames:"All games"},
+    home:{now:"Right now",last24:"Last 24 hours · who worked",statusSub:"Status · tap for details",turn:"Whose turn",stage:"Where the game is",qa:"Last test",auto:"Automation",workNote:"Latest note from OpenAI",waitingData:"Waiting for data",waitingSub:"The project's status appears here with the first update.",noRecord:"No record yet",noRecordSub:"Status data for this project will show here once it arrives.",stagesPassed:"stages passed",started:v=>`started ${v}`,passed:(a,b)=>`${a}/${b} passed`,blockedOne:"1 test blocked by infrastructure",allPassed:"All passed",pending:"Some pending",running:"Running",idle:"Idle",lastSignal:v=>"Last signal "+v,lastCheck:v=>"Last check "+v,noSignal:"No signal yet",note:"Note",strip:(n,c,w)=>`${n} turns · Claude ${c} min · OpenAI ${w} min`},
+    turn:{READY_CLAUDE:{v:"Claude",s:"Task waiting",text:"Claude is waiting to pick up the task; the automatic check starts work when it sees the turn."},
+      CLAUDE_WORKING:{v:"Claude working",s:"Task in progress",text:"Claude is doing the task; when done it pushes to GitHub and hands the turn to OpenAI."},
+      READY_WORK:{v:"OpenAI",s:"Awaiting review",text:"Claude pushed its delivery. OpenAI waits for the cloud test to finish and reviews the evidence."},
+      WORK_WORKING:{v:"OpenAI reviewing",s:"Evidence under review",text:"OpenAI is reviewing the cloud test evidence; then it writes the next task and hands the turn to Claude."},
+      BLOCKED:{v:"Blocked",s:"Not a game bug",text:"An infrastructure or access blocker was recorded; it is not a game bug."},
+      USER_TEST_READY:{v:"Deniz",s:"Final test is yours",text:"All mandatory tests passed. Deniz does the final player test; the APK decision comes after."}},
+    turnOf:v=>`${v}'s turn`,
+    state:{READY_CLAUDE:"Claude's turn",CLAUDE_WORKING:"Claude working",READY_WORK:"OpenAI's turn",WORK_WORKING:"OpenAI reviewing",BLOCKED:"blocked",USER_TEST_READY:"Deniz's test"},
+    verb:{claim:"started work",release:"handed over the turn",resume:"resumed",run:"automatic check",note:"left a note"},
+    stageSt:{PASS:"Passed",PARTIAL:"Partial",ACTIVE:"Active",BLOCKED:"Blocked",PENDING:"Queued"},
+    ago:{now:"just now",m:v=>v+" min ago",h:v=>v+" h ago",d:v=>v+" d ago"},
+    feed:{title:"Team activity",week:"This week",records:"Records",notes:"Notes",empty:"No activity yet.",emptyFilter:"No records for this filter.",last7:"last 7 days",turns:"Turns",turnsSub:"hand-overs",runsSub:n=>`${n} clean`,noRuns:"no runs",workTime:"working time",reviewTime:"review time",today:"Today",hm:(h,m)=>`${h} h ${m} min`,min:m=>`${m} min`,hr:h=>`${h} h`,worked:v=>v+" worked",waitFor:v=>"Waiting: "+v,nowLabel:"now"},
+    tests:{title:"Tests",code:"Code tests",browser:"Browser tests",natural:"Real gameplay",lifecycle:"Tab switch / finish run",allPassed:"All passed",missing:"Some missing",waiting:"Waiting",pass:"Passed",blocked:"Blocked",fail:"Failed",blockedSub:"Infrastructure limit, not a game bug",failSub:"A real problem was found",notRun:"Not run yet",runLog:"Run log: ",noRun:"No cloud run yet.",source:v=>` · source ${v}`,history:"Run history",noHistory:"No run history.",rowCode:"Code",rowBrowser:"Browser",rowNatural:"Gameplay",rowLife:"Tab / quit",cellPass:"passed",cellBlocked:"blocked",cellFail:"failed",cellNone:"not run",lastRun:"Last run: "},
+    det:{turn:"Whose turn",stage:"Where the game is",qa:"Last cloud test",auto:"Automation",worknote:"Latest note from OpenAI",terms:"Terms and roles",noTask:"No task",taskCode:(id,t)=>`Task ${id} · turn ${t}`,lock:(who,at)=>` · lock: ${who}, ${at}`,lockFree:" · lock free",
+      pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change on GitHub lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI wake-up",on:"enabled",off:"off",wakeSub:v=>`When Claude pushes to GitHub, OpenAI wakes up by itself. Last OpenAI activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"The scheduled task is off for now; Claude is started manually.",repo:"Repository: ",lastPush:v=>` · last push ${v}`,last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
+      workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes",run:v=>` · run ${v}`},
+    terms:[["Claude","Source engineer. Writes tests and patches, pushes to GitHub."],["OpenAI","Independent quality control (ChatGPT). Reviews the raw cloud test evidence and writes the next task."],["Deniz","Studio owner. Does the final player test once mandatory tests pass; release and APK decisions are theirs."],["Turn","Only one person works at a time; whoever holds the turn works, the others wait, so files never clash."],["Blocker","Not a game bug; an infrastructure or access limit. Recorded with evidence."],["Tests","Code tests · fixed-scenario browser test · gameplay with real keys · tab switching, quitting and replaying."],["Store","Games on their way to the Play Store: test stage, reviews, incoming mail and team notes on one page."]],
+    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 2.1 · Data: Supabase (live) · Source: GitHub",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"What do Claude, OpenAI, turn and blocker mean?",
+      demoView:"Sample view",notSignedIn:"Not signed in",ownerRole:"Studio owner",memberRole:"Team member",liveInfo:(t,src)=>`Last update ${t} · source: ${src}`,ghSignal:"GitHub signal",noDataYet:"No data yet",
+      pushOn:"On",pushOff:"Turn on",pushDemo:"Off in the sample view",pushUnsup:"This browser does not support it",pushDenied:"Notification permission is off; enable it in the phone's app settings",pushActive:"This device receives notifications. If they arrive as \"Chrome\": open phone Settings → Apps → Oryvona → Notifications.",pushIdle:"Alerts you even when the app is closed",pushSaveErr:"Could not save: ",pushAsking:"Asking for permission…",pushClosed:"The permission box closed; tap Turn on again and choose Allow.",pushFail:"Could not enable: ",pushSending:"Sending…",pushSendFail:"Could not send: ",pushSent:n=>`Test sent · ${n} device(s). It arrives within seconds.`},
+    pref:{mine:"When the turn comes to me (final test)",blocked:"When a blocker is recorded",turns:"On every hand-over (Claude ↔ OpenAI)",runs:"When a cloud test finishes",store:"Store: new review, mail, status change"},
+    team:{invite:"Invite link",inviteSub:"The person you send it to signs in with their own e-mail; the link works once and expires.",h1:"1 hour",d1:"1 day",d7:"7 days",onlyEmail:"Only this e-mail (optional)",create:"Create link",copy:"Copy",manual:"To add by hand:",newEmail:"new@team.com",name:"Name (optional)",who:"Who signed in",lastSeen:(a,n)=>`last sign-in ${a} · ${n} times`,never:"never signed in",remove:"Remove",
+      writeEmail:"Enter an e-mail.",addFail:"Could not add: ",added:"Added: ",demoInvite:"Invites cannot be created in the sample view.",creating:"Creating…",createFail:"Could not create: ",valid:(t,e)=>`Valid until ${t} · single use${e?` · only ${e}`:""}`,copied:"Copied. Send it via WhatsApp etc.",copyManual:"Select the link and copy it.",removeFail:"Could not remove: "},
+    gate:{title:"Team sign-in",text:"Enter your e-mail; we'll send you a one-time sign-in link. No password.",send:"Send sign-in link",invited:"You arrived with an invite link. Enter your own e-mail; tapping the link you receive adds you to the team.",writeEmail:"Enter your e-mail first.",sending:"Sending…",sendFail:"Could not send: ",sent:"Link sent. Open your e-mail (check Junk if needed) and tap the link; the app opens by itself.",
+      inviteBad:"Invalid invite",inviteFail:v=>`The invite could not be used: ${v} Ask the sender for a new link.`,notTeam:"This account is not on the team list. Ask the studio owner for an invite link.",noAuth:"No access",noConfig:"Data source not configured",demoBanner:"SAMPLE DATA · design preview, not the real status"},
+    kind:{console:"Play Console",review:"Review",tester:"Tester",support:"Support",other:"E-mail"},
+    stage:{development:"In development",closed_testing:"Closed testing",open_testing:"Open testing",production:"Live",paused:"Paused"},
+    track:{internal:"Internal testing",alpha:"Closed testing",beta:"Open testing",production:"Production"},
+    trackSt:{completed:"completed",inProgress:"staged rollout",halted:"halted",draft:"draft"},
+    store:{title:"Store",addGame:"+ Add game",gamesSub:"Games · tap to open its tracking page",inbox:"Inbox",unread:"Unread",unmatched:"Unmatched",noGames:"No store games yet. The owner adds one with \"Add game\".",noMail:"No e-mail for this filter.",mailWaiting:"E-mails collect here once Gmail is connected.",
+      gmail:"Gmail",play:"Play Console",connected:"connected",notConnected:"setup pending",syncErr:"error",lastSync:v=>"last sync "+v,neverSync:"never synced",unreadMail:"Unread e-mail",newReviews:"New reviews",reviews:"Reviews",avg:"average",noReviews:"No reviews yet",reviewsLocked:"Reviews arrive once the game is in open testing",lastEvent:"Last activity",
+      openGmail:"Open in Gmail",markRead:"Mark read",markUnread:"Mark unread",assign:"Link to game",noGame:"— no game —",seen:"Seen",newTag:"New",reply:"Developer reply",
+      tracks:"Store status",noTracks:"Test/release tracks appear here once Play Console is connected.",versions:"version",rollout:v=>`to ${v}% of users`,emptyTrack:"empty",
+      notes:"Team notes",notePh:"Write a note… (e.g. tester feedback, to-do)",noNotes:"No notes yet.",events:"Events",noEvents:"No events yet.",mailFor:"This game's e-mails",links:"Links",storeLink:"Play Store page",consoleLink:"Play Console",pkg:"Package",syncedAt:v=>"Play sync "+v,
+      fName:"Game name",fPkg:"Package name (com.oryvonagames.x)",fStage:"Stage",fStore:"Play Store link",fConsole:"Play Console link",fKeys:"E-mail matching words (comma separated)",fProject:"Development project",fNone:"— none —",saveFail:"Could not save: ",saved:"Saved.",needName:"Game name is required.",confirmDel:"Delete this game and its linked review/note records?",
+      events_track_change:"Store status changed"}
+  };
+  let lang="tr";try{lang=localStorage.getItem("oryvona.lang")||"tr";}catch{}if(!L[lang])lang="tr";
+  const S=()=>L[lang];
+  const path=(o,k)=>k.split(".").reduce((a,b)=>a==null?a:a[b],o);
+  const T=k=>{const v=path(S(),k);return v==null?(path(L.tr,k)??k):v;};
+  const loc=()=>lang==="tr"?"tr-TR":"en-GB";
+  function applyLang(){document.documentElement.lang=lang;
+    document.querySelectorAll("[data-i18n]").forEach(el=>{const v=T(el.dataset.i18n);if(typeof v==="string")el.textContent=v;});
+    document.querySelectorAll("[data-i18n-aria]").forEach(el=>{const v=T(el.dataset.i18nAria);if(typeof v==="string"){el.setAttribute("aria-label",v);el.title=v;}});
+    document.querySelectorAll("#langSeg button,#gate .langs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.l===lang)));
+    $("inboxHead").textContent=T("store.inbox")+" · oryvonagames@gmail.com";}
+  function setLang(l){if(!L[l])return;lang=l;try{localStorage.setItem("oryvona.lang",l);}catch{}applyLang();rerenderAll();}
+  document.addEventListener("click",e=>{const b=e.target.closest("#langSeg button[data-l],#gate .langs button[data-l]");if(b)setLang(b.dataset.l);});
+
+  // ---------- shared helpers ----------
   const PEOPLE=[["claude","Claude","C"],["work","OpenAI","O"],["deniz","Deniz","D"]];
+  const WHO={READY_CLAUDE:"claude",CLAUDE_WORKING:"claude",READY_WORK:"work",WORK_WORKING:"work",BLOCKED:"",USER_TEST_READY:"deniz"};
   const NAME={claude:"Claude",work:"OpenAI",deniz:"Deniz",ci:"GitHub"};
-  const STATE_TR={READY_CLAUDE:"sıra Claude'da",CLAUDE_WORKING:"Claude çalışıyor",READY_WORK:"sıra OpenAI'da",WORK_WORKING:"OpenAI inceliyor",BLOCKED:"engel",USER_TEST_READY:"Deniz testi"};
-  const VERB_TR={claim:"işe başladı",release:"sırayı devretti",resume:"devam etti",run:"otomatik kontrol",note:"not bıraktı"};
-  const kindTr=e=>{const to=(e.kindTr||"").split("→").pop().trim();return (VERB_TR[e.kind]||e.kindTr||e.kind||"")+(STATE_TR[to]?" · "+STATE_TR[to]:"");};
-  const fmt=iso=>{if(!iso)return"—";const d=new Date(iso);if(isNaN(d))return String(iso);return d.toLocaleString("tr-TR",{day:"2-digit",month:"long",hour:"2-digit",minute:"2-digit"});};
-  const ago=iso=>{const ms=Date.now()-new Date(iso).getTime();if(!isFinite(ms))return"";const m=Math.round(ms/60000);if(m<1)return"az önce";if(m<60)return m+" dk önce";const h=Math.floor(m/60);if(h<24)return h+" sa önce";return Math.floor(h/24)+" gün önce";};
-  const term=(k,v)=>`<dt style="font-weight:900;color:var(--brand-deep)">${k}</dt><dd style="margin:0;color:var(--fg-2)">${v}</dd>`;
-  const TERMS=`<dl style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;margin:0;font-size:.95rem">${term("Claude","Kaynak mühendisi. Testleri ve yamaları yazar, GitHub'a gönderir.")}${term("OpenAI","Bağımsız kalite kontrol (ChatGPT). Bulut testinin ham kanıtını inceler, sonraki görevi yazar.")}${term("Deniz","Stüdyo sahibi. Zorunlu testler bitince son oyuncu testini yapar; yayın ve APK kararı onda.")}${term("Sıra","Aynı anda tek kişi çalışır; sıra kimdeyse diğerleri bekler, dosyalar çakışmaz.")}${term("Engel","Oyun hatası değil; altyapı ya da erişim sınırı. Kanıtıyla kaydedilir.")}${term("Testler","Kod testleri · sabit senaryolu tarayıcı testi · gerçek tuşlarla oynanış · sekme değiştirme, çıkış ve tekrar oyna.")}</dl>`;
+  const turnInfo=st=>{const t=S().turn[st];return t?{...t,who:WHO[st]||""}:{v:st||"—",s:"",text:"",who:""};};
+  const turnLabel=t=>(t.who==="claude"||t.who==="work")?S().turnOf(t.v.split(" ")[0]):t.v;
+  const kindTr=e=>{const to=(e.kindTr||"").split("→").pop().trim();return (S().verb[e.kind]||e.kindTr||e.kind||"")+(S().state[to]?" · "+S().state[to]:"");};
+  const stageStatus=g=>S().stageSt[g.status]||(lang==="tr"?g.statusTr:null)||g.status||"";
+  const fmt=iso=>{if(!iso)return"—";const d=new Date(iso);if(isNaN(d))return String(iso);return d.toLocaleString(loc(),{day:"2-digit",month:"long",hour:"2-digit",minute:"2-digit"});};
+  const fmtDate=iso=>{if(!iso)return"—";const d=new Date(iso);if(isNaN(d))return String(iso);return d.toLocaleDateString(loc(),{day:"2-digit",month:"short",year:"numeric"});};
+  const ago=iso=>{const ms=Date.now()-new Date(iso).getTime();if(!isFinite(ms))return"";const m=Math.round(ms/60000);const A=S().ago;if(m<1)return A.now;if(m<60)return A.m(m);const h=Math.floor(m/60);if(h<24)return A.h(h);return A.d(Math.floor(h/24));};
+  const termsHtml=()=>`<dl style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;margin:0;font-size:.95rem">${S().terms.map(([k,v])=>`<dt style="font-weight:900;color:var(--brand-ink)">${esc(k)}</dt><dd style="margin:0;color:var(--fg-2)">${esc(v)}</dd>`).join("")}</dl>`;
+  const emptyMsg=()=>`<div class="empty">${esc(T("ui.noData"))}</div>`;
 
   // ---------- state ----------
   let status=null,feedDocs=[],runsDocs=[],projects=[],current=null,session=null,team=[],isOwner=false,feedFilter="all",demo=false,allStatus={};
-  let sb=null,channel=null;
+  let sb=null,channel=null,storeChannel=null;
+  let store={games:[],reviews:[],mail:[],notes:[],events:[],status:{}},mailFilter="all",gameId=null;
 
   // ---------- theme ----------
   const mq=matchMedia("(prefers-color-scheme: dark)");
@@ -387,39 +512,37 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
   $("themeSeg").addEventListener("click",e=>{const b=e.target.closest("button[data-t]");if(!b)return;try{localStorage.setItem("oryvona.theme",b.dataset.t);}catch{}applyTheme(b.dataset.t);});
 
   // ---------- navigation ----------
-  const VIEWS=["games","home","feed","tests","settings","detail"];let view="home",detailKey=null;
-  const emptyMsg='<div class="empty">Veri yok.</div>';
-  function showView(v){view=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===(v==="detail"||v==="games"?"home":v))));window.scrollTo({top:0});
-    if(v==="games")renderGames();if(v==="feed"){renderWeek();renderFeedList();}if(v==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg;if(v==="settings")renderSettings();}
-  function openGames(){history.pushState({view:"games"},"");showView("games");}
-  // left drawer: game switcher + shortcuts
-  function turnChip(s){const h=s?.handoff||{};const t=TURN[h.status];const cls=h.status==="BLOCKED"?"bad":h.status==="USER_TEST_READY"?"deniz":t?.who||"";return {cls,text:t?(t.v==="Claude"||t.v==="OpenAI"?"Sıra "+t.v+"'da":t.v):"Veri yok"};}
-  function renderDrawer(){$("drawerUser").textContent=session?.user?.email||"Stüdyo paneli";
-    $("drawerGames").innerHTML=(projects.length?projects.map(p=>{const s=allStatus[p.id];const c=turnChip(s);return `<button type="button" class="ditem" data-game="${esc(p.id)}" aria-current="${p.id===current}"><span class="ic">${esc((p.code||p.name).slice(0,3))}</span><span class="tx"><b>${esc(p.name)}</b><span>${esc(s?.phaseTr||"Henüz durum verisi yok")}</span></span><span class="chip ${c.cls==="bad"?"bad":"brand"}">${esc(c.text)}</span></button>`;}).join(""):'<div class="empty">Henüz proje yok.</div>')+(projects.length>1?'<button type="button" class="ditem" data-go="games"><span class="ic">…</span>Tüm oyunlar</button>':"");}
+  const VIEWS=["games","home","feed","tests","store","game","settings","detail"];let view="home",detailKey=null;
+  const tabOf=v=>v==="detail"||v==="games"?"home":v==="game"?"store":v;
+  function showView(v){view=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===tabOf(v))));window.scrollTo({top:0});
+    if(v==="games")renderGames();if(v==="feed"){renderWeek();renderFeedList();}if(v==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg();if(v==="settings")renderSettings();if(v==="store")renderStore();if(v==="game")renderGame();}
+  function turnChip(s){const h=s?.handoff||{};const t=turnInfo(h.status);const cls=h.status==="BLOCKED"?"bad":h.status==="USER_TEST_READY"?"deniz":t.who||"";return {cls,text:s?.handoff?turnLabel(t):T("ui.noData")};}
+  function renderDrawer(){$("drawerUser").textContent=session?.user?.email||T("ui.studio");
+    $("drawerGames").innerHTML=(projects.length?projects.map(p=>{const s=allStatus[p.id];const c=turnChip(s);return `<button type="button" class="ditem" data-game="${esc(p.id)}" aria-current="${p.id===current}"><span class="ic">${esc((p.code||p.name).slice(0,3))}</span><span class="tx"><b>${esc(p.name)}</b><span>${esc(s?.phaseTr||T("games.noStatus"))}</span></span><span class="chip ${c.cls==="bad"?"bad":"brand"}">${esc(c.text)}</span></button>`;}).join(""):`<div class="empty">${esc(T("games.noProjects"))}</div>`)+(projects.length>1?`<button type="button" class="ditem" data-go="games"><span class="ic">…</span>${esc(T("games.allGames"))}</button>`:"");}
   function openDrawer(){renderDrawer();$("drawer").hidden=false;document.body.style.overflow="hidden";}
   function closeDrawer(){$("drawer").hidden=true;document.body.style.overflow="";}
   $("menuBtn").addEventListener("click",openDrawer);$("titleBtn").addEventListener("click",openDrawer);$("drawerScrim").addEventListener("click",closeDrawer);
   $("drawer").addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){closeDrawer();history.pushState({view:g.dataset.go},"");showView(g.dataset.go);return;}if(e.target.closest("[data-game]")||e.target.closest("[data-detail]"))closeDrawer();});
   document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b){history.pushState({view:b.dataset.view},"");showView(b.dataset.view);}});
-  function fillDetail(key){detailKey=key;const [title,body]=DETAILS[key];$("detailTitle").textContent=title;$("detailBody").innerHTML=body();if(key==="auto")renderTimeline("tl3",72);}
+  function fillDetail(key){detailKey=key;const d=DETAILS[key];if(!d)return;$("detailTitle").textContent=T("det."+key);$("detailBody").innerHTML=d();if(key==="auto")renderTimeline("tl3",72);}
   function openDetail(key){fillDetail(key);history.pushState({view:"detail",key},"");showView("detail");}
   document.addEventListener("click",e=>{const b=e.target.closest("[data-detail]");if(b)openDetail(b.dataset.detail);});
-  $("backBtn").addEventListener("click",()=>history.back());
-  addEventListener("popstate",e=>{const s=e.state||{view:"home"};if(s.view==="detail"&&s.key)fillDetail(s.key);showView(s.view||"home");});
+  $("backBtn").addEventListener("click",()=>history.back());$("gameBack").addEventListener("click",()=>history.back());
+  addEventListener("popstate",e=>{const s=e.state||{view:"home"};if(s.view==="detail"&&s.key)fillDetail(s.key);if(s.view==="game")gameId=s.game||gameId;showView(s.view||"home");});
   history.replaceState({view:"home"},"");
-  function refreshOpen(){if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg;if(view==="feed"){renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();}
+  function refreshOpen(){if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg();if(view==="feed"){renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();if(view==="store")renderStore();if(view==="game")renderGame();}
+  function rerenderAll(){freshness();if(status)renderHome(status);else applyStatus(null);renderTimeline("tl",24);refreshOpen();renderStoreBadge();}
 
-  // ---------- games list (one card per project; shown first when the studio has more than one) ----------
-  function renderGames(){const L=$("gamesList");if(!projects.length){L.innerHTML=emptyMsg;return;}
-    L.innerHTML=projects.map(p=>{const s=allStatus[p.id];const h=s?.handoff||{};const t=TURN[h.status];const cls=h.status==="BLOCKED"?"bad":h.status==="USER_TEST_READY"?"deniz":t?.who||"";
-      const turn=t?(t.v==="Claude"||t.v==="OpenAI"?"Sıra "+t.v+"'da":t.v):"Veri yok";
-      return `<button class="tile wide" data-game="${esc(p.id)}"><span class="ic ${cls}">${esc((p.code||p.name).slice(0,3))}</span><span class="tx"><span class="v">${esc(p.name)}${p.code?` <span class="muted" style="font-weight:800">· ${esc(p.code)}</span>`:""}</span><span class="s">${esc(s?.phaseTr||"Henüz durum verisi yok")}</span><span class="s"><span class="chip ${cls==="bad"?"bad":cls?"brand":""}" style="padding:3px 9px;font-size:.74rem">${esc(turn)}</span>${s?` · ${esc(ago(s.updatedAt))}`:""}</span></span></button>`;}).join("");}
+  // ---------- games list ----------
+  function renderGames(){const Ls=$("gamesList");if(!projects.length){Ls.innerHTML=emptyMsg();return;}
+    Ls.innerHTML=projects.map(p=>{const s=allStatus[p.id];const c=turnChip(s);
+      return `<button class="tile wide" data-game="${esc(p.id)}"><span class="ic ${c.cls}">${esc((p.code||p.name).slice(0,3))}</span><span class="tx"><span class="v">${esc(p.name)}${p.code?` <span class="muted" style="font-weight:800">· ${esc(p.code)}</span>`:""}</span><span class="s">${esc(s?.phaseTr||T("games.noStatus"))}</span><span class="s"><span class="chip sm ${c.cls==="bad"?"bad":c.cls?"brand":""}">${esc(c.text)}</span>${s?` · ${esc(ago(s.updatedAt))}`:""}</span></span></button>`;}).join("");}
   document.addEventListener("click",e=>{const g=e.target.closest("[data-game]");if(!g)return;const id=g.dataset.game;if(id!==current)select(id);history.pushState({view:"home"},"");showView("home");});
   async function loadGames(){if(demo)return;const {data}=await sb.from("project_status").select("project_id,data");allStatus={};for(const r of (data||[]))allStatus[r.project_id]=r.data;if(view==="games")renderGames();}
 
-  // ---------- weekly summary (7 days: minutes worked per actor per day + cloud runs) ----------
+  // ---------- weekly summary ----------
   function renderWeek(){const card=$("weekCard");const {segs}=segments(24*7);const runs=runsDocs.map(d=>d.data()).filter(r=>r.startedAt&&Date.now()-new Date(r.startedAt).getTime()<7*864e5);
-    if(!segs.length&&!runs.length){card.hidden=true;return;}card.hidden=false;
+    if(!segs.length&&!runs.length){card.hidden=true;return;}card.hidden=false;const F=S().feed;
     const dayKey=t=>{const d=new Date(t);return new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();};const today=dayKey(Date.now());const days=[];for(let i=6;i>=0;i--)days.push(today-i*864e5);
     const per=Object.fromEntries(days.map(d=>[d,{claude:0,work:0,runs:0}]));
     for(const s of segs){if(s.kind!=="work")continue;let a=s.start;while(a<s.end){const k=dayKey(a);const dayEnd=k+864e5;const b=Math.min(s.end,dayEnd);if(per[k])per[k][s.actor==="claude"?"claude":"work"]+=(b-a)/60000;a=b;}}
@@ -427,194 +550,280 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     const turns=feedDocs.map(d=>d.data()).filter(e=>e.kind==="claim"&&Date.now()-new Date(e.at).getTime()<7*864e5).length;
     const cMin=Math.round(days.reduce((a,d)=>a+per[d].claude,0)),wMin=Math.round(days.reduce((a,d)=>a+per[d].work,0));
     const passed=runs.filter(r=>!Object.values(r.suites||{}).some(s=>s?.status==="FAIL")&&codeOk(r)).length;
-    const hm=m=>m>=60?`${Math.floor(m/60)} sa ${m%60} dk`:`${m} dk`;
-    $("weekSub").textContent=`son 7 gün`;
-    $("weekStats").innerHTML=`<div class="res"><span class="k">Tur</span><span class="v num">${turns}</span><span class="e">sıra el değiştirdi</span></div><div class="res"><span class="k">Bulut testi</span><span class="v num">${runs.length}</span><span class="e">${runs.length?`${passed} tanesi sorunsuz`:"koşu yok"}</span></div><div class="res" style="border-top-color:var(--claude-bar)"><span class="k">Claude</span><span class="v num" style="font-size:1.15rem">${hm(cMin)}</span><span class="e">çalışma süresi</span></div><div class="res" style="border-top-color:var(--work)"><span class="k">OpenAI</span><span class="v num" style="font-size:1.15rem">${hm(wMin)}</span><span class="e">inceleme süresi</span></div>`;
-    const W=600,H=170,top=14,bottom=34,left=6,right=6;const bw=(W-left-right)/7;const max=Math.max(30,...days.map(d=>per[d].claude+per[d].work));const cs=getComputedStyle(document.documentElement);const v=n=>cs.getPropertyValue(n).trim();const DN=["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
-    let out="";[0.5,1].forEach(f=>{const y=top+(H-top-bottom)*(1-f);const mins=Math.round(max*f);out+=`<line class="grid" x1="${left}" y1="${y.toFixed(1)}" x2="${W-right}" y2="${y.toFixed(1)}"/><text class="val" x="${W-right}" y="${(y-4).toFixed(1)}" text-anchor="end">${mins>=90?(mins/60).toFixed(1).replace(/\.0$/,"")+" sa":mins+" dk"}</text>`;});
+    const hm=m=>m>=60?F.hm(Math.floor(m/60),m%60):F.min(m);
+    $("weekSub").textContent=F.last7;
+    $("weekStats").innerHTML=`<div class="res"><span class="k">${esc(F.turns)}</span><span class="v num">${turns}</span><span class="e">${esc(F.turnsSub)}</span></div><div class="res"><span class="k">${esc(T("ui.cloudTest"))}</span><span class="v num">${runs.length}</span><span class="e">${runs.length?esc(F.runsSub(passed)):esc(F.noRuns)}</span></div><div class="res" style="border-top-color:var(--claude-bar)"><span class="k">Claude</span><span class="v num" style="font-size:1.15rem">${hm(cMin)}</span><span class="e">${esc(F.workTime)}</span></div><div class="res" style="border-top-color:var(--work)"><span class="k">OpenAI</span><span class="v num" style="font-size:1.15rem">${hm(wMin)}</span><span class="e">${esc(F.reviewTime)}</span></div>`;
+    const W=600,H=170,top=14,bottom=34,left=6,right=6;const bw=(W-left-right)/7;const max=Math.max(30,...days.map(d=>per[d].claude+per[d].work));const cs=getComputedStyle(document.documentElement);const v=n=>cs.getPropertyValue(n).trim();const DN=d=>new Date(d).toLocaleDateString(loc(),{weekday:"short"});
+    let out="";[0.5,1].forEach(f=>{const y=top+(H-top-bottom)*(1-f);const mins=Math.round(max*f);out+=`<line class="grid" x1="${left}" y1="${y.toFixed(1)}" x2="${W-right}" y2="${y.toFixed(1)}"/><text class="val" x="${W-right}" y="${(y-4).toFixed(1)}" text-anchor="end">${mins>=90?F.hr((mins/60).toFixed(1).replace(/\.0$/,"")):F.min(mins)}</text>`;});
     days.forEach((d,i)=>{const x=left+i*bw+bw*0.18,w=bw*0.64;const base=H-bottom;const hC=(per[d].claude/max)*(H-top-bottom),hW=(per[d].work/max)*(H-top-bottom);
-      out+=`<rect x="${x.toFixed(1)}" y="${(base-hC).toFixed(1)}" width="${w.toFixed(1)}" height="${hC.toFixed(1)}" rx="4" fill="${v('--claude-bar')}"><title>${DN[new Date(d).getDay()]} · Claude ${Math.round(per[d].claude)} dk</title></rect>`;
-      out+=`<rect x="${x.toFixed(1)}" y="${(base-hC-hW-(hW&&hC?2:0)).toFixed(1)}" width="${w.toFixed(1)}" height="${hW.toFixed(1)}" rx="4" fill="${v('--work')}"><title>${DN[new Date(d).getDay()]} · OpenAI ${Math.round(per[d].work)} dk</title></rect>`;
-      for(let r=0;r<per[d].runs;r++)out+=`<circle cx="${(x+w/2).toFixed(1)}" cy="${(base-hC-hW-10-r*12).toFixed(1)}" r="4" fill="${v('--good')}"><title>Bulut testi</title></circle>`;
-      out+=`<text class="lab" x="${(x+w/2).toFixed(1)}" y="${H-10}" text-anchor="middle" ${d===today?'font-weight="900"':''}>${d===today?"Bugün":DN[new Date(d).getDay()]}</text>`;});
+      out+=`<rect x="${x.toFixed(1)}" y="${(base-hC).toFixed(1)}" width="${w.toFixed(1)}" height="${hC.toFixed(1)}" rx="4" fill="${v('--claude-bar')}"><title>${esc(DN(d))} · Claude ${Math.round(per[d].claude)} min</title></rect>`;
+      out+=`<rect x="${x.toFixed(1)}" y="${(base-hC-hW-(hW&&hC?2:0)).toFixed(1)}" width="${w.toFixed(1)}" height="${hW.toFixed(1)}" rx="4" fill="${v('--work')}"><title>${esc(DN(d))} · OpenAI ${Math.round(per[d].work)} min</title></rect>`;
+      for(let r=0;r<per[d].runs;r++)out+=`<circle cx="${(x+w/2).toFixed(1)}" cy="${(base-hC-hW-10-r*12).toFixed(1)}" r="4" fill="${v('--good')}"><title>${esc(T("ui.cloudTest"))}</title></circle>`;
+      out+=`<text class="lab" x="${(x+w/2).toFixed(1)}" y="${H-10}" text-anchor="middle" ${d===today?'font-weight="900"':''}>${esc(d===today?F.today:DN(d))}</text>`;});
     $("wk").innerHTML=out;}
 
-  // ---------- render: home ----------
-  function freshness(){const el=$("fresh");if(!status){el.className="chip dot onnavy";el.textContent=session||demo?"Veri yok":"Giriş gerekli";return;}
+  // ---------- home ----------
+  function freshness(){const el=$("fresh");if(!status){el.className="chip dot onnavy";el.textContent=session||demo?T("ui.noData"):T("ui.loginNeeded");return;}
     const m=(Date.now()-new Date(status.updatedAt).getTime())/60000;
-    // The feed only moves when GitHub moves; quiet hours are normal, so say "son hareket" instead of implying a fault.
-    if(m<25){el.className="chip dot onnavy good";el.textContent="Canlı · "+ago(status.updatedAt);}else{el.className="chip dot onnavy";el.textContent="Son hareket "+ago(status.updatedAt);}}
+    if(m<25){el.className="chip dot onnavy good";el.textContent=S().ui.live(ago(status.updatedAt));}else{el.className="chip dot onnavy";el.textContent=S().ui.lastMove(ago(status.updatedAt));}}
   const stageCls=g=>g.status==="PASS"?"pass":g.status==="PARTIAL"?"partial":g.status==="ACTIVE"?"active":g.status==="BLOCKED"?"blocked":"pending";
   function liveFeed(s){const lf=s?.automation?.liveFeed;const ct=s?.automation?.claudeTask;const t=lf?.at||ct?.lastRunAt;return t&&(Date.now()-new Date(t).getTime())<40*60000;}
-  // Expected totals come from the project settings (via the webhook); unknown total = any positive count passes.
   const suiteOk=(passed,total)=>typeof passed==="number"&&(total==null?passed>0:passed>=total);
   const frac=(passed,total)=>total==null?String(passed):`${passed}/${total}`;
   const codeOk=r=>r.code==null||suiteOk(r.code,status?.lastQa?.code_total);
   function qaSummary(q){const ok=[suiteOk(q.code_passed,q.code_total),suiteOk(q.browser_passed,q.browser_total),suiteOk(q.natural_passed,q.natural_total),q.lifecycle_status==="PASS"].filter(Boolean).length;return {ok,total:4,blocked:q.lifecycle_status==="BLOCKED",fail:q.lifecycle_status==="FAIL"};}
   function renderRing(stages){const svg=$("ring");const n=stages.length;if(!n){svg.innerHTML="";return;}
     const C={PASS:"#5fd48c",PARTIAL:"#f2b632",ACTIVE:"#19b8e5",BLOCKED:"#ff8f8f",PENDING:"rgba(255,255,255,.16)"};const r=40,cx=50,cy=50,circ=2*Math.PI*r,seg=circ/n,gap=3;let out=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="11"/>`,off=0;
-    for(const g of stages){out+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C[g.status]||C.PENDING}" stroke-width="11" stroke-dasharray="${Math.max(0,seg-gap)} ${circ-Math.max(0,seg-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"><title>${esc(g.title)}: ${esc(g.statusTr||g.status)}</title></circle>`;off+=seg;}
-    const done=stages.filter(g=>g.status==="PASS").length;out+=`<text x="50" y="47" text-anchor="middle" font-size="22">${done}/${n}</text><text x="50" y="64" text-anchor="middle" font-size="9" opacity=".85">aşama geçti</text>`;svg.innerHTML=out;}
-  function renderHome(s){
-    const h=s.handoff||{},t=TURN[h.status]||{v:h.status||"—",s:"",text:"",who:""};
-    $("heroV").textContent=t.v==="Claude"||t.v==="OpenAI"?"Sıra "+t.v+"'da":t.v;$("heroS").textContent=s.summaryTr||t.text;
-    $("cTurn").textContent=t.v;$("cTurnS").textContent=t.s+(h.lease?` · ${ago(h.lease.claimed_at)} başladı`:"");$("icTurn").className="ic "+(t.who||"");
+    for(const g of stages){out+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C[g.status]||C.PENDING}" stroke-width="11" stroke-dasharray="${Math.max(0,seg-gap)} ${circ-Math.max(0,seg-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"><title>${esc(g.title)}: ${esc(stageStatus(g))}</title></circle>`;off+=seg;}
+    const done=stages.filter(g=>g.status==="PASS").length;out+=`<text x="50" y="47" text-anchor="middle" font-size="22">${done}/${n}</text><text x="50" y="64" text-anchor="middle" font-size="9" opacity=".85">${esc(T("home.stagesPassed"))}</text>`;svg.innerHTML=out;}
+  function renderHome(s){const Hm=S().home;
+    const h=s.handoff||{},t=turnInfo(h.status);
+    $("heroV").textContent=turnLabel(t);$("heroS").textContent=s.summaryTr||t.text;
+    $("cTurn").textContent=t.v;$("cTurnS").textContent=t.s+(h.lease?` · ${Hm.started(ago(h.lease.claimed_at))}`:"");$("icTurn").className="ic "+(t.who||"");
     const active=(s.stages||[]).find(g=>["PARTIAL","ACTIVE","BLOCKED"].includes(g.status))||(s.stages||[]).filter(g=>g.status==="PASS").pop();
-    $("cStage").textContent=active?active.title:(s.phaseTr||"—");$("cStageS").textContent=active?`${active.id} · ${active.statusTr||active.status}`:"";$("icStage").className="ic "+(active?({PASS:"good",PARTIAL:"warn",BLOCKED:"bad"}[active.status]||""):"");
-    const q=s.lastQa||{},qs=qaSummary(q);$("cQa").textContent=q.run_id?`${qs.ok}/${qs.total} geçti`:"Henüz yok";$("cQaS").textContent=q.run_id?(qs.blocked?"1 testte altyapı engeli":qs.ok===qs.total?"Hepsi geçti":"Bekleyen var"):"";$("icQa").className="ic "+(q.run_id?(qs.fail?"bad":qs.blocked?"warn":"good"):"");
-    const live=liveFeed(s);$("cAuto").textContent=live?"Çalışıyor":"Beklemede";$("cAutoS").textContent=s.automation?.liveFeed?`Son sinyal ${ago(s.automation.liveFeed.at)}`:(s.automation?.claudeTask?.lastRunAt?`Son kontrol ${ago(s.automation.claudeTask.lastRunAt)}`:"Henüz sinyal yok");$("icAuto").className="ic "+(live?"good":"warn");
+    $("cStage").textContent=active?active.title:(s.phaseTr||"—");$("cStageS").textContent=active?`${active.id} · ${stageStatus(active)}`:"";$("icStage").className="ic "+(active?({PASS:"good",PARTIAL:"warn",BLOCKED:"bad"}[active.status]||""):"");
+    const q=s.lastQa||{},qs=qaSummary(q);$("cQa").textContent=q.run_id?Hm.passed(qs.ok,qs.total):T("ui.none");$("cQaS").textContent=q.run_id?(qs.blocked?Hm.blockedOne:qs.ok===qs.total?Hm.allPassed:Hm.pending):"";$("icQa").className="ic "+(q.run_id?(qs.fail?"bad":qs.blocked?"warn":"good"):"");
+    const live=liveFeed(s);$("cAuto").textContent=live?Hm.running:Hm.idle;$("cAutoS").textContent=s.automation?.liveFeed?Hm.lastSignal(ago(s.automation.liveFeed.at)):(s.automation?.claudeTask?.lastRunAt?Hm.lastCheck(ago(s.automation.claudeTask.lastRunAt)):Hm.noSignal);$("icAuto").className="ic "+(live?"good":"warn");
     renderRing(s.stages||[]);
-    const wn=s.workNote;$("cardWork").hidden=!(wn&&wn.textTr);if(wn&&wn.textTr){$("cWork").textContent=(wn.titleTr||"Not")+" · "+ago(wn.at);$("cWorkS").textContent=wn.textTr;}
-    const p=projects.find(x=>x.id===current);$("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=s.phaseTr||p?.code||"Stüdyo paneli";
-    allStatus[current]=s;
-  }
+    const wn=s.workNote;$("cardWork").hidden=!(wn&&wn.textTr);if(wn&&wn.textTr){$("cWork").textContent=(wn.titleTr||Hm.note)+" · "+ago(wn.at);$("cWorkS").textContent=wn.textTr;}
+    const p=projects.find(x=>x.id===current);$("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=s.phaseTr||p?.code||T("ui.studio");
+    allStatus[current]=s;}
   // timeline
   function segments(hours){const now=Date.now(),start=now-hours*3600e3;const ev=feedDocs.map(d=>d.data()).filter(e=>["claim","release","resume"].includes(e.kind)).sort((a,b)=>new Date(a.at)-new Date(b.at));const segs=[];let cur=null;
     for(const e of ev){const t=new Date(e.at).getTime();if(e.kind==="claim"){if(cur&&cur.kind==="wait"){cur.end=t;segs.push(cur);}cur={kind:"work",actor:e.actor,start:t,text:e.text};}
-      else{if(cur&&cur.kind==="work"){cur.end=t;segs.push(cur);}const to=(e.kindTr||"").split("→").pop().trim();cur={kind:"wait",actor:"",start:t,text:"Bekleme: "+(STATE_TR[to]||to)};}}
+      else{if(cur&&cur.kind==="work"){cur.end=t;segs.push(cur);}const to=(e.kindTr||"").split("→").pop().trim();cur={kind:"wait",actor:"",start:t,text:S().feed.waitFor(S().state[to]||to)};}}
     if(cur){cur.end=now;segs.push(cur);}return {start,now,segs:segs.filter(s=>s.end>start).map(s=>({...s,start:Math.max(s.start,start)}))};}
   function renderTimeline(svgId,hours){const svg=$(svgId);if(!svg)return;const {start,now,segs}=segments(hours);const W=600,H=58,y=4,h=24;const x=t=>(t-start)/(now-start)*W;const cs=getComputedStyle(document.documentElement);const v=n=>cs.getPropertyValue(n).trim();
     let out=`<defs><pattern id="hatch-${svgId}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(135)"><rect width="6" height="6" fill="${v('--hatch-a')}"/><rect width="3" height="6" fill="${v('--hatch-b')}"/></pattern></defs><rect x="0" y="${y}" width="${W}" height="${h}" rx="6" fill="${v('--hatch-a')}"/>`;
-    for(const s of segs){const x0=x(s.start),w=Math.max(1.5,x(s.end)-x0);const fill=s.kind==="work"?(s.actor==="claude"?v('--claude-bar'):v('--work')):`url(#hatch-${svgId})`;const mins=Math.round((s.end-s.start)/60000);const who=s.kind==="work"?(NAME[s.actor]||s.actor)+" çalıştı":s.text;
-      out+=`<rect x="${x0.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${h}" rx="4" fill="${fill}"><title>${esc(who)} · ${esc(fmt(new Date(s.start).toISOString()))} · ${mins} dk</title></rect>`;}
-    const MON=["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];const step=hours<=24?6:24;
-    for(let k=0;k<=hours;k+=step){const t=now-(hours-k)*3600e3,px=x(t);const d=new Date(t);const lab=k===hours?"şimdi":hours<=24?d.getHours().toString().padStart(2,"0")+":00":d.getDate()+" "+MON[d.getMonth()];out+=`<line class="tick" x1="${px}" y1="${y+h}" x2="${px}" y2="${y+h+5}"/><text class="lab" x="${Math.min(W-24,Math.max(24,px))}" y="${H-3}" text-anchor="middle">${lab}</text>`;}
+    for(const s of segs){const x0=x(s.start),w=Math.max(1.5,x(s.end)-x0);const fill=s.kind==="work"?(s.actor==="claude"?v('--claude-bar'):v('--work')):`url(#hatch-${svgId})`;const mins=Math.round((s.end-s.start)/60000);const who=s.kind==="work"?S().feed.worked(NAME[s.actor]||s.actor):s.text;
+      out+=`<rect x="${x0.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${h}" rx="4" fill="${fill}"><title>${esc(who)} · ${esc(fmt(new Date(s.start).toISOString()))} · ${esc(S().feed.min(mins))}</title></rect>`;}
+    const step=hours<=24?6:24;
+    for(let k=0;k<=hours;k+=step){const t=now-(hours-k)*3600e3,px=x(t);const d=new Date(t);const lab=k===hours?S().feed.nowLabel:hours<=24?d.getHours().toString().padStart(2,"0")+":00":d.toLocaleDateString(loc(),{day:"numeric",month:"short"});out+=`<line class="tick" x1="${px}" y1="${y+h}" x2="${px}" y2="${y+h+5}"/><text class="lab" x="${Math.min(W-24,Math.max(24,px))}" y="${H-3}" text-anchor="middle">${esc(lab)}</text>`;}
     svg.innerHTML=out;
-    if(svgId==="tl"){$("strip").hidden=segs.length===0;const worked=segs.filter(s=>s.kind==="work");const c=worked.filter(s=>s.actor==="claude").reduce((a,s)=>a+s.end-s.start,0),w=worked.filter(s=>s.actor==="work").reduce((a,s)=>a+s.end-s.start,0);$("stripSub").textContent=`${worked.length} tur · Claude ${Math.round(c/60000)} dk · OpenAI ${Math.round(w/60000)} dk`;}}
-  // tests
-  function historyTable(){const runs=runsDocs.map(d=>d.data()).sort((a,b)=>(a.startedAt||"")<(b.startedAt||"")?-1:1);if(!runs.length)return '<div class="empty">Koşu geçmişi yok.</div>';
-    const rows=[["Kod",r=>r.code==null?null:codeOk(r)?"PASS":"FAIL"],["Tarayıcı",r=>r.suites?.baseline?.status||null],["Oynanış",r=>r.suites?.natural?.status||null],["Sekme / çıkış",r=>r.suites?.lifecycle?.status||null]];const G={PASS:["✓","good","geçti"],BLOCKED:["!","warn","engel"],FAIL:["×","bad","hata"]};
+    if(svgId==="tl"){$("strip").hidden=segs.length===0;const worked=segs.filter(s=>s.kind==="work");const c=worked.filter(s=>s.actor==="claude").reduce((a,s)=>a+s.end-s.start,0),w=worked.filter(s=>s.actor==="work").reduce((a,s)=>a+s.end-s.start,0);$("stripSub").textContent=S().home.strip(worked.length,Math.round(c/60000),Math.round(w/60000));}}
+
+  // ---------- tests ----------
+  function historyTable(){const Ts=S().tests;const runs=runsDocs.map(d=>d.data()).sort((a,b)=>(a.startedAt||"")<(b.startedAt||"")?-1:1);if(!runs.length)return `<div class="empty">${esc(Ts.noHistory)}</div>`;
+    const rows=[[Ts.rowCode,r=>r.code==null?null:codeOk(r)?"PASS":"FAIL"],[Ts.rowBrowser,r=>r.suites?.baseline?.status||null],[Ts.rowNatural,r=>r.suites?.natural?.status||null],[Ts.rowLife,r=>r.suites?.lifecycle?.status||null]];const G={PASS:["✓","good",Ts.cellPass],BLOCKED:["!","warn",Ts.cellBlocked],FAIL:["×","bad",Ts.cellFail]};
     let t='<div class="hist"><table><thead><tr><th></th>'+runs.map(r=>`<th title="${esc(r.run_id)}">${r.startedAt?esc(fmt(r.startedAt).replace(/ \d{2}:\d{2}$/,""))+"<br>"+esc(fmt(r.startedAt).slice(-5)):esc(r.label||r.run_id)}</th>`).join("")+'</tr></thead><tbody>';
-    for(const [name,get] of rows){t+=`<tr><th>${name}</th>`+runs.map(r=>{const s=get(r);const g=s?G[s]:null;return `<td><span class="cell ${g?g[1]:""}" title="${esc(r.label||r.run_id)}: ${g?g[2]:"koşmadı"}">${g?g[0]:"–"}</span></td>`;}).join("")+'</tr>';}
-    t+='</tbody></table></div>';const last=runs[runs.length-1];return t+(last?.note?`<p class="muted small">Son koşu: ${esc(last.note)}</p>`:"");}
-  function sheetQa(s){const q=s.lastQa||{},repoUrl=s.repo?.url||"";const res=(k,v,e,cls)=>`<div class="res ${cls}"><span class="k">${k}</span><span class="v num">${esc(v)}</span><span class="e">${e}</span></div>`;const lc=q.lifecycle_status;
-    const suite=(label,passed,total)=>{const ok=suiteOk(passed,total);return res(label,passed!=null?frac(passed,total):"—",ok?"Hepsi geçti":passed!=null?"Eksik var":"Bekleniyor",ok?"good":passed!=null?"warn":"");};
-    return `<div class="results">${suite("Kod testleri",q.code_passed,q.code_total)}${suite("Tarayıcı testleri",q.browser_passed,q.browser_total)}${suite("Gerçek oynanış",q.natural_passed,q.natural_total)}${res("Sekme / Turu bitir",lc==="PASS"?"Geçti":lc==="BLOCKED"?"Engel":lc==="FAIL"?"Hata":"—",lc==="BLOCKED"?"Altyapı sınırı, oyun hatası değil":lc==="PASS"?"Hepsi geçti":lc==="FAIL"?"Gerçek bir sorun bulundu":"Henüz koşmadı",lc==="PASS"?"good":lc==="BLOCKED"?"warn":lc==="FAIL"?"bad":"")}</div>
-      ${q.limitsTr?`<p class="muted">${esc(q.limitsTr)}</p>`:""}<div class="detail">${q.run_id?`Koşu kaydı: ${repoUrl?`<a href="${esc(repoUrl)}/actions/runs/${esc(q.run_id)}" target="_blank" rel="noopener">${esc(q.run_id)}</a>`:esc(q.run_id)}`:"Henüz bulut koşusu yok."}${q.source_commit?` · kaynak ${esc(q.source_commit.slice(0,7))}`:""}</div><h2 style="margin-top:6px">Koşu geçmişi</h2>${historyTable()}`;}
-  // details
-  function sheetTurn(s){const h=s.handoff||{},t=TURN[h.status]||{text:"",who:""};let who='<div class="who">';PEOPLE.forEach(([id,name,ini],i)=>{if(i)who+='<span class="arrow">›</span>';who+=`<span class="person ${t.who===id?"active":""}"><span class="av ${id}">${ini}</span>${name}</span>`;});who+='</div>';
-    return `<p>${esc(t.text)}</p>${who}<div class="block"><span class="t">${esc(s.taskTitleTr||h.task_id||"Görev yok")}</span><span class="d">${esc(s.taskTextTr||"")}</span><span class="detail">${h.task_id?`Görev kodu ${esc(h.task_id)} · tur ${esc(h.turn??"—")}`:""}${h.lease?` · kilit: ${esc(NAME[h.lease.actor]||h.lease.actor)}, ${esc(fmt(h.lease.claimed_at))}`:" · kilit boş"}</span></div>`;}
-  function sheetStage(s){let path='<div class="path">';for(const g of (s.stages||[])){const c=stageCls(g);path+=`<div class="step ${c}"><div class="bar"><i></i></div><div class="lbl">${esc(g.title)}</div><div class="st">${esc(g.statusTr||g.status||"")}</div></div>`;}path+='</div>';
-    return `<p class="muted">${esc(s.lineSubTr||"")}</p>${path}${(s.stages||[]).filter(g=>g.note).map(g=>`<div class="block"><span class="t">${esc(g.id)} · ${esc(g.title)}</span><span class="d">${esc(g.note)}</span></div>`).join("")}`;}
-  function sheetAuto(s){const a=s.automation||{},lf=a.liveFeed,ww=a.workWebhook||{},live=liveFeed(s),repo=s.repo||{},hd=s.head||{};
-    return `<div class="row"><div class="ic" style="color:var(--cyan)">${I.bolt}</div><div><div class="tt">Canlı veri hattı <span class="chip ${live?"good":"warn"}">${live?"çalışıyor":"sinyal bekliyor"}</span></div><div class="dd">GitHub'daki her değişiklik anında panele düşer. Son sinyal: ${esc(fmt(lf?.at))}</div></div></div>
-      <div class="row"><div class="ic" style="color:var(--work)">${I.user}</div><div><div class="tt">OpenAI uyandırma <span class="chip ${ww.enabled?"good":"warn"}">${ww.enabled?"etkin":"kapalı"}</span></div><div class="dd">Claude GitHub'a gönderince OpenAI kendiliğinden uyanır. Son OpenAI hareketi: ${esc(fmt(ww.lastSeenAt))}</div></div></div>
-      <div class="row"><div class="ic" style="color:var(--claude)">${I.clock}</div><div><div class="tt">Claude kontrolü</div><div class="dd">${a.claudeTask?.lastRunAt?`Son çalışma ${esc(fmt(a.claudeTask.lastRunAt))}${a.claudeTask.lastResult?" — "+esc(a.claudeTask.lastResult):""}`:"Zamanlanmış görev şu an kapalı; Claude elle başlatılıyor."}</div></div></div>
-      <div class="detail">${repo.url?`Depo: <a href="${esc(repo.prUrl||repo.url)}" target="_blank" rel="noopener">${esc(repo.name||repo.url)}</a>`:""}${hd?.commit?` · son gönderim ${esc(fmt(hd.at))} (<a href="${esc(repo.url||"")}/commit/${esc(hd.commit)}" target="_blank" rel="noopener">${esc(hd.commit.slice(0,7))}</a>)`:""}</div>
-      <h2 style="margin-top:6px">Son 3 gün · sıra kimdeydi</h2><svg class="tl" id="tl3" viewBox="0 0 600 58" role="img" aria-label="Son üç günde sıra kimdeydi"></svg><div class="legend"><span><i class="claude"></i>Claude çalıştı</span><span><i class="work"></i>OpenAI çalıştı</span><span><i class="wait"></i>Bekleme</span></div>`;}
-  function sheetWork(){const wn=status?.workNote;const notes=feedDocs.map(d=>d.data()).filter(e=>e.actor==="work"&&e.kind==="note");
-    let out=wn&&wn.textTr?`<div class="block quote-block"><span class="t">${esc(wn.titleTr||"OpenAI'nin notu")} <span class="tag yorum">Yorum</span></span><span class="quote">${esc(wn.textTr)}</span><span class="detail">${esc(fmt(wn.at))}${wn.run_id?` · koşu ${esc(wn.run_id)}`:""}</span></div>`:'<div class="empty">OpenAI henüz not bırakmadı.</div>';
-    if(notes.length>1){out+='<h2 style="margin-top:6px">Önceki notlar</h2><div class="feed">';for(const e of notes.slice(1))out+=`<div class="msg work"><div class="av work">O</div><div class="bubble"><div class="h"><b>OpenAI</b><time>${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;out+='</div>';}return out;}
-  const DETAILS={turn:["Sıra kimde",()=>status?sheetTurn(status):emptyMsg],stage:["Oyun nerede",()=>status?sheetStage(status):emptyMsg],qa:["Son bulut testi",()=>status?sheetQa(status):emptyMsg],auto:["Otomasyon",()=>status?sheetAuto(status):emptyMsg],worknote:["OpenAI'dan son not",sheetWork],terms:["Terimler ve roller",()=>TERMS]};
-  // feed
+    for(const [name,get] of rows){t+=`<tr><th>${esc(name)}</th>`+runs.map(r=>{const s=get(r);const g=s?G[s]:null;return `<td><span class="cell ${g?g[1]:""}" title="${esc(r.label||r.run_id)}: ${g?esc(g[2]):esc(Ts.cellNone)}">${g?g[0]:"–"}</span></td>`;}).join("")+'</tr>';}
+    t+='</tbody></table></div>';const last=runs[runs.length-1];return t+(last?.note?`<p class="muted small">${esc(Ts.lastRun)}${esc(last.note)}</p>`:"");}
+  function sheetQa(s){const Ts=S().tests;const q=s.lastQa||{},repoUrl=s.repo?.url||"";const res=(k,v,e,cls)=>`<div class="res ${cls}"><span class="k">${esc(k)}</span><span class="v num">${esc(v)}</span><span class="e">${esc(e)}</span></div>`;const lc=q.lifecycle_status;
+    const suite=(label,passed,total)=>{const ok=suiteOk(passed,total);return res(label,passed!=null?frac(passed,total):"—",ok?Ts.allPassed:passed!=null?Ts.missing:Ts.waiting,ok?"good":passed!=null?"warn":"");};
+    return `<div class="results">${suite(Ts.code,q.code_passed,q.code_total)}${suite(Ts.browser,q.browser_passed,q.browser_total)}${suite(Ts.natural,q.natural_passed,q.natural_total)}${res(Ts.lifecycle,lc==="PASS"?Ts.pass:lc==="BLOCKED"?Ts.blocked:lc==="FAIL"?Ts.fail:"—",lc==="BLOCKED"?Ts.blockedSub:lc==="PASS"?Ts.allPassed:lc==="FAIL"?Ts.failSub:Ts.notRun,lc==="PASS"?"good":lc==="BLOCKED"?"warn":lc==="FAIL"?"bad":"")}</div>
+      ${q.limitsTr?`<p class="muted">${esc(q.limitsTr)}</p>`:""}<div class="detail">${q.run_id?`${esc(Ts.runLog)}${repoUrl?`<a href="${esc(repoUrl)}/actions/runs/${esc(q.run_id)}" target="_blank" rel="noopener">${esc(q.run_id)}</a>`:esc(q.run_id)}`:esc(Ts.noRun)}${q.source_commit?esc(Ts.source(q.source_commit.slice(0,7))):""}</div><h2 style="margin-top:6px">${esc(Ts.history)}</h2>${historyTable()}`;}
+
+  // ---------- detail sheets ----------
+  function sheetTurn(s){const D=S().det;const h=s.handoff||{},t=turnInfo(h.status);let who='<div class="who">';PEOPLE.forEach(([id,name,ini],i)=>{if(i)who+='<span class="arrow">›</span>';who+=`<span class="person ${t.who===id?"active":""}"><span class="av ${id}">${ini}</span>${name}</span>`;});who+='</div>';
+    return `<p>${esc(t.text)}</p>${who}<div class="block"><span class="t">${esc(s.taskTitleTr||h.task_id||D.noTask)}</span><span class="d">${esc(s.taskTextTr||"")}</span><span class="detail">${h.task_id?esc(D.taskCode(h.task_id,h.turn??"—")):""}${h.lease?esc(D.lock(NAME[h.lease.actor]||h.lease.actor,fmt(h.lease.claimed_at))):esc(D.lockFree)}</span></div>`;}
+  function sheetStage(s){let p='<div class="path">';for(const g of (s.stages||[])){p+=`<div class="step ${stageCls(g)}"><div class="bar"><i></i></div><div class="lbl">${esc(g.title)}</div><div class="st">${esc(stageStatus(g))}</div></div>`;}p+='</div>';
+    return `<p class="muted">${esc(s.lineSubTr||"")}</p>${p}${(s.stages||[]).filter(g=>g.note).map(g=>`<div class="block"><span class="t">${esc(g.id)} · ${esc(g.title)}</span><span class="d">${esc(g.note)}</span></div>`).join("")}`;}
+  function sheetAuto(s){const D=S().det;const a=s.automation||{},lf=a.liveFeed,ww=a.workWebhook||{},live=liveFeed(s),repo=s.repo||{},hd=s.head||{};
+    return `<div class="row"><div class="ic" style="color:var(--cyan)">${I.bolt}</div><div><div class="tt">${esc(D.pipeline)} <span class="chip ${live?"good":"warn"}">${esc(live?D.pipeOn:D.pipeOff)}</span></div><div class="dd">${esc(D.pipeSub(fmt(lf?.at)))}</div></div></div>
+      <div class="row"><div class="ic" style="color:var(--work)">${I.user}</div><div><div class="tt">${esc(D.wake)} <span class="chip ${ww.enabled?"good":"warn"}">${esc(ww.enabled?D.on:D.off)}</span></div><div class="dd">${esc(D.wakeSub(fmt(ww.lastSeenAt)))}</div></div></div>
+      <div class="row"><div class="ic" style="color:var(--claude)">${I.clock}</div><div><div class="tt">${esc(D.claudeCheck)}</div><div class="dd">${a.claudeTask?.lastRunAt?esc(D.lastRun(fmt(a.claudeTask.lastRunAt),a.claudeTask.lastResult)):esc(D.claudeManual)}</div></div></div>
+      <div class="detail">${repo.url?`${esc(D.repo)}<a href="${esc(repo.prUrl||repo.url)}" target="_blank" rel="noopener">${esc(repo.name||repo.url)}</a>`:""}${hd?.commit?`${esc(D.lastPush(fmt(hd.at)))} (<a href="${esc(repo.url||"")}/commit/${esc(hd.commit)}" target="_blank" rel="noopener">${esc(hd.commit.slice(0,7))}</a>)`:""}</div>
+      <h2 style="margin-top:6px">${esc(D.last3)}</h2><svg class="tl" id="tl3" viewBox="0 0 600 58" role="img"></svg><div class="legend"><span><i class="claude"></i>${esc(D.claudeWorked)}</span><span><i class="work"></i>${esc(D.workWorked)}</span><span><i class="wait"></i>${esc(T("ui.waiting"))}</span></div>`;}
+  function sheetWork(){const D=S().det;const wn=status?.workNote;const notes=feedDocs.map(d=>d.data()).filter(e=>e.actor==="work"&&e.kind==="note");
+    let out=wn&&wn.textTr?`<div class="block quote-block"><span class="t">${esc(wn.titleTr||D.workNoteTitle)} <span class="tag yorum">${esc(T("ui.comment"))}</span></span><span class="quote">${esc(wn.textTr)}</span><span class="detail">${esc(fmt(wn.at))}${wn.run_id?esc(D.run(wn.run_id)):""}</span></div>`:`<div class="empty">${esc(D.noWorkNote)}</div>`;
+    if(notes.length>1){out+=`<h2 style="margin-top:6px">${esc(D.prevNotes)}</h2><div class="feed">`;for(const e of notes.slice(1))out+=`<div class="msg work"><div class="av work">O</div><div class="bubble"><div class="h"><b>OpenAI</b><time>${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;out+='</div>';}return out;}
+  const DETAILS={turn:()=>status?sheetTurn(status):emptyMsg(),stage:()=>status?sheetStage(status):emptyMsg(),qa:()=>status?sheetQa(status):emptyMsg(),auto:()=>status?sheetAuto(status):emptyMsg(),worknote:sheetWork,terms:termsHtml};
+
+  // ---------- feed ----------
   function renderFeedList(){const f=$("feedList");const docs=feedDocs.map(d=>d.data()).filter(e=>feedFilter==="all"||(feedFilter==="note"?e.kind==="note":e.actor===feedFilter));
-    if(!docs.length){f.innerHTML='<div class="empty">Bu süzgeçte kayıt yok.</div>';return;}
-    // Two tones: "iş" rows are what actually happened (lock, handover, run); "yorum" rows are what someone said about it.
+    if(!docs.length){f.innerHTML=`<div class="empty">${esc(feedDocs.length?S().feed.emptyFilter:S().feed.empty)}</div>`;return;}
     f.innerHTML=docs.map(e=>{const who=e.actor||"ci";const ini=who==="ci"?"GH":(NAME[who]||who).slice(0,1);const note=e.kind==="note";
-      return `<div class="msg ${esc(who)}${note?" note":""}"><div class="av ${esc(who)}">${esc(ini)}</div><div class="bubble"><div class="h"><b>${esc(NAME[who]||who)}</b><span class="tag ${note?"yorum":"is"}">${note?"Yorum":"İş"}</span><span class="k">${note?esc(e.titleTr||""):esc(kindTr(e))}</span><time datetime="${esc(e.at)}">${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;}).join("");}
+      return `<div class="msg ${esc(who)}${note?" note":""}"><div class="av ${esc(who)}">${esc(ini)}</div><div class="bubble"><div class="h"><b>${esc(NAME[who]||who)}</b><span class="tag ${note?"yorum":"is"}">${esc(note?T("ui.comment"):T("ui.work"))}</span><span class="k">${note?esc(e.titleTr||""):esc(kindTr(e))}</span><time datetime="${esc(e.at)}">${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;}).join("");}
   $("feedFilters").addEventListener("click",e=>{const b=e.target.closest("button[data-f]");if(!b)return;feedFilter=b.dataset.f;document.querySelectorAll("#feedFilters button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderFeedList();});
-  // settings
-  function renderSettings(){$("accEmail").textContent=session?.user?.email||(demo?"Örnek görünüm":"—");$("accRole").textContent=demo?"Giriş yapılmadı":isOwner?"Stüdyo sahibi":"Ekip üyesi";
-    $("liveInfo").textContent=status?`Son güncelleme ${fmt(status.updatedAt)} · kaynak: ${status.source==="github-webhook"?"GitHub sinyali":status.source||"—"}`:"Henüz veri yok";
+
+  // ---------- settings ----------
+  function renderSettings(){const St=S().set;$("accEmail").textContent=session?.user?.email||(demo?St.demoView:"—");$("accRole").textContent=demo?St.notSignedIn:isOwner?St.ownerRole:St.memberRole;
+    $("liveInfo").textContent=status?St.liveInfo(fmt(status.updatedAt),status.source==="github-webhook"?St.ghSignal:status.source||"—"):St.noDataYet;
     $("teamSection").hidden=!isOwner;if(isOwner)$("teamBody").innerHTML=sheetTeam();renderPush();}
 
-  // ---------- push notifications (Web Push; the GitHub webhook function sends them, no AI involved) ----------
+  // ---------- store (Play Store tracking: games, tracks, reviews, mail, notes) ----------
+  const STAGE_CLS={development:"",closed_testing:"info",open_testing:"brand",production:"good",paused:"warn"};
+  const KIND_CLS={console:"brand",review:"warn",tester:"info",support:"bad",other:""};
+  const stars=n=>n?`<span class="stars ${n<=2?"low":""}" title="${n}/5">${"★".repeat(n)}${"☆".repeat(5-n)}</span>`:"";
+  const gameOf=id=>store.games.find(g=>g.id===id);
+  const unreadMail=()=>store.mail.filter(m=>!m.read).length;
+  const unseenReviews=gid=>store.reviews.filter(r=>!r.seen&&(!gid||r.game_id===gid)).length;
+  function renderStoreBadge(){const n=unreadMail()+unseenReviews();const b=$("storeBadge");b.hidden=!n;b.textContent=n>99?"99+":String(n);}
+  function connChip(key){const Sm=S().store;const st=store.status[key];if(!st)return `<span class="chip sm warn">${esc(Sm.notConnected)}</span>`;
+    if(st.error&&!st.connected)return `<span class="chip sm warn" title="${esc(st.error)}">${esc(Sm.notConnected)}</span>`;if(st.error)return `<span class="chip sm bad" title="${esc(st.error)}">${esc(Sm.syncErr)}</span>`;return `<span class="chip sm good">${esc(Sm.connected)}</span>`;}
+  function renderStore(){const Sm=S().store;$("storeAddBtn").hidden=!isOwner;
+    const g=store.status.gmail,p=store.status.play;const last=k=>store.status[k]?.lastRun?Sm.lastSync(ago(store.status[k].lastRun)):Sm.neverSync;
+    const newest=[...store.events].sort((a,b)=>new Date(b.at)-new Date(a.at))[0];
+    $("storeStats").innerHTML=`<div class="tile flat"><span class="ic ${g?.connected&&!g.error?"good":"warn"}">${I.mail}</span><span class="k">${esc(Sm.gmail)}</span><span class="v">${connChip("gmail")}</span><span class="s">${esc(g?.account||"oryvonagames@gmail.com")} · ${esc(last("gmail"))}</span></div>
+      <div class="tile flat"><span class="ic ${p?.connected&&!p.error?"good":"warn"}">${I.store}</span><span class="k">${esc(Sm.play)}</span><span class="v">${connChip("play")}</span><span class="s">${esc(last("play"))}</span></div>
+      <button class="tile" data-mailf="unread"><span class="ic ${unreadMail()?"brand":""}">${I.mail}</span><span class="k">${esc(Sm.unreadMail)}</span><span class="v num">${unreadMail()}</span><span class="s">${esc(store.mail.length)} · 30d</span></button>
+      <div class="tile flat"><span class="ic ${unseenReviews()?"warn":""}">${I.star}</span><span class="k">${esc(Sm.newReviews)}</span><span class="v num">${unseenReviews()}</span><span class="s">${newest?esc((newest.title_tr||newest.kind)+" · "+ago(newest.at)):esc(T("ui.none"))}</span></div>`;
+    $("storeGames").innerHTML=store.games.length?store.games.map(gm=>{const rv=store.reviews.filter(r=>r.game_id===gm.id);const rated=rv.filter(r=>r.rating);const avg=rated.length?(rated.reduce((a,r)=>a+r.rating,0)/rated.length).toFixed(1):null;const um=store.mail.filter(m=>m.game_id===gm.id&&!m.read).length;const tracks=gm.meta?.tracks||[];
+      const trackLine=tracks.filter(t=>t.releases?.length).map(t=>`${S().track[t.track]||t.trackTr||t.track}: ${t.releases.map(r=>r.name||"").filter(Boolean).join(", ")||"–"}`).join(" · ");
+      return `<button class="tile wide" data-sgame="${esc(gm.id)}"><span class="ic ${STAGE_CLS[gm.stage]||""}">${esc(gm.name.slice(0,2).toUpperCase())}</span><span class="tx"><span class="v">${esc(gm.name)}</span><span class="s"><span class="chip sm ${STAGE_CLS[gm.stage]||""}">${esc(S().stage[gm.stage]||gm.stage)}</span>${gm.package_id?` · <span class="muted">${esc(gm.package_id)}</span>`:""}</span><span class="s">${trackLine?esc(trackLine):esc(gm.stage==="closed_testing"||gm.stage==="development"?Sm.reviewsLocked:Sm.noTracks)}</span><span class="s">${avg?`${stars(Math.round(avg))} ${avg} · ${rv.length}`:esc(Sm.noReviews)}${um?` · <b style="color:var(--brand)">${um} ${esc(Sm.unread.toLowerCase())}</b>`:""}</span></span></button>`;}).join(""):`<div class="empty">${esc(Sm.noGames)}</div>`;
+    renderMailList();renderStoreBadge();}
+  function mailRow(m,showGame){const Sm=S().store;const gm=m.game_id?gameOf(m.game_id):null;
+    return `<div class="mail ${m.read?"read":""}" data-mail="${esc(m.id)}"><span class="dot"></span><div class="tx"><div class="meta"><span class="chip sm ${KIND_CLS[m.kind]||""}">${esc(S().kind[m.kind]||m.kind)}</span>${showGame&&gm?`<span class="chip sm brand">${esc(gm.name)}</span>`:""}<b style="color:var(--fg-2)">${esc(m.from_name||m.from_addr||"")}</b><time>${esc(fmt(m.received_at))}</time></div><div class="sub">${esc(m.subject||"(no subject)")}</div><div class="sn">${esc(m.snippet||"")}</div>
+      <div class="ops">${m.link?`<a class="act" href="${esc(m.link)}" target="_blank" rel="noopener" data-open-mail="${esc(m.id)}">${esc(Sm.openGmail)}</a>`:""}<button class="act" type="button" data-toggle-read="${esc(m.id)}">${esc(m.read?Sm.markUnread:Sm.markRead)}</button>${showGame&&store.games.length?`<select data-assign="${esc(m.id)}" aria-label="${esc(Sm.assign)}"><option value="">${esc(Sm.noGame)}</option>${store.games.map(g=>`<option value="${esc(g.id)}" ${g.id===m.game_id?"selected":""}>${esc(g.name)}</option>`).join("")}</select>`:""}</div></div></div>`;}
+  function renderMailList(){const Sm=S().store;const list=store.mail.filter(m=>mailFilter==="all"||(mailFilter==="unread"?!m.read:mailFilter==="none"?!m.game_id:m.kind===mailFilter));
+    $("mailList").innerHTML=list.length?list.map(m=>mailRow(m,true)).join(""):`<div class="empty">${esc(store.mail.length?Sm.noMail:Sm.mailWaiting)}</div>`;
+    document.querySelectorAll("#mailFilters button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.f===mailFilter)));}
+  $("mailFilters").addEventListener("click",e=>{const b=e.target.closest("button[data-f]");if(!b)return;mailFilter=b.dataset.f;renderMailList();});
+  document.addEventListener("click",e=>{const t=e.target.closest("[data-mailf]");if(t){mailFilter=t.dataset.mailf;renderMailList();$("mailList").scrollIntoView({behavior:"smooth",block:"start"});}});
+  function openGame(id){gameId=id;history.pushState({view:"game",game:id},"");showView("game");}
+  document.addEventListener("click",e=>{const g=e.target.closest("[data-sgame]");if(g)openGame(g.dataset.sgame);});
+  function trackBlock(gm){const Sm=S().store;const tracks=gm.meta?.tracks||[];if(!tracks.length)return `<div class="empty">${esc(Sm.noTracks)}</div>`;
+    return `<div style="display:flex;flex-direction:column;gap:8px">${tracks.map(t=>`<div class="track"><b>${esc(S().track[t.track]||t.trackTr||t.track)}</b>${(t.releases||[]).length?(t.releases||[]).map(r=>`<span>${esc(r.name||"")} · ${esc(S().trackSt[r.status]||r.statusTr||r.status||"")}${(r.versionCodes||[]).length?` · ${esc(Sm.versions)} ${esc(r.versionCodes.join(", "))}`:""}${r.userFraction?` · ${esc(Sm.rollout(Math.round(r.userFraction*100)))}`:""}</span>`).join(""):`<span>${esc(Sm.emptyTrack)}</span>`}</div>`).join("")}</div>${gm.meta?.tracksAt?`<div class="detail">${esc(Sm.syncedAt(ago(gm.meta.tracksAt)))}</div>`:""}`;}
+  function renderGame(){const Sm=S().store;const gm=gameOf(gameId);const body=$("gameBody");$("gameEditBtn").hidden=!isOwner||!gm;if(!gm){$("gameTitle").textContent=T("ui.noData");body.innerHTML=emptyMsg();return;}
+    $("gameTitle").textContent=gm.name;
+    const rv=store.reviews.filter(r=>r.game_id===gm.id).sort((a,b)=>new Date(b.updated_at||b.created_at)-new Date(a.updated_at||a.created_at));const rated=rv.filter(r=>r.rating);const avg=rated.length?(rated.reduce((a,r)=>a+r.rating,0)/rated.length).toFixed(1):null;
+    const mails=store.mail.filter(m=>m.game_id===gm.id);const notes=store.notes.filter(n=>n.game_id===gm.id);const evs=store.events.filter(x=>x.game_id===gm.id);const me=(session?.user?.email||"").toLowerCase();
+    const links=[gm.store_url?`<a class="act" href="${esc(gm.store_url)}" target="_blank" rel="noopener">${esc(Sm.storeLink)}</a>`:"",gm.console_url?`<a class="act" href="${esc(gm.console_url)}" target="_blank" rel="noopener">${esc(Sm.consoleLink)}</a>`:""].filter(Boolean).join("");
+    body.innerHTML=`<div class="view">
+      <div class="card"><div class="row" style="align-items:center"><span class="ic" style="width:46px;height:46px;border-radius:14px;font-weight:900;background:var(--brand-soft);color:var(--brand)">${esc(gm.name.slice(0,2).toUpperCase())}</span><div style="flex:1;min-width:0"><div class="tt"><span class="chip ${STAGE_CLS[gm.stage]||""}">${esc(S().stage[gm.stage]||gm.stage)}</span></div><div class="dd">${gm.package_id?`${esc(Sm.pkg)}: ${esc(gm.package_id)}`:""}${gm.project_id?` · ${esc(projects.find(p=>p.id===gm.project_id)?.name||gm.project_id)}`:""}</div></div></div>${links?`<div style="display:flex;gap:8px;flex-wrap:wrap">${links}</div>`:""}</div>
+      <div class="secthead">${esc(Sm.tracks)}</div><div class="card">${trackBlock(gm)}</div>
+      <div class="secthead">${esc(Sm.reviews)}${avg?` · ${avg} ${esc(Sm.avg)} · ${rv.length}`:""}</div><div class="card">${rv.length?rv.map(r=>`<div class="rev"><div class="h">${stars(r.rating)}<b>${esc(r.author||"—")}</b>${!r.seen?`<span class="tag new">${esc(Sm.newTag)}</span>`:""}<time>${esc(fmtDate(r.created_at))}</time>${r.app_version?`<span class="detail">v${esc(r.app_version)}</span>`:""}${r.device?`<span class="detail">${esc(r.device)}</span>`:""}</div><div class="m">${esc(r.text||"")}</div>${r.reply_text?`<div class="reply"><b>${esc(Sm.reply)}:</b> ${esc(r.reply_text)}</div>`:""}${!r.seen?`<div><button class="act" type="button" data-seen="${esc(r.id)}">${esc(Sm.seen)}</button></div>`:""}</div>`).join(""):`<div class="empty">${esc(gm.stage==="closed_testing"||gm.stage==="development"?Sm.reviewsLocked:Sm.noReviews)}</div>`}</div>
+      <div class="secthead">${esc(Sm.mailFor)} · ${mails.length}</div><div class="card">${mails.length?mails.map(m=>mailRow(m,false)).join(""):`<div class="empty">${esc(Sm.noMail)}</div>`}</div>
+      <div class="secthead">${esc(Sm.notes)}</div><div class="card"><form id="noteForm" data-game="${esc(gm.id)}" style="display:flex;flex-direction:column;gap:8px"><textarea id="noteText" placeholder="${esc(Sm.notePh)}" required></textarea><div style="display:flex;justify-content:flex-end"><button class="btn" type="submit">${esc(T("ui.add"))}</button></div></form><div id="noteMsg" class="detail"></div>
+        ${notes.length?`<div class="feed">${notes.map(n=>`<div class="msg note"><div class="av team">${esc((n.author_email||"?").slice(0,1).toUpperCase())}</div><div class="bubble"><div class="h"><b>${esc(n.author_email.split("@")[0])}</b><time>${esc(fmt(n.at))}</time></div><div class="m">${esc(n.text)}</div>${(isOwner||n.author_email.toLowerCase()===me)?`<div><button class="act" type="button" data-delnote="${n.id}" style="font-size:.8rem;padding:4px 10px">${esc(T("ui.delete"))}</button></div>`:""}</div></div>`).join("")}</div>`:`<div class="empty">${esc(Sm.noNotes)}</div>`}</div>
+      <div class="secthead">${esc(Sm.events)}</div><div class="card">${evs.length?`<div class="feed">${evs.map(x=>`<div class="msg ci"><div class="av ci">${x.kind==="track_change"?"▲":"•"}</div><div class="bubble"><div class="h"><b>${esc(x.kind==="track_change"?Sm.events_track_change:(x.title_tr||x.kind))}</b><time>${esc(fmt(x.at))}</time></div><div class="m">${esc(x.text_tr||"")}</div></div></div>`).join("")}</div>`:`<div class="empty">${esc(Sm.noEvents)}</div>`}</div>
+    </div>`;}
+  // owner form (add / edit)
+  function gameForm(gm){const Sm=S().store;const g=gm||{stage:"closed_testing",keywords:[]};const opt=(v,l)=>`<option value="${esc(v)}" ${g.stage===v?"selected":""}>${esc(l)}</option>`;
+    return `<form id="gameForm" class="form" data-id="${esc(g.id||"")}"><label class="full">${esc(Sm.fName)}<input name="name" required value="${esc(g.name||"")}"></label><label>${esc(Sm.fPkg)}<input name="package_id" value="${esc(g.package_id||"")}" placeholder="com.oryvonagames.oyun"></label><label>${esc(Sm.fStage)}<select name="stage">${Object.keys(S().stage).map(k=>opt(k,S().stage[k])).join("")}</select></label><label>${esc(Sm.fStore)}<input name="store_url" type="url" value="${esc(g.store_url||"")}" placeholder="https://play.google.com/store/apps/details?id=…"></label><label>${esc(Sm.fConsole)}<input name="console_url" type="url" value="${esc(g.console_url||"")}" placeholder="https://play.google.com/console/…"></label><label class="full">${esc(Sm.fKeys)}<input name="keywords" value="${esc((g.keywords||[]).join(", "))}"></label><label class="full">${esc(Sm.fProject)}<select name="project_id"><option value="">${esc(Sm.fNone)}</option>${projects.map(p=>`<option value="${esc(p.id)}" ${g.project_id===p.id?"selected":""}>${esc(p.name)}</option>`).join("")}</select></label>
+      <div class="actions">${g.id?`<button class="btn ghost" type="button" data-delgame="${esc(g.id)}" style="margin-right:auto;color:var(--bad)">${esc(T("ui.delete"))}</button>`:""}<button class="btn ghost" type="button" id="gameFormCancel">${esc(T("ui.cancel"))}</button><button class="btn" type="submit">${esc(T("ui.save"))}</button></div><div class="detail full" id="gameFormMsg" style="grid-column:1/-1"></div></form>`;}
+  function showGameForm(gm){const box=$("storeForm");box.innerHTML=gameForm(gm);box.hidden=false;if(view!=="store"){history.pushState({view:"store"},"");showView("store");}box.scrollIntoView({behavior:"smooth",block:"start"});}
+  $("storeAddBtn").addEventListener("click",()=>showGameForm(null));$("gameEditBtn").addEventListener("click",()=>{const gm=gameOf(gameId);if(gm)showGameForm(gm);});
+  document.addEventListener("click",async e=>{
+    if(e.target.id==="gameFormCancel"){$("storeForm").hidden=true;return;}
+    const d=e.target.closest("[data-delgame]");if(d&&sb){if(!confirm(S().store.confirmDel))return;const {error}=await sb.from("store_games").delete().eq("id",d.dataset.delgame);if(error){$("gameFormMsg").textContent=S().store.saveFail+error.message;return;}$("storeForm").hidden=true;await loadStore();if(view==="game"){history.back();}}
+    const s=e.target.closest("[data-seen]");if(s){s.disabled=true;if(sb)await sb.from("store_reviews").update({seen:true}).eq("id",s.dataset.seen);const r=store.reviews.find(x=>x.id===s.dataset.seen);if(r)r.seen=true;refreshOpen();renderStoreBadge();}
+    const tr=e.target.closest("[data-toggle-read]");if(tr){const m=store.mail.find(x=>x.id===tr.dataset.toggleRead);if(!m)return;m.read=!m.read;if(sb)await sb.from("mail_items").update({read:m.read}).eq("id",m.id);refreshOpen();renderStoreBadge();}
+    const om=e.target.closest("[data-open-mail]");if(om){const m=store.mail.find(x=>x.id===om.dataset.openMail);if(m&&!m.read){m.read=true;if(sb)sb.from("mail_items").update({read:true}).eq("id",m.id).then(()=>{},()=>{});setTimeout(()=>{refreshOpen();renderStoreBadge();},300);}}
+    const dn=e.target.closest("[data-delnote]");if(dn&&sb){dn.disabled=true;await sb.from("store_notes").delete().eq("id",Number(dn.dataset.delnote));store.notes=store.notes.filter(n=>String(n.id)!==dn.dataset.delnote);refreshOpen();}});
+  document.addEventListener("change",async e=>{const a=e.target.closest("select[data-assign]");if(!a)return;const m=store.mail.find(x=>x.id===a.dataset.assign);if(!m)return;m.game_id=a.value||null;if(sb)await sb.from("mail_items").update({game_id:m.game_id}).eq("id",m.id);refreshOpen();});
+  document.addEventListener("submit",async e=>{
+    if(e.target.id==="noteForm"){e.preventDefault();const text=$("noteText").value.trim();if(!text)return;const gid=e.target.dataset.game;const email=(session?.user?.email||"").toLowerCase();
+      if(!sb){store.notes.unshift({id:Date.now(),game_id:gid,author_email:email||"demo@oryvona",text,at:new Date().toISOString()});renderGame();return;}
+      const {error}=await sb.from("store_notes").insert({game_id:gid,author_email:email,text});if(error){$("noteMsg").textContent=S().store.saveFail+error.message;return;}$("noteText").value="";await loadStore();}
+    if(e.target.id==="gameForm"){e.preventDefault();const f=new FormData(e.target);const name=String(f.get("name")||"").trim();if(!name){$("gameFormMsg").textContent=S().store.needName;return;}
+      const pkg=String(f.get("package_id")||"").trim()||null;const id=e.target.dataset.id||(pkg||name).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+      const row={id,name,package_id:pkg,stage:String(f.get("stage")),store_url:String(f.get("store_url")||"").trim()||null,console_url:String(f.get("console_url")||"").trim()||null,keywords:String(f.get("keywords")||"").split(",").map(s=>s.trim()).filter(Boolean),project_id:String(f.get("project_id")||"")||null,updated_at:new Date().toISOString()};
+      if(!sb){const i=store.games.findIndex(g=>g.id===id);if(i>=0)store.games[i]={...store.games[i],...row};else store.games.push({...row,meta:{}});$("storeForm").hidden=true;refreshOpen();return;}
+      const {error}=await sb.from("store_games").upsert(row,{onConflict:"id"});if(error){$("gameFormMsg").textContent=S().store.saveFail+error.message;return;}$("storeForm").hidden=true;await loadStore();}});
+  async function loadStore(){if(demo||!sb)return;
+    const [g,r,m,n,ev,st]=await Promise.all([sb.from("store_games").select("*").order("sort_order").order("name"),sb.from("store_reviews").select("*").order("created_at",{ascending:false}).limit(300),sb.from("mail_items").select("*").order("received_at",{ascending:false}).limit(150),sb.from("store_notes").select("*").order("at",{ascending:false}).limit(300),sb.from("store_events").select("*").order("at",{ascending:false}).limit(150),sb.from("store_status").select("key,value")]);
+    if(g.error){console.warn(g.error);return;}
+    store={games:g.data||[],reviews:r.data||[],mail:m.data||[],notes:n.data||[],events:ev.data||[],status:Object.fromEntries((st.data||[]).map(x=>[x.key,x.value]))};
+    renderStoreBadge();if(view==="store")renderStore();if(view==="game")renderGame();}
+  function watchStore(){if(!sb||storeChannel)return;let tm=null;const bump=()=>{clearTimeout(tm);tm=setTimeout(loadStore,400);};storeChannel=sb.channel("store");
+    for(const tb of ["store_games","store_reviews","mail_items","store_notes","store_events","store_status"])storeChannel.on("postgres_changes",{event:"*",schema:"public",table:tb},bump);storeChannel.subscribe();}
+
+  // ---------- push notifications (Web Push; Supabase functions send them) ----------
   const b64ToU8=s=>{const pad="=".repeat((4-s.length%4)%4);const bin=atob((s+pad).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(bin,c=>c.charCodeAt(0));};
   const pushOk=()=>"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window&&!!(window.ORYVONA||{}).vapidPublicKey;
-  let pushSub=null,pushPrefs={mine:true,blocked:true,turns:false,runs:false};
-  function renderPush(){const on=!!pushSub;$("pushToggle").textContent=on?"Açık":"Aç";$("pushToggle").className="act"+(on?" on":"");$("pushPrefs").hidden=!on;
-    $("pushInfo").textContent=demo?"Örnek görünümde kapalı":!pushOk()?"Bu tarayıcı desteklemiyor":Notification.permission==="denied"?"Bildirim izni kapalı; telefonun uygulama ayarlarından aç":on?"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.":"Uygulama kapalıyken de haber verir";
+  let pushSub=null,pushPrefs={mine:true,blocked:true,turns:false,runs:false,store:true};
+  function renderPush(){const St=S().set;const on=!!pushSub;$("pushToggle").textContent=on?St.pushOn:St.pushOff;$("pushToggle").className="act"+(on?" on":"");$("pushPrefs").hidden=!on;
+    $("pushInfo").textContent=demo?St.pushDemo:!pushOk()?St.pushUnsup:Notification.permission==="denied"?St.pushDenied:on?St.pushActive:St.pushIdle;
     document.querySelectorAll("#pushPrefs input[data-pref]").forEach(i=>{i.checked=!!pushPrefs[i.dataset.pref];});}
   async function initPush(){if(demo||!pushOk()){renderPush();return;}
     try{const reg=await navigator.serviceWorker.ready;pushSub=await reg.pushManager.getSubscription();
-      // Permission was reset in the browser (or revoked): the old subscription is dead — drop it so the switch shows "Aç" and asks again.
       if(pushSub&&Notification.permission!=="granted"){const ep=pushSub.endpoint;await pushSub.unsubscribe().catch(()=>{});pushSub=null;await sb.from("push_subscriptions").delete().eq("endpoint",ep);}
       if(pushSub){const {data}=await sb.from("push_subscriptions").select("prefs").eq("endpoint",pushSub.endpoint).maybeSingle();if(data?.prefs)pushPrefs={...pushPrefs,...data.prefs};else await savePush();}
-      // The Android app already asked for permission at launch: turn push on by itself unless this device switched it off before.
       let off=null;try{off=localStorage.getItem("oryvona.pushOff");}catch{}
       if(!pushSub&&Notification.permission==="granted"&&!off){pushSub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(CFG.vapidPublicKey)});await savePush();}}catch(e){console.warn(e);}
     renderPush();}
   async function savePush(){if(!pushSub)return;const j=pushSub.toJSON();
     const {error}=await sb.from("push_subscriptions").upsert({endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,email:(session?.user?.email||"").toLowerCase(),prefs:pushPrefs,ua:navigator.userAgent.slice(0,120),updated_at:new Date().toISOString()});
-    if(error)$("pushInfo").textContent="Kaydedilemedi: "+error.message;}
-  $("pushToggle").addEventListener("click",async()=>{if(demo||!pushOk()){renderPush();return;}
+    if(error)$("pushInfo").textContent=S().set.pushSaveErr+error.message;}
+  $("pushToggle").addEventListener("click",async()=>{const St=S().set;if(demo||!pushOk()){renderPush();return;}
     if(pushSub){const ep=pushSub.endpoint;await pushSub.unsubscribe().catch(()=>{});pushSub=null;await sb.from("push_subscriptions").delete().eq("endpoint",ep);try{localStorage.setItem("oryvona.pushOff","1");}catch{}renderPush();return;}
     try{localStorage.removeItem("oryvona.pushOff");}catch{}
-    $("pushInfo").textContent="İzin isteniyor…";const perm=await Notification.requestPermission();if(perm!=="granted"){renderPush();if(perm==="default")$("pushInfo").textContent="İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.";return;}
-    try{const reg=await navigator.serviceWorker.ready;pushSub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(CFG.vapidPublicKey)});await savePush();}catch(e){console.warn(e);$("pushInfo").textContent="Açılamadı: "+(e.message||e);renderPush();return;}
+    $("pushInfo").textContent=St.pushAsking;const perm=await Notification.requestPermission();if(perm!=="granted"){renderPush();if(perm==="default")$("pushInfo").textContent=St.pushClosed;return;}
+    try{const reg=await navigator.serviceWorker.ready;pushSub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(CFG.vapidPublicKey)});await savePush();}catch(e){console.warn(e);$("pushInfo").textContent=St.pushFail+(e.message||e);renderPush();return;}
     renderPush();});
   $("pushPrefs").addEventListener("change",async e=>{const i=e.target.closest("input[data-pref]");if(!i)return;pushPrefs[i.dataset.pref]=i.checked;await savePush();});
-  $("pushTest").addEventListener("click",async()=>{if(!sb||!session)return;$("pushTest").disabled=true;$("pushInfo").textContent="Gönderiliyor…";
+  $("pushTest").addEventListener("click",async()=>{const St=S().set;if(!sb||!session)return;$("pushTest").disabled=true;$("pushInfo").textContent=St.pushSending;
     const {data,error}=await sb.functions.invoke("push-notify",{body:{test:true}});$("pushTest").disabled=false;
-    $("pushInfo").textContent=error?"Gönderilemedi: "+error.message:`Deneme gönderildi · ${data?.sent??0} cihaz. Birkaç saniye içinde gelir.`;});
-  $("reloadBtn").addEventListener("click",()=>{if(current)loadAll(current);});$("refreshBtn").addEventListener("click",()=>{if(current)loadAll(current);});
+    $("pushInfo").textContent=error?St.pushSendFail+error.message:St.pushSent(data?.sent??0);});
+  $("reloadBtn").addEventListener("click",()=>{if(current)loadAll(current);loadStore();});$("refreshBtn").addEventListener("click",()=>{if(current)loadAll(current);loadStore();});
   $("signOut").addEventListener("click",async()=>{if(sb)await sb.auth.signOut();});
-  function sheetTeam(){const me=(session?.user?.email||"").toLowerCase();
-    let out=`<div class="block"><span class="t">Davet bağlantısı</span><span class="d">Gönderdiğin kişi kendi e-postasıyla girer; bağlantı bir kez kullanılır, süresi dolunca çalışmaz.</span>
-      <form id="inviteForm" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><select id="inviteHours"><option value="1">1 saat</option><option value="24" selected>1 gün</option><option value="168">7 gün</option></select><input id="inviteEmail" type="email" placeholder="Sadece bu e-posta (isteğe bağlı)" style="flex:1;min-width:180px"><button type="submit" class="btn">Bağlantı oluştur</button></form>
-      <div id="inviteOut" hidden style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px"><input id="inviteLink" readonly style="flex:1;min-width:200px;font-size:.85rem"><button type="button" id="inviteCopy" class="btn gold">Kopyala</button></div><div id="inviteMsg" class="detail"></div></div>
-      <p class="muted small">Elle eklemek istersen:</p><form id="teamForm" style="display:flex;gap:8px;flex-wrap:wrap"><input id="teamEmail" type="email" required placeholder="yeni@ekip.com" style="flex:1;min-width:180px"><input id="teamName" placeholder="Ad (isteğe bağlı)" style="flex:1;min-width:120px"><button type="submit" class="btn">Ekle</button></form><div id="teamMsg" class="detail"></div>
-      <h2>Kimler girdi</h2><div class="feed">`;
-    for(const m of team){const seen=m.last_seen_at?`son giriş ${ago(m.last_seen_at)} · ${m.login_count||0} kez`:"henüz giriş yapmadı";
-      out+=`<div class="block" style="flex-direction:row;align-items:center;justify-content:space-between;gap:10px"><div><div class="t">${esc(m.name||m.email)}${m.role==="owner"?' <span class="chip brand" style="font-size:.72rem;padding:2px 8px">sahip</span>':""}</div><div class="d">${esc(m.email)} · ${esc(seen)}</div></div>${m.email!==me?`<button type="button" class="btn ghost" data-remove="${esc(m.email)}">Çıkar</button>`:'<span class="chip brand">sen</span>'}</div>`;}
+
+  // ---------- team (owners) ----------
+  function sheetTeam(){const Tm=S().team;const me=(session?.user?.email||"").toLowerCase();
+    let out=`<div class="block"><span class="t">${esc(Tm.invite)}</span><span class="d">${esc(Tm.inviteSub)}</span>
+      <form id="inviteForm" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><select id="inviteHours"><option value="1">${esc(Tm.h1)}</option><option value="24" selected>${esc(Tm.d1)}</option><option value="168">${esc(Tm.d7)}</option></select><input id="inviteEmail" type="email" placeholder="${esc(Tm.onlyEmail)}" style="flex:1;min-width:180px"><button type="submit" class="btn">${esc(Tm.create)}</button></form>
+      <div id="inviteOut" hidden style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px"><input id="inviteLink" readonly style="flex:1;min-width:200px;font-size:.85rem"><button type="button" id="inviteCopy" class="btn gold">${esc(Tm.copy)}</button></div><div id="inviteMsg" class="detail"></div></div>
+      <p class="muted small">${esc(Tm.manual)}</p><form id="teamForm" style="display:flex;gap:8px;flex-wrap:wrap"><input id="teamEmail" type="email" required placeholder="${esc(Tm.newEmail)}" style="flex:1;min-width:180px"><input id="teamName" placeholder="${esc(Tm.name)}" style="flex:1;min-width:120px"><button type="submit" class="btn">${esc(T("ui.add"))}</button></form><div id="teamMsg" class="detail"></div>
+      <h2>${esc(Tm.who)}</h2><div class="feed">`;
+    for(const m of team){const seen=m.last_seen_at?Tm.lastSeen(ago(m.last_seen_at),m.login_count||0):Tm.never;
+      out+=`<div class="block" style="flex-direction:row;align-items:center;justify-content:space-between;gap:10px"><div><div class="t">${esc(m.name||m.email)}${m.role==="owner"?` <span class="chip brand sm">${esc(T("ui.owner"))}</span>`:""}</div><div class="d">${esc(m.email)} · ${esc(seen)}</div></div>${m.email!==me?`<button type="button" class="btn ghost" data-remove="${esc(m.email)}">${esc(Tm.remove)}</button>`:`<span class="chip brand">${esc(T("ui.you"))}</span>`}</div>`;}
     return out+'</div>';}
-  document.addEventListener("submit",async e=>{
-    if(e.target.id==="teamForm"){e.preventDefault();if(!sb)return;const email=$("teamEmail").value.trim().toLowerCase(),name=$("teamName").value.trim();if(!email){$("teamMsg").textContent="E-posta yaz.";return;}const {error}=await sb.from("team_members").insert({email,name:name||null,role:"member"});$("teamMsg").textContent=error?"Eklenemedi: "+error.message:"Eklendi: "+email;if(!error)loadTeam();}
-    if(e.target.id==="inviteForm"){e.preventDefault();if(!sb){$("inviteMsg").textContent="Örnek görünümde davet oluşturulamaz.";return;}const hours=Number($("inviteHours").value),forEmail=$("inviteEmail").value.trim()||null;$("inviteMsg").textContent="Oluşturuluyor…";const {data,error}=await sb.rpc("create_invite",{hours,for_email:forEmail,note:null});if(error){$("inviteMsg").textContent="Oluşturulamadı: "+error.message;return;}const row=Array.isArray(data)?data[0]:data;const link=location.origin+location.pathname+"#davet="+row.token;$("inviteLink").value=link;$("inviteOut").hidden=false;$("inviteMsg").textContent=`Geçerlilik: ${fmt(row.expires_at)}'e kadar · tek kullanımlık${forEmail?` · yalnız ${forEmail}`:""}`;}
-    if(e.target.id==="gateForm"){e.preventDefault();const email=$("gateEmail").value.trim();if(!email){gateMsg("Önce e-posta yaz.",true);return;}$("gateBtn").disabled=true;gateMsg("Gönderiliyor…");const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});$("gateBtn").disabled=false;if(error){gateMsg("Gönderilemedi: "+error.message,true);return;}gateMsg("Bağlantı gönderildi. E-postanı aç (gerekirse Gereksiz klasörü) ve bağlantıya dokun; uygulama kendiliğinden açılır.");}});
-  document.addEventListener("click",async e=>{const r=e.target.closest("[data-remove]");if(r&&sb){r.disabled=true;const {error}=await sb.from("team_members").delete().eq("email",r.dataset.remove);if(error){$("teamMsg").textContent="Çıkarılamadı: "+error.message;r.disabled=false;}else loadTeam();}
-    if(e.target.id==="inviteCopy"){const v=$("inviteLink").value;try{await navigator.clipboard.writeText(v);$("inviteMsg").textContent="Kopyalandı. WhatsApp vb. ile gönderebilirsin.";}catch{$("inviteLink").select();$("inviteMsg").textContent="Kopyalamak için bağlantıyı seçip kopyala.";}}});
+  document.addEventListener("submit",async e=>{const Tm=S().team,G=S().gate;
+    if(e.target.id==="teamForm"){e.preventDefault();if(!sb)return;const email=$("teamEmail").value.trim().toLowerCase(),name=$("teamName").value.trim();if(!email){$("teamMsg").textContent=Tm.writeEmail;return;}const {error}=await sb.from("team_members").insert({email,name:name||null,role:"member"});$("teamMsg").textContent=error?Tm.addFail+error.message:Tm.added+email;if(!error)loadTeam();}
+    if(e.target.id==="inviteForm"){e.preventDefault();if(!sb){$("inviteMsg").textContent=Tm.demoInvite;return;}const hours=Number($("inviteHours").value),forEmail=$("inviteEmail").value.trim()||null;$("inviteMsg").textContent=Tm.creating;const {data,error}=await sb.rpc("create_invite",{hours,for_email:forEmail,note:null});if(error){$("inviteMsg").textContent=Tm.createFail+error.message;return;}const row=Array.isArray(data)?data[0]:data;const link=location.origin+location.pathname+"#davet="+row.token;$("inviteLink").value=link;$("inviteOut").hidden=false;$("inviteMsg").textContent=Tm.valid(fmt(row.expires_at),forEmail);}
+    if(e.target.id==="gateForm"){e.preventDefault();const email=$("gateEmail").value.trim();if(!email){gateMsg(G.writeEmail,true);return;}$("gateBtn").disabled=true;gateMsg(G.sending);const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});$("gateBtn").disabled=false;if(error){gateMsg(G.sendFail+error.message,true);return;}gateMsg(G.sent);}});
+  document.addEventListener("click",async e=>{const Tm=S().team;const r=e.target.closest("[data-remove]");if(r&&sb){r.disabled=true;const {error}=await sb.from("team_members").delete().eq("email",r.dataset.remove);if(error){$("teamMsg").textContent=Tm.removeFail+error.message;r.disabled=false;}else loadTeam();}
+    if(e.target.id==="inviteCopy"){const v=$("inviteLink").value;try{await navigator.clipboard.writeText(v);$("inviteMsg").textContent=Tm.copied;}catch{$("inviteLink").select();$("inviteMsg").textContent=Tm.copyManual;}}});
   const gateMsg=(t,bad)=>{const m=$("gateMsg");m.textContent=t;m.style.color=bad?"#ff9c9c":"#8fe3ad";};
 
   // ---------- data ----------
   const CFG=window.ORYVONA||{};const asDoc=row=>({id:row.id,data:()=>row});
   function remember(id){try{localStorage.setItem("oryvona.project",id);}catch{}} function recall(){try{return localStorage.getItem("oryvona.project");}catch{return null;}}
-  function applyStatus(row){status=row&&row.data?row.data:null;freshness();if(status)renderHome(status);else{$("heroV").textContent="Henüz kayıt yok";$("heroS").textContent="Bu proje için durum verisi gelince burada görünür.";}refreshOpen();}
+  function applyStatus(row){status=row&&row.data?row.data:null;freshness();if(status)renderHome(status);else{$("heroV").textContent=session||demo?T("home.noRecord"):T("home.waitingData");$("heroS").textContent=session||demo?T("home.noRecordSub"):T("home.waitingSub");}refreshOpen();}
   async function loadAll(id){if(demo)return;
     const [st,ev,rn]=await Promise.all([sb.from("project_status").select("data,updated_at").eq("project_id",id).maybeSingle(),sb.from("events").select("*").eq("project_id",id).order("at",{ascending:false}).limit(80),sb.from("runs").select("run_id,data,started_at").eq("project_id",id).order("started_at",{ascending:true,nullsFirst:true}).limit(60)]);
-    if(st.error||ev.error||rn.error){console.error(st.error||ev.error||rn.error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
+    if(st.error||ev.error||rn.error){console.error(st.error||ev.error||rn.error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("ui.connErr");return;}
     feedDocs=(ev.data||[]).map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));runsDocs=(rn.data||[]).map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));
     renderTimeline("tl",24);applyStatus(st.data);}
   function select(id){if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];freshness();
     if(demo||!sb){applyStatus({data:allStatus[id]||null});renderTimeline("tl",24);return;}
     if(channel){sb.removeChannel(channel);channel=null;}loadAll(id);
     channel=sb.channel("panel-"+id).on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id)).subscribe();}
-  async function loadTeam(){const {data,error}=await sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(error){console.warn(error);return;}team=data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>m.email===me&&m.role==="owner");if(view==="settings")renderSettings();}
+  async function loadTeam(){const {data,error}=await sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(error){console.warn(error);return;}team=data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>m.email===me&&m.role==="owner");if(view==="settings")renderSettings();if(view==="store")renderStore();if(view==="game")renderGame();}
   function pendingInvite(){const m=location.hash.match(/davet=([a-f0-9]+)/);if(m){try{localStorage.setItem("oryvona.invite",m[1]);}catch{}history.replaceState({view:"home"},"",location.pathname);}try{return localStorage.getItem("oryvona.invite");}catch{return null;}}
   async function redeemIfPending(){const t=pendingInvite();if(!t||!session)return;const {error}=await sb.rpc("redeem_invite",{invite_token:t});try{localStorage.removeItem("oryvona.invite");}catch{}
-    if(error){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Davet geçersiz";$("banner").hidden=false;$("banner").textContent="Davet kullanılamadı: "+error.message+" Daveti gönderen kişiden yeni bağlantı iste.";return false;}return true;}
+    if(error){$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("gate.inviteBad");$("banner").hidden=false;$("banner").textContent=S().gate.inviteFail(error.message);return false;}return true;}
   async function start(){const ok=await redeemIfPending();if(ok===false)return;sb.rpc("touch_login").then(()=>{},()=>{});
-    const {data,error}=await sb.from("projects").select("id,name,code,sort_order").order("sort_order",{ascending:true});if(error){console.error(error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
-    projects=data||[];if(!projects.length){$("banner").hidden=false;$("banner").textContent="Bu hesap ekip listesinde değil. Stüdyo sahibinden davet bağlantısı iste.";$("fresh").className="chip dot onnavy warn";$("fresh").textContent="Yetki yok";return;}
-    $("banner").hidden=true;const want=recall();const known=projects.some(p=>p.id===want);select(known?want:projects[0].id);loadTeam();loadGames();initPush();
-    if(projects.length>1&&!known){history.replaceState({view:"games"},"");showView("games");}}
-  function stop(){if(channel&&sb){sb.removeChannel(channel);channel=null;}current=null;status=null;feedDocs=[];runsDocs=[];projects=[];team=[];isOwner=false;freshness();}
+    const {data,error}=await sb.from("projects").select("id,name,code,sort_order").order("sort_order",{ascending:true});if(error){console.error(error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("ui.connErr");return;}
+    projects=data||[];if(!projects.length){$("banner").hidden=false;$("banner").textContent=T("gate.notTeam");$("fresh").className="chip dot onnavy warn";$("fresh").textContent=T("gate.noAuth");return;}
+    $("banner").hidden=true;const want=recall();const known=projects.some(p=>p.id===want);select(known?want:projects[0].id);loadTeam();loadGames();initPush();loadStore();watchStore();
+    if(location.hash==="#magaza"){history.replaceState({view:"store"},"",location.pathname);showView("store");}
+    else if(projects.length>1&&!known){history.replaceState({view:"games"},"");showView("games");}}
+  function stop(){if(channel&&sb){sb.removeChannel(channel);channel=null;}if(storeChannel&&sb){sb.removeChannel(storeChannel);storeChannel=null;}current=null;status=null;feedDocs=[];runsDocs=[];projects=[];team=[];isOwner=false;store={games:[],reviews:[],mail:[],notes:[],events:[],status:{}};freshness();renderStoreBadge();}
 
   // ---------- demo (design preview without sign-in; clearly marked as sample data) ----------
-  function startDemo(){demo=true;$("gate").hidden=true;$("banner").hidden=false;$("banner").textContent="ÖRNEK VERİ · tasarım önizlemesi, gerçek durum değil";
+  function startDemo(){demo=true;$("gate").hidden=true;$("banner").hidden=false;$("banner").textContent=T("gate.demoBanner");
     const now=Date.now();const iso=ms=>new Date(now-ms).toISOString();
     projects=[{id:"koza",name:"KOZA",code:"K01"},{id:"ornek",name:"Örnek Oyun",code:"K02"}];current="koza";
     allStatus.ornek={updatedAt:iso(5*3600e3),phaseTr:"C00 · Kaynak aktarımı",handoff:{status:"READY_CLAUDE"}};
     status={updatedAt:iso(3*60000),source:"github-webhook",repo:{name:"oryvona/koza",url:"https://github.com",branch:"koza-work",pr:2},lineSubTr:"K01 · Ayışığı Bahçesi kabul aşamaları",handoff:{status:"WORK_WORKING",task_id:"C02-RETRY-CARD",turn:2,lease:{actor:"work",claimed_at:iso(9*60000)}},lastQa:{run_id:"38869107902",code_passed:99,code_total:99,browser_passed:45,browser_total:45,natural_passed:33,natural_total:33,lifecycle_status:"BLOCKED",limitsTr:"Kod 99/99, tarayıcı 45/45, gerçek oynanış 33/33. Sekme/çıkış testi altyapı engelinde, oyun hatası değil.",source_commit:"39d672b4"},head:{commit:"e4c1913770a8",at:iso(12*60000),subject:"Kart testi için gerçek kart seçimi"},automation:{liveFeed:{at:iso(3*60000)},workWebhook:{enabled:true,lastSeenAt:iso(9*60000)},claudeTask:null},phaseTr:"C02 · Gerçek oyun akışı",summaryTr:"8 aşamadan 2 tanesi geçti. Gerçek oynanış testleri geçiyor; sekme testi tarayıcı engelinde (oyun hatası değil).",taskTitleTr:"Kart alıp tekrar oynama testi",taskTextTr:"Claude çıkıştan önce gerçek bir kart seçilmesini sağlayacak; böylece tekrar sonrası temizlik kontrolü boş kalmayacak.",workNote:{at:iso(9*60000),titleTr:"İnceleme başladı",textTr:"Son koşunun ham kanıtını inceliyorum; sonucu 10 dakikaya yazarım."},
       stages:[{id:"C00",title:"Kaynak aktarımı",status:"PASS",statusTr:"Geçti",note:"205 dosya"},{id:"C01",title:"Temel kabul",status:"PASS",statusTr:"Geçti",note:"99 kod / 45 tarayıcı"},{id:"C02",title:"Gerçek oyun akışı",status:"PARTIAL",statusTr:"Kısmi",note:"6 dalga geçti; sekme testi engelde"},{id:"C03",title:"Oynanış ve denge",status:"PENDING",statusTr:"Sırada"},{id:"C04",title:"Yeniden doğrulama",status:"PENDING",statusTr:"Sırada"},{id:"UT",title:"Deniz son testi",status:"PENDING",statusTr:"Sırada"}]};
     const ev=[[9,"work","claim","WORK_WORKING","İnceleme için kilidi aldı."],[14,"claude","release","READY_WORK","Kart testi düzeltmesi gönderildi; yerel kontroller 14/14."],[52,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[75,"work","release","READY_CLAUDE","Koşu incelendi: 99/45/33 geçti, sekme testi engelde. Sonraki görev: gerçek kart testi."],[80,"work","note","","Kartsız temizlik kontrolü anlamlı değil; gerçek kartla tekrar."],[110,"work","claim","WORK_WORKING","İnceleme için kilidi aldı."],[140,"claude","release","READY_WORK","Sıra değişikliği gönderildi."],[200,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[260,"work","release","READY_CLAUDE","Headed koşu da engelde; sıra değişikliği istendi."],[1440,"work","release","READY_CLAUDE","Xvfb koşusu incelendi; sıra değişikliği istendi."],[1500,"work","claim","WORK_WORKING","İnceleme."],[1560,"claude","release","READY_WORK","Xvfb koşusu gönderildi."],[1650,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[2900,"work","release","READY_CLAUDE","Tam kanal koşusu istendi."],[2930,"work","claim","WORK_WORKING","İnceleme."],[3010,"claude","release","READY_WORK","Yaşam döngüsü testi eklendi."],[3200,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[4300,"work","release","READY_CLAUDE","C01 kabul edildi."],[4330,"work","claim","WORK_WORKING","İnceleme."],[4400,"claude","release","READY_WORK","Temel kabul paketi."],[4600,"claude","claim","CLAUDE_WORKING","Görevi aldı."]];
-    feedDocs=ev.map(([m,a,k,to,t],i)=>asDoc({id:"d"+i,at:iso(m*60000),actor:a,kind:k,kindTr:(VERB_TR[k]||k)+" → "+to,text:t,textTr:t}));
+    feedDocs=ev.map(([m,a,k,to,t],i)=>asDoc({id:"d"+i,at:iso(m*60000),actor:a,kind:k,kindTr:k+" → "+to,text:t,textTr:t}));
     runsDocs=[["C01",75*3600e3,{baseline:{status:"PASS"}},null],["Doğal",50*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"}},null],["Shell",6*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Tam",4*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Xvfb",2*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},"Turu bitir ve tekrar geçti; odak engelde."]].map(([l,ms,s,n],i)=>asDoc({run_id:"r"+i,label:l,startedAt:iso(ms),code:99,suites:s,note:n}));
     team=[{email:"sahip@oryvona.games",name:"Deniz",role:"owner",last_seen_at:iso(60000),login_count:12},{email:"uye@ornek.com",name:"Ekip üyesi",role:"member",last_seen_at:iso(3*3600e3),login_count:3}];isOwner=true;session={user:{email:"sahip@oryvona.games"}};
-    renderTimeline("tl",24);applyStatus({data:status});requestAnimationFrame(()=>scrollTo(0,0));
-    // design QA hook: window.__oryvonaInject({status,events,runs}) renders real rows inside the demo shell
-    window.__oryvonaInject=d=>{if(d.status){status=d.status;allStatus[current]=d.status;}if(d.events)feedDocs=d.events.map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));if(d.runs)runsDocs=d.runs.map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));renderTimeline("tl",24);applyStatus({data:status});};}
+    store={games:[{id:"com-oryvonagames-balon",name:"Balon Avı",package_id:"com.oryvonagames.balon",stage:"closed_testing",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.balon",console_url:"https://play.google.com/console/",keywords:["balon"],project_id:null,meta:{tracks:[{track:"alpha",trackTr:"Kapalı test",releases:[{name:"1.0 (3)",status:"completed",statusTr:"tamamlandı",versionCodes:["3"]}]}],tracksAt:iso(20*60000)}},
+        {id:"com-oryvonagames-koza",name:"KOZA",package_id:"com.oryvonagames.koza",stage:"open_testing",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.koza",keywords:["koza","ayışığı"],project_id:"koza",meta:{tracks:[{track:"beta",trackTr:"Açık test",releases:[{name:"0.9 (12)",status:"inProgress",statusTr:"aşamalı yayında",versionCodes:["12"],userFraction:0.5}]},{track:"alpha",trackTr:"Kapalı test",releases:[{name:"0.8 (9)",status:"completed",statusTr:"tamamlandı",versionCodes:["9"]}]}],tracksAt:iso(20*60000),reviewCount:3,recentAverage:4.3}}],
+      reviews:[{id:"rv1",game_id:"com-oryvonagames-koza",author:"Ayşe K.",rating:5,text:"Çok güzel bir oyun, altıncı dalga zor ama eğlenceli!",lang:"tr",device:"Pixel 7",app_version:"0.9",created_at:iso(5*3600e3),updated_at:iso(5*3600e3),seen:false},{id:"rv2",game_id:"com-oryvonagames-koza",author:"Mehmet",rating:2,text:"Sekme değiştirince ses gidiyor.",lang:"tr",device:"Galaxy A54",app_version:"0.9",created_at:iso(28*3600e3),updated_at:iso(28*3600e3),seen:true,reply_text:"Teşekkürler, sıradaki sürümde düzeltiyoruz.",reply_at:iso(20*3600e3)},{id:"rv3",game_id:"com-oryvonagames-koza",author:"John",rating:4,text:"Nice art style. Needs more levels.",lang:"en",device:"Pixel 6a",app_version:"0.9",created_at:iso(50*3600e3),updated_at:iso(50*3600e3),seen:true}],
+      mail:[{id:"m1",game_id:"com-oryvonagames-balon",from_addr:"googleplay-noreply@google.com",from_name:"Google Play Console",subject:"Balon Avı: Kapalı test sürümünüz incelendi",snippet:"1.0 (3) sürümü kapalı test kanalında yayına alındı.",received_at:iso(40*60000),kind:"console",link:"https://mail.google.com/",read:false},{id:"m2",game_id:"com-oryvonagames-koza",from_addr:"tester@example.com",from_name:"Ali Testçi",subject:"KOZA beta geri bildirimi",snippet:"Dördüncü dalgada dostların biri takılı kalıyor gibi…",received_at:iso(3*3600e3),kind:"tester",link:"https://mail.google.com/",read:false},{id:"m3",game_id:null,from_addr:"noreply@payments.google.com",from_name:"Google Payments",subject:"Geliştirici hesabı ödeme bilgisi",snippet:"Ödeme profilinizde güncelleme gerekiyor.",received_at:iso(26*3600e3),kind:"other",link:"https://mail.google.com/",read:true}],
+      notes:[{id:1,game_id:"com-oryvonagames-koza",author_email:"sahip@oryvona.games",text:"Açık test yüzdesini %100'e çıkarmadan önce Mehmet'in ses sorununu doğrula.",at:iso(2*3600e3)}],
+      events:[{id:"e1",game_id:"com-oryvonagames-koza",at:iso(20*60000),kind:"track_change",title_tr:"Mağaza durumu değişti",text_tr:"Açık test: 0.9 (12) aşamalı yayında · Kapalı test: 0.8 (9) tamamlandı"}],
+      status:{gmail:{connected:true,account:"oryvonagames@gmail.com",lastRun:iso(12*60000),lastNew:1},play:{connected:true,account:"panel-sync@oryvona.iam.gserviceaccount.com",lastRun:iso(20*60000),games:2}}};
+    renderTimeline("tl",24);applyStatus({data:status});renderStoreBadge();requestAnimationFrame(()=>scrollTo(0,0));
+    window.__oryvonaInject=d=>{if(d.status){status=d.status;allStatus[current]=d.status;}if(d.events)feedDocs=d.events.map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));if(d.runs)runsDocs=d.runs.map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));if(d.store)store={...store,...d.store};renderTimeline("tl",24);applyStatus({data:status});renderStoreBadge();};}
 
+  applyLang();
   (async()=>{
     if(location.hash==="#demo"){startDemo();return;}
-    if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Veri kaynağı ayarlı değil";return;}
+    if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("gate.noConfig");return;}
     sb=window.supabase.createClient(CFG.url,CFG.anonKey,{auth:{flowType:"implicit",detectSessionInUrl:true,persistSession:true,autoRefreshToken:true},realtime:{params:{eventsPerSecond:5}}});
     sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"&&location.hash.includes("access_token"))history.replaceState({view:"home"},"",location.pathname);});
-    if(pendingInvite())$("gateText").textContent="Davet bağlantısıyla geldin. Kendi e-postanı yaz; gelen bağlantıya dokununca ekibe eklenirsin.";
+    if(pendingInvite())$("gateText").textContent=T("gate.invited");
     const apply=s=>{session=s;const signedIn=!!s;$("gate").hidden=signedIn;if(signedIn)start();else stop();};
     const {data:{session:s0}}=await sb.auth.getSession();apply(s0);
     sb.auth.onAuthStateChange((_e,s)=>{if(!!s!==!!session)apply(s);});
-    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&current&&!demo)loadAll(current);});
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&current&&!demo){loadAll(current);loadStore();}});
     setInterval(()=>{freshness();if(status)renderHome(status);renderTimeline("tl",24);},60000);
   })();
 })();

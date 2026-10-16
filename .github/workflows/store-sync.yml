@@ -1,0 +1,23 @@
+# Store module sync: pulls new Gmail items and Play Console track/review data into the panel every 30 minutes.
+# Both functions no-op with a clear error until their credentials are set (Gmail OAuth, Play service account).
+name: store-sync
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mail sync
+        env:
+          SYNC_KEY: ${{ secrets.SYNC_KEY }}
+        run: |
+          code=$(curl -s -o /tmp/mail -w '%{http_code}' -X POST -H "x-sync-key: $SYNC_KEY" 'https://infqtlukckjrnigeqlbf.supabase.co/functions/v1/mail-sync')
+          echo "mail-sync HTTP $code"; cat /tmp/mail | head -c 600; echo
+      - name: Play sync
+        env:
+          SYNC_KEY: ${{ secrets.SYNC_KEY }}
+        run: |
+          code=$(curl -s -o /tmp/play -w '%{http_code}' -X POST -H "x-sync-key: $SYNC_KEY" 'https://infqtlukckjrnigeqlbf.supabase.co/functions/v1/play-sync')
+          echo "play-sync HTTP $code"; cat /tmp/play | head -c 600; echo
