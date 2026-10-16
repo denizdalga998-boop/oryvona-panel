@@ -1,6 +1,6 @@
 ﻿// Minimal service worker: makes the panel installable and keeps the shell available offline.
 // Data always comes live from Supabase (network); only the static shell is cached.
-const CACHE = 'oryvona-panel-v9';
+const CACHE = 'oryvona-panel-v10';
 const SHELL = ['./', './index.html', './config.js', './manifest.json', './logo.png', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -15,7 +15,7 @@ self.addEventListener('push', (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { title: 'Oryvona Games Paneli', body: e.data ? e.data.text() : '' }; }
   e.waitUntil(self.registration.showNotification(d.title || 'Oryvona Games Paneli', {
-    body: d.body || '', icon: './icon-192.png', badge: './icon-192.png', tag: d.tag || 'oryvona', renotify: !!d.tag, data: { url: d.url || './' },
+    body: d.body || '', icon: './icon-192.png', badge: './badge-96.png', tag: d.tag || 'oryvona', renotify: !!d.tag, data: { url: d.url || './' },
   }));
 });
 self.addEventListener('notificationclick', (e) => {
