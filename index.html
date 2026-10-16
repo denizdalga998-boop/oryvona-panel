@@ -10,7 +10,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Lora:ital,wght@1,500;1,600&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
@@ -117,6 +117,7 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .tile .v{font-size:1.08rem;font-weight:900;line-height:1.2;overflow-wrap:anywhere;color:var(--fg)}
 .tile .s{font-size:.85rem;color:var(--fg-2);line-height:1.35}
 .tile.wide{flex-direction:row;align-items:center;gap:12px} .tile.wide .ic{flex:none} .tile.wide .tx{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.tile.quote-tile{background:linear-gradient(180deg,var(--brand-soft),var(--surface) 70%);border-left:4px solid var(--work)} .tile.quote-tile .k{display:flex;align-items:center;gap:6px}
 /* rows and blocks */
 .row{display:flex;gap:12px;align-items:flex-start}
 .row .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--surface-2)} .row .ic svg{width:20px;height:20px}
@@ -157,12 +158,18 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .bubble{background:var(--surface-2);border-left:3px solid var(--line-2);border-radius:14px;border-top-left-radius:4px;padding:10px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .msg.claude .bubble{border-left-color:var(--claude)} .msg.work .bubble{border-left-color:var(--work)} .msg.deniz .bubble{border-left-color:var(--deniz)}
 .bubble .h{display:flex;gap:4px 8px;align-items:baseline;flex-wrap:wrap} .bubble .h b{font-weight:900} .bubble .h .k{font-size:.8rem;font-weight:800;color:var(--fg-2)} .bubble .h time{font-size:.76rem;color:var(--fg-3);flex-basis:100%}
-.bubble .m{font-size:.93rem;overflow-wrap:anywhere;color:var(--fg-2)}
+/* Two voices: "İş" rows are compact system records (small, muted, sans); "Yorum" rows are someone speaking (serif italic, larger, dark, tinted paper). */
+.bubble .m{font-size:.88rem;overflow-wrap:anywhere;color:var(--fg-2);font-weight:600}
+.msg:not(.note) .bubble{border-left-style:dashed;background:var(--surface-2)}
+.msg:not(.note) .bubble .h b{font-size:.9rem}
 .tag{font-size:.66rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:6px;line-height:1.3}
 .tag.is{background:var(--surface);color:var(--fg-3);border:1px solid var(--line)} .tag.yorum{background:var(--brand);color:#fff}
-.msg.note .bubble{background:var(--surface);border:1px solid var(--line-2);border-left-width:3px}
-.msg.note .m{color:var(--fg);font-size:1rem;font-style:italic;line-height:1.5} .msg.note .m::before{content:"“";color:var(--fg-3);margin-right:2px} .msg.note .m::after{content:"”";color:var(--fg-3);margin-left:2px}
-.quote{font-style:italic;color:var(--fg);font-size:1rem;line-height:1.5}
+.msg.note .bubble{background:linear-gradient(180deg,var(--brand-soft),var(--surface) 70%);border:1px solid var(--line-2);border-left-width:4px;border-radius:16px;border-top-left-radius:4px;padding:12px 16px 14px;position:relative}
+.msg.note .bubble::before{content:"“";position:absolute;right:12px;top:-6px;font-family:"Lora",Georgia,serif;font-size:3rem;line-height:1;color:var(--brand);opacity:.18;pointer-events:none}
+.msg.note .m{font-family:"Lora",Georgia,"Times New Roman",serif;font-style:italic;font-weight:500;color:var(--fg);font-size:1.08rem;line-height:1.55;letter-spacing:.005em}
+.msg.note .av{outline:2px solid var(--brand);outline-offset:2px}
+.quote{font-family:"Lora",Georgia,serif;font-style:italic;font-weight:500;color:var(--fg);font-size:1.08rem;line-height:1.55}
+.block.quote-block{background:linear-gradient(180deg,var(--brand-soft),var(--surface) 70%);border:1px solid var(--line-2);border-left:4px solid var(--brand)}
 .filters{display:flex;gap:8px;flex-wrap:wrap}
 .filters button{border:1px solid var(--line);background:var(--surface);color:var(--fg-2);border-radius:999px;padding:7px 14px;font-weight:800;font-size:.86rem;cursor:pointer}
 .filters button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
@@ -248,7 +255,7 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
       <button class="tile" data-detail="qa"><span class="ic" id="icQa"></span><span class="k">Son test</span><span class="v" id="cQa">—</span><span class="s" id="cQaS"></span></button>
       <button class="tile" data-detail="auto"><span class="ic" id="icAuto"></span><span class="k">Otomasyon</span><span class="v" id="cAuto">—</span><span class="s" id="cAutoS"></span></button>
     </div>
-    <button class="tile wide" id="cardWork" data-detail="worknote" hidden><span class="ic work" id="icWork"></span><span class="tx"><span class="k">OpenAI'dan son not</span><span class="v" id="cWork">—</span><span class="s" id="cWorkS"></span></span></button>
+    <button class="tile wide quote-tile" id="cardWork" data-detail="worknote" hidden><span class="ic work" id="icWork"></span><span class="tx"><span class="k">OpenAI'dan son not <span class="tag yorum">Yorum</span></span><span class="v" id="cWork">—</span><span class="s quote" id="cWorkS" style="font-size:.98rem"></span></span></button>
   </section>
 
   <section class="view" id="view-feed" hidden>
@@ -457,7 +464,7 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     const q=s.lastQa||{},qs=qaSummary(q);$("cQa").textContent=q.run_id?`${qs.ok}/${qs.total} geçti`:"Henüz yok";$("cQaS").textContent=q.run_id?(qs.blocked?"1 testte altyapı engeli":qs.ok===qs.total?"Hepsi geçti":"Bekleyen var"):"";$("icQa").className="ic "+(q.run_id?(qs.fail?"bad":qs.blocked?"warn":"good"):"");
     const live=liveFeed(s);$("cAuto").textContent=live?"Çalışıyor":"Beklemede";$("cAutoS").textContent=s.automation?.liveFeed?`Son sinyal ${ago(s.automation.liveFeed.at)}`:(s.automation?.claudeTask?.lastRunAt?`Son kontrol ${ago(s.automation.claudeTask.lastRunAt)}`:"Henüz sinyal yok");$("icAuto").className="ic "+(live?"good":"warn");
     renderRing(s.stages||[]);
-    const wn=s.workNote;$("cardWork").hidden=!(wn&&wn.textTr);if(wn&&wn.textTr){$("cWork").textContent=wn.titleTr||wn.textTr;$("cWorkS").textContent=`${ago(wn.at)}${wn.titleTr?" · "+wn.textTr:""}`;}
+    const wn=s.workNote;$("cardWork").hidden=!(wn&&wn.textTr);if(wn&&wn.textTr){$("cWork").textContent=(wn.titleTr||"Not")+" · "+ago(wn.at);$("cWorkS").textContent=wn.textTr;}
     const p=projects.find(x=>x.id===current);$("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=s.phaseTr||p?.code||"Stüdyo paneli";
     allStatus[current]=s;
   }
@@ -496,7 +503,7 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
       <div class="detail">${repo.url?`Depo: <a href="${esc(repo.prUrl||repo.url)}" target="_blank" rel="noopener">${esc(repo.name||repo.url)}</a>`:""}${hd?.commit?` · son gönderim ${esc(fmt(hd.at))} (<a href="${esc(repo.url||"")}/commit/${esc(hd.commit)}" target="_blank" rel="noopener">${esc(hd.commit.slice(0,7))}</a>)`:""}</div>
       <h2 style="margin-top:6px">Son 3 gün · sıra kimdeydi</h2><svg class="tl" id="tl3" viewBox="0 0 600 58" role="img" aria-label="Son üç günde sıra kimdeydi"></svg><div class="legend"><span><i class="claude"></i>Claude çalıştı</span><span><i class="work"></i>OpenAI çalıştı</span><span><i class="wait"></i>Bekleme</span></div>`;}
   function sheetWork(){const wn=status?.workNote;const notes=feedDocs.map(d=>d.data()).filter(e=>e.actor==="work"&&e.kind==="note");
-    let out=wn&&wn.textTr?`<div class="block"><span class="t">${esc(wn.titleTr||"OpenAI'nin notu")}</span><span class="d">${esc(wn.textTr)}</span><span class="detail">${esc(fmt(wn.at))}${wn.run_id?` · koşu ${esc(wn.run_id)}`:""}</span></div>`:'<div class="empty">OpenAI henüz not bırakmadı.</div>';
+    let out=wn&&wn.textTr?`<div class="block quote-block"><span class="t">${esc(wn.titleTr||"OpenAI'nin notu")} <span class="tag yorum">Yorum</span></span><span class="quote">${esc(wn.textTr)}</span><span class="detail">${esc(fmt(wn.at))}${wn.run_id?` · koşu ${esc(wn.run_id)}`:""}</span></div>`:'<div class="empty">OpenAI henüz not bırakmadı.</div>';
     if(notes.length>1){out+='<h2 style="margin-top:6px">Önceki notlar</h2><div class="feed">';for(const e of notes.slice(1))out+=`<div class="msg work"><div class="av work">O</div><div class="bubble"><div class="h"><b>OpenAI</b><time>${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;out+='</div>';}return out;}
   const DETAILS={turn:["Sıra kimde",()=>status?sheetTurn(status):emptyMsg],stage:["Oyun nerede",()=>status?sheetStage(status):emptyMsg],qa:["Son bulut testi",()=>status?sheetQa(status):emptyMsg],auto:["Otomasyon",()=>status?sheetAuto(status):emptyMsg],worknote:["OpenAI'dan son not",sheetWork],terms:["Terimler ve roller",()=>TERMS]};
   // feed
