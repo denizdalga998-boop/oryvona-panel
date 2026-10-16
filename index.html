@@ -6,97 +6,93 @@
 <meta name="theme-color" content="#12112e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Oryvona Games Paneli</title>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
-</head>
-<body>
-<title>Oryvona Games Paneli</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
 <style>
-/* Layout: Oryvona Games house look — the logo's deep navy for the header band and the "right now" card, warm paper for the rest, the gamepad's cyan/gold/purple only as accents (OpenAI / Claude / Deniz). Single light theme by choice. */
+/* Oryvona Games Paneli v2 — app shell: fixed header, four bottom tabs, detail pages with back; light and dark themes from the brand (navy, cyan, gold, violet). */
 :root{
-  color-scheme:light;
   --bg:#f4f2ee; --surface:#ffffff; --surface-2:#eeedf3; --line:#dddbe6;
   --fg:#1b1a2e; --fg-2:#524f66; --fg-3:#827f94;
-  --navy:#12112e; --navy-2:#1d1b45;
+  --navy:#12112e; --navy-2:#1d1b45; --on-navy:#ffffff; --on-navy-2:#cfcbe6;
   --brand:#2a2860; --brand-deep:#1b1a3e; --brand-soft:#e9e6f7; --brand-ink:#12112e;
   --cyan:#22c3ee; --gold:#f0b429; --violet:#9b4ddb;
-  --sun:#f0b429; --sun-soft:#fbefd3;
   --good:#2b8a4e; --good-soft:#def3e4; --warn:#b26a0c; --warn-soft:#fbead0; --bad:#c23b3b; --bad-soft:#f9e0e0; --info:#2f7be0; --info-soft:#e3ecfb;
-  --claude:#b8811a; --claude-soft:#fbefd3; --work:#2f7be0; --work-soft:#e3ecfb; --deniz:#8b3fd9; --deniz-soft:#efe4fb;
-  --sans:"Nunito",ui-rounded,"Segoe UI",system-ui,Roboto,Arial,sans-serif;
-  --r:18px; --r-s:12px;
+  --claude:#b8811a; --claude-soft:#fbefd3; --claude-bar:#d99a1e; --work:#2f7be0; --work-soft:#e3ecfb; --deniz:#8b3fd9; --deniz-soft:#efe4fb;
+  --hatch-a:#eeedf3; --hatch-b:#dddbe6;
+  --sans:"Nunito",ui-rounded,"Segoe UI",system-ui,Roboto,Arial,sans-serif; --r:18px; --r-s:12px;
   --shadow:0 1px 2px rgba(27,26,46,.05),0 8px 24px rgba(27,26,46,.08);
+  --tabbar:64px; color-scheme:light;
 }
-.band{background:var(--navy);margin:-14px calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0 calc(-1 * max(16px,env(safe-area-inset-right,0px)));padding:10px max(16px,env(safe-area-inset-left,0px)) 14px;border-radius:0 0 26px 26px;display:flex;flex-direction:column;align-items:center;gap:6px}
-.band img{display:block;width:min(240px,70%);height:auto;max-width:100%}
-.band .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
-.band .sub{color:#cfcbe6;font-size:.86rem;font-weight:700}
-.chip.onnavy{background:rgba(255,255,255,.1);color:#e9e6f7}
-.chip.onnavy.good{background:rgba(66,196,120,.18);color:#8fe3ad} .chip.onnavy.warn{background:rgba(240,180,41,.18);color:#f6cf6d} .chip.onnavy.bad{background:rgba(236,96,96,.2);color:#ff9c9c}
-.hero{position:relative;overflow:hidden}
-.hero::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,var(--cyan),var(--gold),var(--violet))}
+:root[data-theme="dark"]{
+  --bg:#0f0e24; --surface:#1a1838; --surface-2:#232150; --line:#2f2d5e;
+  --fg:#f1efff; --fg-2:#b9b5d6; --fg-3:#8884ad;
+  --navy:#0b0a1e; --navy-2:#1a1838;
+  --brand:#8f87f0; --brand-deep:#c9c4ff; --brand-soft:#262456; --brand-ink:#f1efff;
+  --good:#5fd48c; --good-soft:#163a27; --warn:#f0b429; --warn-soft:#3b2d0f; --bad:#ff8a8a; --bad-soft:#4a1d1d; --info:#6ea8ff; --info-soft:#1c2a4d;
+  --claude:#f0b429; --claude-soft:#3b2d0f; --claude-bar:#f0b429; --work:#6ea8ff; --work-soft:#1c2a4d; --deniz:#c38bff; --deniz-soft:#30204d;
+  --hatch-a:#232150; --hatch-b:#2f2d5e; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
+}
 *{box-sizing:border-box}
 html,body{height:100%}
-body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.45;margin:0}
-.wrap{max-width:720px;margin:0 auto;padding-block:14px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button{font:inherit}
 h1,h2,h3,p{margin:0} h1,h2,h3{text-wrap:balance}
-h1{font-size:1.3rem;font-weight:900;letter-spacing:-.01em;line-height:1.15}
-h2{font-size:1.2rem;font-weight:900}
 .muted{color:var(--fg-2)} .small{font-size:.9rem} .num{font-variant-numeric:tabular-nums}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.studio{display:flex;align-items:center;gap:12px;min-width:0}
-.logo{width:44px;height:44px;flex:none}
-.studio small{display:block;color:var(--fg-2);font-size:.86rem;font-weight:700}
-.chip{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;font-size:.86rem;font-weight:800;white-space:nowrap;background:var(--surface-2);color:var(--fg-2)}
-.chip.dot::before{content:"";width:9px;height:9px;border-radius:50%;background:currentColor;flex:none}
-.chip.good{background:var(--good-soft);color:var(--good)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)}
-.chip.info{background:var(--info-soft);color:var(--info)} .chip.brand{background:var(--brand-soft);color:var(--brand-deep)}
-.tabs{display:flex;gap:10px;flex-wrap:wrap}
-.tab{border:1.5px solid var(--line);background:var(--surface);color:var(--fg-2);border-radius:14px;padding:10px 16px;font:inherit;font-weight:800;cursor:pointer;display:inline-flex;gap:10px;align-items:center;box-shadow:var(--shadow)}
-.tab .code{font-size:.78rem;font-weight:800;color:var(--fg-3);background:var(--surface-2);padding:2px 8px;border-radius:999px}
-.tab[aria-selected="true"]{background:var(--brand);border-color:var(--brand);color:#fff} .tab[aria-selected="true"] .code{background:rgba(255,255,255,.18);color:#fff}
-button:focus-visible,a:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
-/* home cards */
-.cards{display:flex;flex-direction:column;gap:12px}
-.cardbtn{width:100%;text-align:left;border:0;background:var(--surface);border-radius:var(--r);padding:16px 16px 16px 14px;box-shadow:var(--shadow);display:grid;grid-template-columns:48px minmax(0,1fr) 20px;gap:14px;align-items:center;cursor:pointer;font:inherit;color:inherit}
-.cardbtn:active{transform:scale(.995)}
-.cardbtn .ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:var(--surface-2);color:var(--brand)}
-.cardbtn .ic svg{width:24px;height:24px}
-.cardbtn .ic.claude{background:var(--claude-soft);color:var(--claude)} .cardbtn .ic.work{background:var(--work-soft);color:var(--work)} .cardbtn .ic.deniz{background:var(--deniz-soft);color:var(--deniz)}
-.cardbtn .ic.good{background:var(--good-soft);color:var(--good)} .cardbtn .ic.warn{background:var(--warn-soft);color:var(--warn)} .cardbtn .ic.bad{background:var(--bad-soft);color:var(--bad)}
-.cardbtn .tx{min-width:0;display:flex;flex-direction:column;gap:2px}
-.cardbtn .k{font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3)}
-.cardbtn .v{font-size:1.15rem;font-weight:900;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cardbtn .s{font-size:.9rem;color:var(--fg-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cardbtn .chev{color:var(--fg-3)} .cardbtn .chev svg{width:20px;height:20px}
-.hero{background:var(--navy-2);color:#fff;border-radius:var(--r);padding:22px 20px 20px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow)}
-.hero .k{font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
-.hero .v{font-size:1.6rem;font-weight:900;line-height:1.15}
-.hero .s{opacity:.92;font-size:1rem}
-.foot{color:var(--fg-3);font-size:.82rem;text-align:center}
-/* sheet */
-.scrim{position:fixed;inset:0;background:rgba(29,43,42,.38);display:none;z-index:9}
-.scrim.open{display:block}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-radius:24px 24px 0 0;box-shadow:0 -8px 40px rgba(29,43,42,.18);max-height:min(88vh,88dvh);display:none;flex-direction:column;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
-.sheet.open{display:flex}
-.sheet .grab{width:44px;height:5px;border-radius:999px;background:var(--line);margin:10px auto 6px}
-.sheet header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 4px 12px}
-.sheet .close{border:0;background:var(--surface-2);color:var(--fg);width:40px;height:40px;border-radius:50%;font:inherit;font-weight:900;font-size:1.1rem;cursor:pointer}
-.sheet .body{overflow:auto;padding:0 4px 8px;display:flex;flex-direction:column;gap:14px;min-width:0}
-@media (min-width:760px){.sheet{left:50%;right:auto;transform:translateX(-50%);width:680px;border-radius:24px;bottom:24px;max-height:84vh;padding-left:20px;padding-right:20px;padding-bottom:20px}}
-/* detail blocks */
+a{color:var(--brand-deep);font-weight:800}
+/* header */
+.top{position:sticky;top:0;z-index:20;background:var(--navy);color:var(--on-navy);padding:calc(10px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.top img{height:38px;width:auto;display:block}
+.top .title{display:flex;flex-direction:column;min-width:0;flex:1}
+.top .title b{font-weight:900;font-size:1rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .title span{font-size:.78rem;color:var(--on-navy-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:0;background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+.iconbtn svg{width:20px;height:20px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;font-size:.8rem;font-weight:800;white-space:nowrap;background:var(--surface-2);color:var(--fg-2)}
+.chip.dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.chip.good{background:var(--good-soft);color:var(--good)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.info{background:var(--info-soft);color:var(--info)} .chip.brand{background:var(--brand-soft);color:var(--brand-deep)}
+.chip.onnavy{background:rgba(255,255,255,.1);color:#e9e6f7} .chip.onnavy.good{background:rgba(66,196,120,.18);color:#8fe3ad} .chip.onnavy.warn{background:rgba(240,180,41,.18);color:#f6cf6d} .chip.onnavy.bad{background:rgba(236,96,96,.2);color:#ff9c9c}
+/* layout */
+main{max-width:720px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right,0px)) calc(var(--tabbar) + 24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.view[hidden]{display:none}
+.view{display:flex;flex-direction:column;gap:14px}
+.pagehead{display:flex;align-items:center;gap:10px}
+.pagehead h1{font-size:1.3rem;font-weight:900}
+.back{width:40px;height:40px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);display:grid;place-items:center;cursor:pointer}
+.back svg{width:20px;height:20px}
+.card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h2{font-size:1.05rem;font-weight:900}
+.hero{background:var(--navy-2);color:#fff;border-radius:var(--r);padding:20px 18px 18px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,var(--cyan),var(--gold),var(--violet))}
+.hero .txt{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.hero .k{font-size:.76rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;opacity:.75}
+.hero .v{font-size:1.55rem;font-weight:900;line-height:1.15}
+.hero .s{opacity:.92;font-size:.98rem;color:#e9e6f7}
+.ring{width:88px;height:88px;flex:none} .ring text{font-family:var(--sans);font-weight:900;fill:#fff}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tile{background:var(--surface);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;min-width:0;text-align:left;border:0;color:inherit;cursor:pointer}
+.tile:active{transform:scale(.99)}
+.tile .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--surface-2);color:var(--brand)}
+.tile .ic svg{width:22px;height:22px}
+.tile .ic.claude{background:var(--claude-soft);color:var(--claude)} .tile .ic.work{background:var(--work-soft);color:var(--work)} .tile .ic.deniz{background:var(--deniz-soft);color:var(--deniz)} .tile .ic.good{background:var(--good-soft);color:var(--good)} .tile .ic.warn{background:var(--warn-soft);color:var(--warn)} .tile .ic.bad{background:var(--bad-soft);color:var(--bad)}
+.tile .k{font-size:.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3)}
+.tile .v{font-size:1.1rem;font-weight:900;line-height:1.2;overflow-wrap:anywhere}
+.tile .s{font-size:.86rem;color:var(--fg-2)}
+.row{display:flex;gap:12px;align-items:flex-start}
+.row .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--surface-2)} .row .ic svg{width:20px;height:20px}
+.row .tt{font-weight:800} .row .dd{color:var(--fg-2);font-size:.92rem}
 .block{background:var(--surface-2);border-radius:var(--r-s);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
 .block .t{font-weight:900} .block .d{color:var(--fg-2);font-size:.95rem}
-.who{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.person{display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;border-radius:999px;background:var(--surface-2);font-weight:800;color:var(--fg-2);font-size:.95rem}
-.person .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.9rem}
+.detail{font-size:.84rem;color:var(--fg-3)}
+.empty{padding:22px 14px;text-align:center;color:var(--fg-3);border:2px dashed var(--line);border-radius:var(--r-s)}
+.who{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.person{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--surface-2);font-weight:800;color:var(--fg-2);font-size:.92rem}
+.person .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.85rem}
 .av.claude{background:var(--claude-soft);color:var(--claude)} .av.work{background:var(--work-soft);color:var(--work)} .av.deniz{background:var(--deniz-soft);color:var(--deniz)} .av.ci{background:var(--surface-2);color:var(--fg-2)}
 .person.active{background:var(--brand-soft);color:var(--brand-ink);outline:2px solid var(--brand)}
 .arrow{color:var(--fg-3);font-weight:900}
@@ -110,81 +106,148 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--sun);outline-offset
 .res{border-radius:var(--r-s);padding:14px;display:flex;flex-direction:column;gap:4px;background:var(--surface-2);min-width:0}
 .res .k{font-size:.82rem;font-weight:800;color:var(--fg-2)} .res .v{font-size:1.5rem;font-weight:900;line-height:1.1} .res .e{font-size:.84rem;color:var(--fg-2)}
 .res.good{background:var(--good-soft)} .res.good .v{color:var(--good)} .res.warn{background:var(--warn-soft)} .res.warn .v{color:var(--warn)} .res.bad{background:var(--bad-soft)} .res.bad .v{color:var(--bad)}
-.row{display:flex;gap:12px;align-items:flex-start}
-.row .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--surface-2)} .row .ic svg{width:20px;height:20px}
-.row .tt{font-weight:800} .row .dd{color:var(--fg-2);font-size:.92rem}
-.feed{display:flex;flex-direction:column;gap:12px}
-.msg{display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px}
-.msg .av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.9rem;align-self:start}
-.bubble{background:var(--surface-2);border-radius:14px;border-top-left-radius:4px;padding:10px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
-.msg.claude .bubble{background:var(--claude-soft)} .msg.work .bubble{background:var(--work-soft)} .msg.deniz .bubble{background:var(--deniz-soft)}
-.bubble .h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap} .bubble .h b{font-weight:900} .bubble .h .k{font-size:.8rem;font-weight:800;color:var(--fg-2)} .bubble .h time{font-size:.78rem;color:var(--fg-3);margin-left:auto}
-.bubble .m{font-size:.93rem;overflow-wrap:anywhere}
-.empty{padding:22px 14px;text-align:center;color:var(--fg-3);border:2px dashed var(--line);border-radius:var(--r-s)}
-.detail{font-size:.86rem;color:var(--fg-3)} .detail a,a{color:var(--brand-deep);font-weight:800}
-dl.terms{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;font-size:.95rem;margin:0}
-dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms dd{margin:0;color:var(--fg-2)}
-/* charts */
-.hero{flex-direction:row;align-items:center;gap:16px}
-.hero .txt{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
-.ring{width:92px;height:92px;flex:none}
-.ring text{font-family:var(--sans);font-weight:900;fill:#fff}
-.strip{background:var(--surface);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
-.strip .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
-.strip .hd b{font-weight:900} .strip .hd span{font-size:.84rem;color:var(--fg-3)}
-.tl{width:100%;height:auto;display:block}
-.tl .tick{stroke:var(--line);stroke-width:1.5} .tl .lab{font-family:var(--sans);font-size:20px;fill:var(--fg-2);font-weight:800}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--fg-2);font-weight:700}
-.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:6px}
-.legend i.claude{background:#d99a1e} .legend i.work{background:var(--work)} .legend i.wait{background:repeating-linear-gradient(135deg,var(--line) 0 3px,var(--surface-2) 3px 6px)}
-.hist{overflow-x:auto} .hist table{border-collapse:separate;border-spacing:6px 6px;font-size:.84rem;min-width:100%}
+.strip .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap} .strip .hd b{font-weight:900} .strip .hd span{font-size:.84rem;color:var(--fg-3)}
+.tl{width:100%;height:auto;display:block} .tl .tick{stroke:var(--line);stroke-width:1.5} .tl .lab{font-family:var(--sans);font-size:20px;fill:var(--fg-2);font-weight:800}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--fg-2);font-weight:700} .legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:6px}
+.legend i.claude{background:var(--claude-bar)} .legend i.work{background:var(--work)} .legend i.wait{background:repeating-linear-gradient(135deg,var(--hatch-b) 0 3px,var(--hatch-a) 3px 6px)}
+.hist{overflow-x:auto} .hist table{border-collapse:separate;border-spacing:6px;font-size:.84rem;min-width:100%}
 .hist th{font-weight:800;color:var(--fg-2);text-align:left;white-space:nowrap;padding:0 4px} .hist thead th{font-size:.72rem;color:var(--fg-3);text-align:center;vertical-align:bottom;line-height:1.15}
 .hist td{text-align:center;padding:0} .cell{display:inline-grid;place-items:center;width:34px;height:30px;border-radius:9px;font-weight:900;font-size:.9rem;background:var(--surface-2);color:var(--fg-3)}
 .cell.good{background:var(--good-soft);color:var(--good)} .cell.warn{background:var(--warn-soft);color:var(--warn)} .cell.bad{background:var(--bad-soft);color:var(--bad)}
-@media (max-width:420px){.ring{width:78px;height:78px}}
+.feed{display:flex;flex-direction:column;gap:12px}
+.msg{display:grid;grid-template-columns:36px minmax(0,1fr);gap:10px}
+.msg .av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.85rem;align-self:start}
+.bubble{background:var(--surface-2);border-radius:14px;border-top-left-radius:4px;padding:10px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.msg.claude .bubble{background:var(--claude-soft)} .msg.work .bubble{background:var(--work-soft)} .msg.deniz .bubble{background:var(--deniz-soft)}
+.bubble .h{display:flex;gap:4px 8px;align-items:baseline;flex-wrap:wrap} .bubble .h b{font-weight:900} .bubble .h .k{font-size:.8rem;font-weight:800;color:var(--fg-2)} .bubble .h time{font-size:.76rem;color:var(--fg-3);flex-basis:100%}
+.bubble .m{font-size:.93rem;overflow-wrap:anywhere}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filters button{border:1.5px solid var(--line);background:var(--surface);color:var(--fg-2);border-radius:999px;padding:7px 14px;font-weight:800;font-size:.86rem;cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+/* settings */
+.list{display:flex;flex-direction:column;border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+.item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);min-width:0}
+.item:last-child{border-bottom:0}
+.item .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--surface-2);color:var(--brand);flex:none} .item .ic svg{width:19px;height:19px}
+.item .tx{flex:1;min-width:0;display:flex;flex-direction:column}
+.item .tx b{font-weight:800} .item .tx span{font-size:.86rem;color:var(--fg-2);overflow-wrap:anywhere}
+.item .act{border:1.5px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;text-decoration:none;white-space:nowrap}
+.item.wrap{flex-wrap:wrap} .item.wrap .seg{flex:1 1 100%}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:12px;padding:3px;gap:2px}
+.seg button{flex:1;border:0;background:transparent;color:var(--fg-2);border-radius:10px;padding:8px 12px;font-weight:800;font-size:.9rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
+select,input{font:inherit;color:var(--fg);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;max-width:100%}
+.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:900;cursor:pointer;background:var(--brand);color:#fff}
+.btn.gold{background:var(--gold);color:#12112e} .btn.ghost{background:var(--surface);color:var(--fg);border:1.5px solid var(--line)}
+.secthead{font-size:.76rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);padding:4px 4px 0}
+/* bottom tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.tabs button{flex:1;max-width:160px;border:0;background:transparent;color:var(--fg-3);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:12px;font-weight:800;font-size:.72rem;cursor:pointer}
+.tabs button svg{width:24px;height:24px} .tabs button[aria-selected="true"]{color:var(--brand)} .tabs button[aria-selected="true"] .pill{background:var(--brand-soft)}
+.tabs .pill{padding:3px 14px;border-radius:999px;display:grid}
+/* gate */
+#gate{position:fixed;inset:0;z-index:50;background:#12112e;color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
+#gate[hidden]{display:none}
+#gate form{width:min(420px,100%);background:#1d1b45;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+#gate input{background:#12112e;color:#fff;border-color:#3a3870;font-size:1rem}
+#gate .msg{min-height:1.2em;font-size:.9rem;color:#8fe3ad;display:block}
+.banner{background:var(--warn-soft);color:var(--warn);border-radius:var(--r-s);padding:10px 14px;font-weight:800;font-size:.9rem;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.banner[hidden]{display:none}
 @media (prefers-reduced-motion:no-preference){.chip.good.dot::before{animation:beat 2.6s ease-in-out infinite}@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}}
+@media (min-width:720px){.grid2{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
+</head>
+<body>
+<header class="top">
+  <img src="logo.png" alt="Oryvona Games">
+  <div class="title"><b id="topTitle">Oryvona Games</b><span id="topSub">Stüdyo paneli</span></div>
+  <span class="chip dot onnavy" id="fresh">Bağlanıyor…</span>
+  <button class="iconbtn" id="refreshBtn" type="button" aria-label="Yenile" title="Yenile"></button>
+</header>
 
-<div class="wrap">
-  <div class="band">
-    <img src="logo.webp" alt="Oryvona Games" width="240" height="135">
-    <div class="meta"><span class="sub">Stüdyo paneli · ekip içi</span><span class="chip dot onnavy" id="fresh">Bağlanıyor…</span></div>
-  </div>
+<main>
+  <div id="banner" class="banner" hidden></div>
 
-  <div class="tabs" id="tabs" role="tablist" aria-label="Projeler"><span class="muted small">Projeler yükleniyor…</span></div>
-
-  <div class="hero" id="hero">
-    <div class="txt">
-      <span class="k">Şu an</span>
-      <span class="v" id="heroV">Veri bekleniyor</span>
-      <span class="s" id="heroS">Projenin durumu ilk güncellemeyle burada görünür.</span>
+  <section class="view" id="view-home">
+    <div class="hero">
+      <div class="txt"><span class="k">Şu an</span><span class="v" id="heroV">Veri bekleniyor</span><span class="s" id="heroS">Projenin durumu ilk güncellemeyle burada görünür.</span></div>
+      <svg class="ring" id="ring" viewBox="0 0 100 100" role="img" aria-label="Aşama ilerlemesi"></svg>
     </div>
-    <svg class="ring" id="ring" viewBox="0 0 100 100" role="img" aria-label="Aşama ilerlemesi"></svg>
-  </div>
-  <div class="strip" id="strip" hidden>
-    <div class="hd"><b>Son 24 saat · kim çalıştı</b><span id="stripSub"></span></div>
-    <svg class="tl" id="tl" viewBox="0 0 600 58" role="img" aria-label="Son 24 saatte sıra kimdeydi"></svg>
-    <div class="legend"><span><i class="claude"></i>Claude</span><span><i class="work"></i>OpenAI</span><span><i class="wait"></i>Bekleme</span></div>
-  </div>
+    <div class="card strip" id="strip" hidden>
+      <div class="hd"><b>Son 24 saat · kim çalıştı</b><span id="stripSub"></span></div>
+      <svg class="tl" id="tl" viewBox="0 0 600 58" role="img" aria-label="Son 24 saatte sıra kimdeydi"></svg>
+      <div class="legend"><span><i class="claude"></i>Claude</span><span><i class="work"></i>OpenAI</span><span><i class="wait"></i>Bekleme</span></div>
+    </div>
+    <div class="grid2">
+      <button class="tile" data-detail="turn"><span class="ic" id="icTurn"></span><span class="k">Sıra kimde</span><span class="v" id="cTurn">—</span><span class="s" id="cTurnS"></span></button>
+      <button class="tile" data-detail="stage"><span class="ic" id="icStage"></span><span class="k">Oyun nerede</span><span class="v" id="cStage">—</span><span class="s" id="cStageS"></span></button>
+      <button class="tile" data-detail="qa"><span class="ic" id="icQa"></span><span class="k">Son test</span><span class="v" id="cQa">—</span><span class="s" id="cQaS"></span></button>
+      <button class="tile" data-detail="auto"><span class="ic" id="icAuto"></span><span class="k">Otomasyon</span><span class="v" id="cAuto">—</span><span class="s" id="cAutoS"></span></button>
+    </div>
+    <button class="tile" id="cardWork" data-detail="worknote" hidden><span class="ic work" id="icWork"></span><span class="k">OpenAI'dan son not</span><span class="v" id="cWork">—</span><span class="s" id="cWorkS"></span></button>
+  </section>
 
-  <div class="cards">
-    <button class="cardbtn" type="button" data-sheet="turn"><span class="ic" id="icTurn"></span><span class="tx"><span class="k">Sıra kimde</span><span class="v" id="cTurn">—</span><span class="s" id="cTurnS"></span></span><span class="chev"></span></button>
-    <button class="cardbtn" type="button" data-sheet="stage"><span class="ic" id="icStage"></span><span class="tx"><span class="k">Oyun nerede</span><span class="v" id="cStage">—</span><span class="s" id="cStageS"></span></span><span class="chev"></span></button>
-    <button class="cardbtn" type="button" data-sheet="qa"><span class="ic" id="icQa"></span><span class="tx"><span class="k">Son test</span><span class="v" id="cQa">—</span><span class="s" id="cQaS"></span></span><span class="chev"></span></button>
-    <button class="cardbtn" type="button" data-sheet="auto"><span class="ic" id="icAuto"></span><span class="tx"><span class="k">Otomasyon</span><span class="v" id="cAuto">—</span><span class="s" id="cAutoS"></span></span><span class="chev"></span></button>
-    <button class="cardbtn" type="button" data-sheet="worknote" id="cardWork" hidden><span class="ic work" id="icWork"></span><span class="tx"><span class="k">OpenAI'dan son not</span><span class="v" id="cWork">—</span><span class="s" id="cWorkS"></span></span><span class="chev"></span></button>
-    <button class="cardbtn" type="button" data-sheet="feed"><span class="ic" id="icFeed"></span><span class="tx"><span class="k">Ekip akışı</span><span class="v" id="cFeed">—</span><span class="s" id="cFeedS"></span></span><span class="chev"></span></button>
-    <button class="cardbtn" type="button" data-sheet="terms"><span class="ic" id="icTerms"></span><span class="tx"><span class="k">Yardım</span><span class="v">Terimler ve roller</span><span class="s">Claude, OpenAI, sıra, engel ne demek?</span></span><span class="chev"></span></button>
-  </div>
-  <p class="foot" id="footNote">Oryvona Games · ekip içi</p>
+  <section class="view" id="view-feed" hidden>
+    <div class="pagehead"><h1>Ekip akışı</h1></div>
+    <div class="filters" id="feedFilters"><button aria-pressed="true" data-f="all">Hepsi</button><button data-f="work">OpenAI</button><button data-f="claude">Claude</button><button data-f="note">Notlar</button></div>
+    <div class="card"><div class="feed" id="feedList"><div class="empty">Henüz akış kaydı yok.</div></div></div>
+  </section>
+
+  <section class="view" id="view-tests" hidden>
+    <div class="pagehead"><h1>Testler</h1></div>
+    <div class="card" id="testsBody"></div>
+  </section>
+
+  <section class="view" id="view-settings" hidden>
+    <div class="pagehead"><h1>Ayarlar</h1></div>
+    <div class="secthead">Hesap</div>
+    <div class="list">
+      <div class="item"><span class="ic" id="icAcc"></span><div class="tx"><b id="accEmail">—</b><span id="accRole">Ekip üyesi</span></div><button class="act" id="signOut" type="button">Çıkış</button></div>
+    </div>
+    <div class="secthead">Görünüm</div>
+    <div class="list">
+      <div class="item wrap"><span class="ic" id="icTheme"></span><div class="tx"><b>Tema</b><span>Telefonun ayarını izler ya da sabit kalır</span></div><div class="seg" id="themeSeg"><button data-t="system" aria-pressed="true">Sistem</button><button data-t="light">Açık</button><button data-t="dark">Koyu</button></div></div>
+    </div>
+    <div class="secthead">Veri</div>
+    <div class="list">
+      <div class="item"><span class="ic" id="icProj"></span><div class="tx"><b>Proje</b><span>Hangi oyun gösterilsin</span></div><select id="projectSel"></select></div>
+      <div class="item"><span class="ic" id="icLive"></span><div class="tx"><b>Canlı bağlantı</b><span id="liveInfo">—</span></div><button class="act" id="reloadBtn" type="button">Yenile</button></div>
+    </div>
+    <div id="teamSection" hidden>
+      <div class="secthead">Ekip (sahip)</div>
+      <div class="card" id="teamBody"></div>
+    </div>
+    <div class="secthead">Uygulama</div>
+    <div class="list">
+      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo">Sürüm 2.0 · Veri: Supabase (canlı) · Kaynak: GitHub</span></div></div>
+      <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b>Android kurulum dosyası</b><span>Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/latest" target="_blank" rel="noopener">İndir</a></div>
+      <div class="item"><span class="ic" id="icHelp"></span><div class="tx"><b>Terimler ve roller</b><span>Claude, OpenAI, sıra, engel ne demek?</span></div><button class="act" type="button" data-detail="terms">Aç</button></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-detail" hidden>
+    <div class="pagehead"><button class="back" id="backBtn" type="button" aria-label="Geri"></button><h1 id="detailTitle">Ayrıntı</h1></div>
+    <div class="card" id="detailBody"></div>
+  </section>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="Bölümler">
+  <button role="tab" data-view="home" aria-selected="true"><span class="pill" id="tabHome"></span>Özet</button>
+  <button role="tab" data-view="feed"><span class="pill" id="tabFeed"></span>Akış</button>
+  <button role="tab" data-view="tests"><span class="pill" id="tabTests"></span>Testler</button>
+  <button role="tab" data-view="settings"><span class="pill" id="tabSettings"></span>Ayarlar</button>
+</nav>
+
+<div id="gate" hidden>
+  <form id="gateForm">
+    <img src="logo.png" alt="Oryvona Games" style="width:220px;align-self:center;max-width:100%">
+    <div style="font-weight:900;font-size:1.15rem">Ekip girişi</div>
+    <p id="gateText" style="color:#cfcbe6;font-size:.95rem">E-postanı yaz; sana tek kullanımlık bir giriş bağlantısı gönderelim. Şifre yok.</p>
+    <input id="gateEmail" type="email" required autocomplete="email" placeholder="ad@ornek.com">
+    <button id="gateBtn" type="submit" class="btn gold">Giriş bağlantısı gönder</button>
+    <span class="msg" id="gateMsg"></span>
+  </form>
 </div>
-
-<div class="scrim" id="scrim"></div>
-<section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-  <div class="grab"></div>
-  <header><h2 id="sheetTitle">Ayrıntı</h2><button class="close" type="button" id="sheetClose" aria-label="Kapat">×</button></header>
-  <div class="body" id="sheetBody"></div>
-</section>
 
 <script>
 (function(){
@@ -192,16 +255,22 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
   const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const I={clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
     bolt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
-    cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 18a4 4 0 0 1-.6-7.95A6 6 0 0 1 18 9a4.5 4.5 0 0 1-1 8.9z"/></svg>',
     flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-1.5 3.5L16 11H5"/></svg>',
     check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>',
-    chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>',
     help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>',
     user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
-    chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>'};
-  document.querySelectorAll(".chev").forEach(e=>e.innerHTML=I.chev);
-  $("icTerms").innerHTML=I.help;$("icFeed").innerHTML=I.chat;$("icWork").innerHTML=I.bolt;$("icStage").innerHTML=I.flag;$("icQa").innerHTML=I.check;$("icAuto").innerHTML=I.clock;$("icTurn").innerHTML=I.user;
-  const TURN={READY_CLAUDE:{v:"Claude",s:"Görev bekliyor",text:"Claude görevi almak için bekliyor. 20 dakikalık kontrol sırayı görünce işe başlar.",who:"claude"},
+    home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 11 12 4l9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg>',
+    list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>',
+    gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>',
+    refresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.5 4.5L20 16"/><path d="M20 20v-4h-4"/></svg>',
+    back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>',
+    moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+    box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>',
+    phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>'};
+  for(const [id,ic] of [["refreshBtn","refresh"],["backBtn","back"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icTheme","moon"],["icProj","box"],["icLive","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["tabHome","home"],["tabFeed","list"],["tabTests","check"],["tabSettings","gear"]])$(id).innerHTML=I[ic];
+
+  // ---------- language tables ----------
+  const TURN={READY_CLAUDE:{v:"Claude",s:"Görev bekliyor",text:"Claude görevi almak için bekliyor; otomatik kontrol sırayı görünce işe başlar.",who:"claude"},
     CLAUDE_WORKING:{v:"Claude çalışıyor",s:"Görev yapılıyor",text:"Claude görevi yapıyor; bitince GitHub'a gönderip sırayı OpenAI'a verir.",who:"claude"},
     READY_WORK:{v:"OpenAI",s:"İnceleme bekliyor",text:"Claude teslimini gönderdi. OpenAI bulut testinin bitmesini ve kanıtı incelemeyi bekliyor.",who:"work"},
     WORK_WORKING:{v:"OpenAI inceliyor",s:"Kanıt inceleniyor",text:"OpenAI bulut test kanıtını inceliyor; bitince sonraki görevi yazıp sırayı Claude'a bırakır.",who:"work"},
@@ -210,235 +279,175 @@ dl.terms dt{font-weight:900;color:var(--brand-deep);white-space:nowrap} dl.terms
   const PEOPLE=[["claude","Claude","C"],["work","OpenAI","O"],["deniz","Deniz","D"]];
   const NAME={claude:"Claude",work:"OpenAI",deniz:"Deniz",ci:"GitHub"};
   const STATE_TR={READY_CLAUDE:"sıra Claude'da",CLAUDE_WORKING:"Claude çalışıyor",READY_WORK:"sıra OpenAI'da",WORK_WORKING:"OpenAI inceliyor",BLOCKED:"engel",USER_TEST_READY:"Deniz testi"};
-  const VERB_TR={claim:"işe başladı",release:"sırayı devretti",resume:"devam etti",run:"otomatik kontrol"};
+  const VERB_TR={claim:"işe başladı",release:"sırayı devretti",resume:"devam etti",run:"otomatik kontrol",note:"not bıraktı"};
   const kindTr=e=>{const to=(e.kindTr||"").split("→").pop().trim();return (VERB_TR[e.kind]||e.kindTr||e.kind||"")+(STATE_TR[to]?" · "+STATE_TR[to]:"");};
   const fmt=iso=>{if(!iso)return"—";const d=new Date(iso);if(isNaN(d))return String(iso);return d.toLocaleString("tr-TR",{day:"2-digit",month:"long",hour:"2-digit",minute:"2-digit"});};
   const ago=iso=>{const ms=Date.now()-new Date(iso).getTime();if(!isFinite(ms))return"";const m=Math.round(ms/60000);if(m<1)return"az önce";if(m<60)return m+" dk önce";const h=Math.floor(m/60);if(h<24)return h+" sa önce";return Math.floor(h/24)+" gün önce";};
-  let status=null,feedDocs=[],runsDocs=[],openSheet=null;
-  // Progress ring: stage statuses as a donut (status colors + labelled centre; details in the stage sheet).
-  function renderRing(stages){const svg=$("ring");const n=stages.length;if(!n){svg.innerHTML="";return;}
-    const C={PASS:"#5fd48c",PARTIAL:"#f0b429",ACTIVE:"#22c3ee",BLOCKED:"#ff8a8a",PENDING:"rgba(255,255,255,.18)"};
-    const r=40,cx=50,cy=50,circ=2*Math.PI*r,seg=circ/n,gap=3;let out="",off=0;
-    for(const g of stages){out+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C[g.status]||C.PENDING}" stroke-width="11" stroke-dasharray="${Math.max(0,seg-gap)} ${circ-Math.max(0,seg-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"><title>${esc(g.title)}: ${esc(g.statusTr||g.status)}</title></circle>`;off+=seg;}
-    const done=stages.filter(g=>g.status==="PASS").length;
-    out+=`<text x="50" y="47" text-anchor="middle" font-size="22">${done}/${n}</text><text x="50" y="64" text-anchor="middle" font-size="9" opacity=".85">aşama geçti</text>`;svg.innerHTML=out;}
-  // Turn timeline: who held the turn over a window, built only from real claim/release events.
-  function segments(hours){const now=Date.now(),start=now-hours*3600e3;const ev=[...feedDocs].map(d=>d.data()).filter(e=>["claim","release","resume"].includes(e.kind)).sort((a,b)=>new Date(a.at)-new Date(b.at));
-    const segs=[];let cur=null;
-    for(const e of ev){const t=new Date(e.at).getTime();
-      if(e.kind==="claim"){if(cur&&cur.kind==="wait"){cur.end=t;segs.push(cur);}cur={kind:"work",actor:e.actor,start:t,text:e.text};}
-      else{if(cur&&cur.kind==="work"){cur.end=t;cur.text=e.text||cur.text;segs.push(cur);}const to=(e.kindTr||"").split("→").pop().trim();cur={kind:"wait",actor:to.includes("CLAUDE")?"claude":to.includes("WORK")?"work":"",start:t,text:"Bekleme: "+to};}}
-    if(cur){cur.end=now;segs.push(cur);}
-    return {start,now,segs:segs.filter(s=>s.end>start).map(s=>({...s,start:Math.max(s.start,start)}))};}
-  function renderTimeline(svgId,hours){const svg=$(svgId);if(!svg)return;const {start,now,segs}=segments(hours);const W=600,H=58,y=4,h=24;const x=t=>(t-start)/(now-start)*W;
-    let out=`<defs><pattern id="hatch-${svgId}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(135)"><rect width="6" height="6" fill="#eeedf3"/><rect width="3" height="6" fill="#dddbe6"/></pattern></defs><rect x="0" y="${y}" width="${W}" height="${h}" rx="6" fill="#eeedf3"/>`;
-    for(const s of segs){const x0=x(s.start),w=Math.max(1.5,x(s.end)-x0);const fill=s.kind==="work"?(s.actor==="claude"?"#d99a1e":"#2f7be0"):`url(#hatch-${svgId})`;
-      const mins=Math.round((s.end-s.start)/60000);const who=s.kind==="work"?(NAME[s.actor]||s.actor)+" çalıştı":s.text;
-      out+=`<rect x="${x0.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${h}" rx="4" fill="${fill}"><title>${esc(who)} · ${esc(fmt(new Date(s.start).toISOString()))} · ${mins} dk</title></rect>`;}
-    const step=hours<=24?6:24;for(let k=0;k<=hours;k+=step){const t=now-(hours-k)*3600e3,px=x(t);const d=new Date(t);
-      out+=`<line class="tick" x1="${px}" y1="${y+h}" x2="${px}" y2="${y+h+5}"/><text class="lab" x="${Math.min(W-24,Math.max(24,px))}" y="${H-3}" text-anchor="middle" font-size="15">${hours<=24?(k===hours?"şimdi":d.getHours().toString().padStart(2,"0")+":00"):(k===hours?"şimdi":d.getDate()+" "+["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"][d.getMonth()])}</text>`;}
-    svg.innerHTML=out;
-    if(svgId==="tl"){const strip=$("strip");strip.hidden=segs.length===0;const worked=segs.filter(s=>s.kind==="work");const c=worked.filter(s=>s.actor==="claude").reduce((a,s)=>a+s.end-s.start,0),w=worked.filter(s=>s.actor==="work").reduce((a,s)=>a+s.end-s.start,0);
-      $("stripSub").textContent=`${worked.length} tur · Claude ${Math.round(c/60000)} dk · OpenAI ${Math.round(w/60000)} dk`;}}
-  // Test history: one column per cloud run, one row per test; glyph + colour, never colour alone.
-  function historyTable(){const runs=[...runsDocs].map(d=>d.data()).sort((a,b)=>(a.startedAt||"")<(b.startedAt||"")?-1:1);if(!runs.length)return '<div class="empty">Koşu geçmişi yok.</div>';
-    const rows=[["Kod",r=>r.code===99?"PASS":r.code!=null?"FAIL":null],["Tarayıcı",r=>r.suites?.baseline?.status||null],["Oynanış",r=>r.suites?.natural?.status||null],["Sekme / çıkış",r=>r.suites?.lifecycle?.status||null]];
-    const G={PASS:["✓","good","geçti"],BLOCKED:["!","warn","engel"],FAIL:["×","bad","hata"]};
-    let t='<div class="hist"><table><thead><tr><th></th>'+runs.map(r=>`<th title="${esc(r.run_id)}">${r.startedAt?esc(fmt(r.startedAt).replace(/ \d{2}:\d{2}$/,""))+"<br>"+esc(fmt(r.startedAt).slice(-5)):esc(r.label||r.run_id)}</th>`).join("")+'</tr></thead><tbody>';
-    for(const [name,get] of rows){t+=`<tr><th>${name}</th>`+runs.map(r=>{const s=get(r);const g=s?G[s]:null;return `<td><span class="cell ${g?g[1]:""}" title="${esc(r.label||r.run_id)}: ${g?g[2]:"koşmadı"}">${g?g[0]:"–"}</span></td>`;}).join("")+'</tr>';}
-    t+='</tbody></table></div>';const last=runs[runs.length-1];return t+(last?.note?`<p class="muted small">Son koşu: ${esc(last.note)}</p>`:"");}
-  function freshness(){const el=$("fresh");if(!status){el.className="chip dot onnavy";el.textContent="Veri yok";return;}
+  const term=(k,v)=>`<dt style="font-weight:900;color:var(--brand-deep)">${k}</dt><dd style="margin:0;color:var(--fg-2)">${v}</dd>`;
+  const TERMS=`<dl style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;margin:0;font-size:.95rem">${term("Claude","Kaynak mühendisi. Testleri ve yamaları yazar, GitHub'a gönderir.")}${term("OpenAI","Bağımsız kalite kontrol (ChatGPT). Bulut testinin ham kanıtını inceler, sonraki görevi yazar.")}${term("Deniz","Stüdyo sahibi. Zorunlu testler bitince son oyuncu testini yapar; yayın ve APK kararı onda.")}${term("Sıra","Aynı anda tek kişi çalışır; sıra kimdeyse diğerleri bekler, dosyalar çakışmaz.")}${term("Engel","Oyun hatası değil; altyapı ya da erişim sınırı. Kanıtıyla kaydedilir.")}${term("Testler","Kod birim testleri · sabit senaryolu tarayıcı testi · gerçek tuşlarla 6 dalga · sekme değiştirme, Turu bitir, tekrar oyna.")}</dl>`;
+
+  // ---------- state ----------
+  let status=null,feedDocs=[],runsDocs=[],projects=[],current=null,session=null,team=[],isOwner=false,feedFilter="all",demo=false;
+  let sb=null,channel=null;
+
+  // ---------- theme ----------
+  const mq=matchMedia("(prefers-color-scheme: dark)");
+  const applyTheme=t=>{const dark=t==="dark"||(t==="system"&&mq.matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");document.querySelector('meta[name="theme-color"]').setAttribute("content",dark?"#0b0a1e":"#12112e");
+    document.querySelectorAll("#themeSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===t)));if(status)renderTimeline("tl",24);};
+  const themePref=()=>{try{return localStorage.getItem("oryvona.theme")||"system";}catch{return"system";}};
+  applyTheme(themePref());mq.addEventListener("change",()=>{if(themePref()==="system")applyTheme("system");});
+  $("themeSeg").addEventListener("click",e=>{const b=e.target.closest("button[data-t]");if(!b)return;try{localStorage.setItem("oryvona.theme",b.dataset.t);}catch{}applyTheme(b.dataset.t);});
+
+  // ---------- navigation ----------
+  const VIEWS=["home","feed","tests","settings","detail"];let view="home",detailKey=null;
+  const emptyMsg='<div class="empty">Veri yok.</div>';
+  function showView(v){view=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===(v==="detail"?"home":v))));window.scrollTo({top:0});
+    if(v==="feed")renderFeedList();if(v==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg;if(v==="settings")renderSettings();}
+  document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b){history.pushState({view:b.dataset.view},"");showView(b.dataset.view);}});
+  function fillDetail(key){detailKey=key;const [title,body]=DETAILS[key];$("detailTitle").textContent=title;$("detailBody").innerHTML=body();if(key==="auto")renderTimeline("tl3",72);}
+  function openDetail(key){fillDetail(key);history.pushState({view:"detail",key},"");showView("detail");}
+  document.addEventListener("click",e=>{const b=e.target.closest("[data-detail]");if(b)openDetail(b.dataset.detail);});
+  $("backBtn").addEventListener("click",()=>history.back());
+  addEventListener("popstate",e=>{const s=e.state||{view:"home"};if(s.view==="detail"&&s.key)fillDetail(s.key);showView(s.view||"home");});
+  history.replaceState({view:"home"},"");
+  function refreshOpen(){if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg;if(view==="feed")renderFeedList();if(view==="settings")renderSettings();}
+
+  // ---------- render: home ----------
+  function freshness(){const el=$("fresh");if(!status){el.className="chip dot onnavy";el.textContent=session||demo?"Veri yok":"Giriş gerekli";return;}
     const m=(Date.now()-new Date(status.updatedAt).getTime())/60000;
     if(m<25){el.className="chip dot onnavy good";el.textContent="Canlı · "+ago(status.updatedAt);}else if(m<60){el.className="chip dot onnavy warn";el.textContent="Gecikti · "+ago(status.updatedAt);}else{el.className="chip dot onnavy bad";el.textContent="Güncel değil · "+ago(status.updatedAt);}}
   const stageCls=g=>g.status==="PASS"?"pass":g.status==="PARTIAL"?"partial":g.status==="ACTIVE"?"active":g.status==="BLOCKED"?"blocked":"pending";
-  function liveClaude(s){const ct=s?.automation?.claudeTask||{};return ct.lastRunAt&&(Date.now()-new Date(ct.lastRunAt).getTime())<40*60000;}
-  function qaSummary(q){const parts=[q.code_passed===99,q.browser_passed===45,q.natural_passed===33,q.lifecycle_status==="PASS"];const ok=parts.filter(Boolean).length;
-    const blocked=q.lifecycle_status==="BLOCKED";return {ok,total:4,blocked,fail:q.lifecycle_status==="FAIL"||[q.code_passed,q.browser_passed,q.natural_passed].some(v=>v!=null&&v<99&&false)};}
+  function liveFeed(s){const lf=s?.automation?.liveFeed;const ct=s?.automation?.claudeTask;const t=lf?.at||ct?.lastRunAt;return t&&(Date.now()-new Date(t).getTime())<40*60000;}
+  function qaSummary(q){const ok=[q.code_passed===99,q.browser_passed===45,q.natural_passed===33,q.lifecycle_status==="PASS"].filter(Boolean).length;return {ok,total:4,blocked:q.lifecycle_status==="BLOCKED",fail:q.lifecycle_status==="FAIL"};}
+  function renderRing(stages){const svg=$("ring");const n=stages.length;if(!n){svg.innerHTML="";return;}
+    const C={PASS:"#5fd48c",PARTIAL:"#f0b429",ACTIVE:"#22c3ee",BLOCKED:"#ff8a8a",PENDING:"rgba(255,255,255,.18)"};const r=40,cx=50,cy=50,circ=2*Math.PI*r,seg=circ/n,gap=3;let out="",off=0;
+    for(const g of stages){out+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C[g.status]||C.PENDING}" stroke-width="11" stroke-dasharray="${Math.max(0,seg-gap)} ${circ-Math.max(0,seg-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"><title>${esc(g.title)}: ${esc(g.statusTr||g.status)}</title></circle>`;off+=seg;}
+    const done=stages.filter(g=>g.status==="PASS").length;out+=`<text x="50" y="47" text-anchor="middle" font-size="22">${done}/${n}</text><text x="50" y="64" text-anchor="middle" font-size="9" opacity=".85">aşama geçti</text>`;svg.innerHTML=out;}
   function renderHome(s){
     const h=s.handoff||{},t=TURN[h.status]||{v:h.status||"—",s:"",text:"",who:""};
-    $("heroV").textContent=t.v==="Claude"||t.v==="OpenAI"?"Sıra "+t.v+"'"+"da":t.v;$("heroS").textContent=s.summaryTr||t.text;
+    $("heroV").textContent=t.v==="Claude"||t.v==="OpenAI"?"Sıra "+t.v+"'da":t.v;$("heroS").textContent=s.summaryTr||t.text;
     $("cTurn").textContent=t.v;$("cTurnS").textContent=t.s+(h.lease?` · ${ago(h.lease.claimed_at)} başladı`:"");$("icTurn").className="ic "+(t.who||"");
     const active=(s.stages||[]).find(g=>["PARTIAL","ACTIVE","BLOCKED"].includes(g.status))||(s.stages||[]).filter(g=>g.status==="PASS").pop();
-    $("cStage").textContent=active?active.title:(s.phaseTr||"—");$("cStageS").textContent=active?`${active.id} · ${active.statusTr||active.status}`:"";
-    $("icStage").className="ic "+(active?({PASS:"good",PARTIAL:"warn",BLOCKED:"bad"}[active.status]||""):"");
-    const q=s.lastQa||{},qs=qaSummary(q);
-    $("cQa").textContent=q.run_id?`${qs.ok}/${qs.total} geçti`:"Henüz yok";$("cQaS").textContent=q.run_id?(qs.blocked?"1 testte altyapı engeli":qs.ok===qs.total?"Hepsi geçti":"Bekleyen var"):"";
-    $("icQa").className="ic "+(q.run_id?(qs.fail?"bad":qs.blocked?"warn":"good"):"");
-    const live=liveClaude(s),ct=s.automation?.claudeTask||{};
-    $("cAuto").textContent=live?"Çalışıyor":"Beklemede";$("cAutoS").textContent=ct.lastRunAt?`Son kontrol ${ago(ct.lastRunAt)}`:"Henüz çalışmadı";$("icAuto").className="ic "+(live?"good":"warn");
-    $("footNote").textContent=`Oryvona Games · ekip içi · son güncelleme ${fmt(s.updatedAt)}`;
+    $("cStage").textContent=active?active.title:(s.phaseTr||"—");$("cStageS").textContent=active?`${active.id} · ${active.statusTr||active.status}`:"";$("icStage").className="ic "+(active?({PASS:"good",PARTIAL:"warn",BLOCKED:"bad"}[active.status]||""):"");
+    const q=s.lastQa||{},qs=qaSummary(q);$("cQa").textContent=q.run_id?`${qs.ok}/${qs.total} geçti`:"Henüz yok";$("cQaS").textContent=q.run_id?(qs.blocked?"1 testte altyapı engeli":qs.ok===qs.total?"Hepsi geçti":"Bekleyen var"):"";$("icQa").className="ic "+(q.run_id?(qs.fail?"bad":qs.blocked?"warn":"good"):"");
+    const live=liveFeed(s);$("cAuto").textContent=live?"Çalışıyor":"Beklemede";$("cAutoS").textContent=s.automation?.liveFeed?`Son sinyal ${ago(s.automation.liveFeed.at)}`:(s.automation?.claudeTask?.lastRunAt?`Son kontrol ${ago(s.automation.claudeTask.lastRunAt)}`:"Henüz sinyal yok");$("icAuto").className="ic "+(live?"good":"warn");
     renderRing(s.stages||[]);
-    const wn=s.workNote;$("cardWork").hidden=!(wn&&wn.textTr);
-    if(wn&&wn.textTr){$("cWork").textContent=wn.titleTr||wn.textTr;$("cWorkS").textContent=`${ago(wn.at)}${wn.titleTr?" · "+wn.textTr:""}`;}
+    const wn=s.workNote;$("cardWork").hidden=!(wn&&wn.textTr);if(wn&&wn.textTr){$("cWork").textContent=wn.titleTr||wn.textTr;$("cWorkS").textContent=`${ago(wn.at)}${wn.titleTr?" · "+wn.textTr:""}`;}
+    const p=projects.find(x=>x.id===current);$("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=s.phaseTr||p?.code||"Stüdyo paneli";
   }
-  function renderFeedCard(){const e=feedDocs[0]?.data();if(!e){$("cFeed").textContent="Henüz kayıt yok";$("cFeedS").textContent="";return;}
-    $("cFeed").textContent=`${NAME[e.actor]||e.actor} ${kindTr(e)}`;$("cFeedS").textContent=`${ago(e.at)} · dokunup ayrıntıyı gör`;}
-  // sheets
-  function sheetTurn(s){const h=s.handoff||{},t=TURN[h.status]||{text:"",who:""};
-    let who='<div class="who">';PEOPLE.forEach(([id,name,ini],i)=>{if(i)who+='<span class="arrow">›</span>';who+=`<span class="person ${t.who===id?"active":""}"><span class="av ${id}">${ini}</span>${name}</span>`;});who+='</div>';
+  // timeline
+  function segments(hours){const now=Date.now(),start=now-hours*3600e3;const ev=feedDocs.map(d=>d.data()).filter(e=>["claim","release","resume"].includes(e.kind)).sort((a,b)=>new Date(a.at)-new Date(b.at));const segs=[];let cur=null;
+    for(const e of ev){const t=new Date(e.at).getTime();if(e.kind==="claim"){if(cur&&cur.kind==="wait"){cur.end=t;segs.push(cur);}cur={kind:"work",actor:e.actor,start:t,text:e.text};}
+      else{if(cur&&cur.kind==="work"){cur.end=t;segs.push(cur);}const to=(e.kindTr||"").split("→").pop().trim();cur={kind:"wait",actor:"",start:t,text:"Bekleme: "+(STATE_TR[to]||to)};}}
+    if(cur){cur.end=now;segs.push(cur);}return {start,now,segs:segs.filter(s=>s.end>start).map(s=>({...s,start:Math.max(s.start,start)}))};}
+  function renderTimeline(svgId,hours){const svg=$(svgId);if(!svg)return;const {start,now,segs}=segments(hours);const W=600,H=58,y=4,h=24;const x=t=>(t-start)/(now-start)*W;const cs=getComputedStyle(document.documentElement);const v=n=>cs.getPropertyValue(n).trim();
+    let out=`<defs><pattern id="hatch-${svgId}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(135)"><rect width="6" height="6" fill="${v('--hatch-a')}"/><rect width="3" height="6" fill="${v('--hatch-b')}"/></pattern></defs><rect x="0" y="${y}" width="${W}" height="${h}" rx="6" fill="${v('--hatch-a')}"/>`;
+    for(const s of segs){const x0=x(s.start),w=Math.max(1.5,x(s.end)-x0);const fill=s.kind==="work"?(s.actor==="claude"?v('--claude-bar'):v('--work')):`url(#hatch-${svgId})`;const mins=Math.round((s.end-s.start)/60000);const who=s.kind==="work"?(NAME[s.actor]||s.actor)+" çalıştı":s.text;
+      out+=`<rect x="${x0.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${h}" rx="4" fill="${fill}"><title>${esc(who)} · ${esc(fmt(new Date(s.start).toISOString()))} · ${mins} dk</title></rect>`;}
+    const MON=["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];const step=hours<=24?6:24;
+    for(let k=0;k<=hours;k+=step){const t=now-(hours-k)*3600e3,px=x(t);const d=new Date(t);const lab=k===hours?"şimdi":hours<=24?d.getHours().toString().padStart(2,"0")+":00":d.getDate()+" "+MON[d.getMonth()];out+=`<line class="tick" x1="${px}" y1="${y+h}" x2="${px}" y2="${y+h+5}"/><text class="lab" x="${Math.min(W-24,Math.max(24,px))}" y="${H-3}" text-anchor="middle">${lab}</text>`;}
+    svg.innerHTML=out;
+    if(svgId==="tl"){$("strip").hidden=segs.length===0;const worked=segs.filter(s=>s.kind==="work");const c=worked.filter(s=>s.actor==="claude").reduce((a,s)=>a+s.end-s.start,0),w=worked.filter(s=>s.actor==="work").reduce((a,s)=>a+s.end-s.start,0);$("stripSub").textContent=`${worked.length} tur · Claude ${Math.round(c/60000)} dk · OpenAI ${Math.round(w/60000)} dk`;}}
+  // tests
+  function historyTable(){const runs=runsDocs.map(d=>d.data()).sort((a,b)=>(a.startedAt||"")<(b.startedAt||"")?-1:1);if(!runs.length)return '<div class="empty">Koşu geçmişi yok.</div>';
+    const rows=[["Kod",r=>r.code===99?"PASS":r.code!=null?"FAIL":null],["Tarayıcı",r=>r.suites?.baseline?.status||null],["Oynanış",r=>r.suites?.natural?.status||null],["Sekme / çıkış",r=>r.suites?.lifecycle?.status||null]];const G={PASS:["✓","good","geçti"],BLOCKED:["!","warn","engel"],FAIL:["×","bad","hata"]};
+    let t='<div class="hist"><table><thead><tr><th></th>'+runs.map(r=>`<th title="${esc(r.run_id)}">${r.startedAt?esc(fmt(r.startedAt).replace(/ \d{2}:\d{2}$/,""))+"<br>"+esc(fmt(r.startedAt).slice(-5)):esc(r.label||r.run_id)}</th>`).join("")+'</tr></thead><tbody>';
+    for(const [name,get] of rows){t+=`<tr><th>${name}</th>`+runs.map(r=>{const s=get(r);const g=s?G[s]:null;return `<td><span class="cell ${g?g[1]:""}" title="${esc(r.label||r.run_id)}: ${g?g[2]:"koşmadı"}">${g?g[0]:"–"}</span></td>`;}).join("")+'</tr>';}
+    t+='</tbody></table></div>';const last=runs[runs.length-1];return t+(last?.note?`<p class="muted small">Son koşu: ${esc(last.note)}</p>`:"");}
+  function sheetQa(s){const q=s.lastQa||{},repoUrl=s.repo?.url||"";const res=(k,v,e,cls)=>`<div class="res ${cls}"><span class="k">${k}</span><span class="v num">${esc(v)}</span><span class="e">${e}</span></div>`;const lc=q.lifecycle_status;
+    return `<div class="results">${res("Kod testleri",q.code_passed!=null?`${q.code_passed}/99`:"—",q.code_passed===99?"Hepsi geçti":"Bekleniyor",q.code_passed===99?"good":"")}${res("Tarayıcı testleri",q.browser_passed!=null?`${q.browser_passed}/45`:"—",q.browser_passed===45?"Hepsi geçti":"Bekleniyor",q.browser_passed===45?"good":"")}${res("Gerçek oynanış",q.natural_passed!=null?`${q.natural_passed}/33`:"—",q.natural_passed===33?"6 dalga tamam":"Bekleniyor",q.natural_passed===33?"good":"")}${res("Sekme / Turu bitir",lc==="PASS"?"Geçti":lc==="BLOCKED"?"Engel":lc==="FAIL"?"Hata":"—",lc==="BLOCKED"?"Altyapı sınırı, oyun hatası değil":lc==="PASS"?"Hepsi geçti":lc==="FAIL"?"Gerçek bir sorun bulundu":"Henüz koşmadı",lc==="PASS"?"good":lc==="BLOCKED"?"warn":lc==="FAIL"?"bad":"")}</div>
+      ${q.limitsTr?`<p class="muted">${esc(q.limitsTr)}</p>`:""}<div class="detail">${q.run_id?`Koşu kaydı: ${repoUrl?`<a href="${esc(repoUrl)}/actions/runs/${esc(q.run_id)}" target="_blank" rel="noopener">${esc(q.run_id)}</a>`:esc(q.run_id)}`:"Henüz bulut koşusu yok."}${q.source_commit?` · kaynak ${esc(q.source_commit.slice(0,7))}`:""}</div><h2 style="margin-top:6px">Koşu geçmişi</h2>${historyTable()}`;}
+  // details
+  function sheetTurn(s){const h=s.handoff||{},t=TURN[h.status]||{text:"",who:""};let who='<div class="who">';PEOPLE.forEach(([id,name,ini],i)=>{if(i)who+='<span class="arrow">›</span>';who+=`<span class="person ${t.who===id?"active":""}"><span class="av ${id}">${ini}</span>${name}</span>`;});who+='</div>';
     return `<p>${esc(t.text)}</p>${who}<div class="block"><span class="t">${esc(s.taskTitleTr||h.task_id||"Görev yok")}</span><span class="d">${esc(s.taskTextTr||"")}</span><span class="detail">${h.task_id?`Görev kodu ${esc(h.task_id)} · tur ${esc(h.turn??"—")}`:""}${h.lease?` · kilit: ${esc(NAME[h.lease.actor]||h.lease.actor)}, ${esc(fmt(h.lease.claimed_at))}`:" · kilit boş"}</span></div>`;}
   function sheetStage(s){let path='<div class="path">';for(const g of (s.stages||[])){const c=stageCls(g);path+=`<div class="step ${c}"><div class="bar"><i></i></div><div class="lbl">${esc(g.title)}</div><div class="st">${esc(g.statusTr||g.status||"")}</div></div>`;}path+='</div>';
-    const notes=(s.stages||[]).filter(g=>g.note).map(g=>`<div class="block"><span class="t">${esc(g.id)} · ${esc(g.title)}</span><span class="d">${esc(g.note)}</span></div>`).join("");
-    return `<p class="muted">${esc(s.lineSubTr||"")}</p>${path}${notes}`;}
-  function sheetQa(s){const q=s.lastQa||{},repoUrl=s.repo?.url||"";
-    const res=(k,v,e,cls)=>`<div class="res ${cls}"><span class="k">${k}</span><span class="v num">${esc(v)}</span><span class="e">${e}</span></div>`;const lc=q.lifecycle_status;
-    return `<div class="results">${res("Kod testleri",q.code_passed!=null?`${q.code_passed}/99`:"—",q.code_passed===99?"Hepsi geçti":"Bekleniyor",q.code_passed===99?"good":"")}
-      ${res("Tarayıcı testleri",q.browser_passed!=null?`${q.browser_passed}/45`:"—",q.browser_passed===45?"Hepsi geçti":"Bekleniyor",q.browser_passed===45?"good":"")}
-      ${res("Gerçek oynanış",q.natural_passed!=null?`${q.natural_passed}/33`:"—",q.natural_passed===33?"6 dalga tamam":"Bekleniyor",q.natural_passed===33?"good":"")}
-      ${res("Sekme / Turu bitir",lc==="PASS"?"Geçti":lc==="BLOCKED"?"Engel":lc==="FAIL"?"Hata":"—",lc==="BLOCKED"?"Altyapı sınırı, oyun hatası değil":lc==="PASS"?"Hepsi geçti":lc==="FAIL"?"Gerçek bir sorun bulundu":"Henüz koşmadı",lc==="PASS"?"good":lc==="BLOCKED"?"warn":lc==="FAIL"?"bad":"")}</div>
-      ${q.limitsTr?`<p class="muted">${esc(q.limitsTr)}</p>`:""}<div class="detail">${q.run_id?`Koşu kaydı: ${repoUrl?`<a href="${esc(repoUrl)}/actions/runs/${esc(q.run_id)}" target="_blank" rel="noopener">${esc(q.run_id)}</a>`:esc(q.run_id)}`:"Henüz bulut koşusu yok."}${q.source_commit?` · kaynak ${esc(q.source_commit.slice(0,7))}`:""}</div>
-      <h2 style="font-size:1rem;margin-top:6px">Koşu geçmişi</h2>${historyTable()}`;}
-  function sheetAuto(s){const a=s.automation||{},ct=a.claudeTask||{},ww=a.workWebhook||{},live=liveClaude(s),repo=s.repo||{},hd=s.head||{};
-    return `<div class="row"><div class="ic" style="color:var(--claude)">${I.clock}</div><div><div class="tt">Claude kontrolü <span class="chip ${live?"good":"warn"}">${live?"çalışıyor":"beklemede"}</span></div><div class="dd">Her ${esc(ct.intervalMin||20)} dakikada GitHub'a bakar, sıra Claude'daysa görevi yapar. Son çalışma: ${esc(fmt(ct.lastRunAt))}${ct.lastResult?` — ${esc(ct.lastResult)}`:""}</div></div></div>
-      <div class="row"><div class="ic" style="color:var(--work)">${I.bolt}</div><div><div class="tt">OpenAI uyandırma <span class="chip ${ww.enabled?"good":"warn"}">${ww.enabled?"etkin":"kapalı"}</span></div><div class="dd">Claude GitHub'a gönderince OpenAI kendiliğinden uyanır. Son OpenAI hareketi: ${esc(fmt(ww.lastSeenAt))}</div></div></div>
-      <div class="row"><div class="ic" style="color:var(--cyan)">${I.cloud}</div><div><div class="tt">Bulut testleri</div><div class="dd">Her gönderimde GitHub otomatik test koşar.</div></div></div>
-      <div class="detail">${repo.url?`Depo: <a href="${esc(repo.prUrl||repo.url)}" target="_blank" rel="noopener">${esc(repo.name||repo.url)}</a>`:""}${hd.commit?` · son gönderim ${esc(fmt(hd.at))} (<a href="${esc(repo.url||"")}/commit/${esc(hd.commit)}" target="_blank" rel="noopener">${esc(hd.commit.slice(0,7))}</a>)`:""}</div>
-      <h2 style="font-size:1rem;margin-top:6px">Son 3 gün · sıra kimdeydi</h2><svg class="tl" id="tl3" viewBox="0 0 600 58" role="img" aria-label="Son üç günde sıra kimdeydi"></svg>
-      <div class="legend"><span><i class="claude"></i>Claude çalıştı</span><span><i class="work"></i>OpenAI çalıştı</span><span><i class="wait"></i>Bekleme</span></div>`;}
-  function sheetFeed(){if(!feedDocs.length)return '<div class="empty">Henüz akış kaydı yok.</div>';let out='<div class="feed">';
-    for(const d of feedDocs){const e=d.data();const who=e.actor||"ci";const ini=who==="ci"?"GH":(NAME[who]||who).slice(0,1);
-      out+=`<div class="msg ${esc(who)}"><div class="av ${esc(who)}">${esc(ini)}</div><div class="bubble"><div class="h"><b>${esc(NAME[who]||who)}</b><span class="k">${esc(kindTr(e))}</span><time datetime="${esc(e.at)}">${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;}
-    return out+'</div>';}
-  const TERMS=`<dl class="terms"><dt>Claude</dt><dd>Kaynak mühendisi. Testleri ve yamaları yazar, GitHub'a gönderir.</dd><dt>OpenAI</dt><dd>Bağımsız kalite kontrol (ChatGPT). Bulut testinin ham kanıtını inceler, sonraki görevi yazar.</dd><dt>Deniz</dt><dd>Stüdyo sahibi. Zorunlu testler bitince son oyuncu testini yapar; yayın ve APK kararı onda.</dd><dt>Sıra</dt><dd>Aynı anda tek kişi çalışır; sıra kimdeyse diğerleri bekler, dosyalar çakışmaz.</dd><dt>Engel</dt><dd>Oyun hatası değil; altyapı ya da erişim sınırı. Kanıtıyla kaydedilir.</dd><dt>Testler</dt><dd>Kod birim testleri · sabit senaryolu tarayıcı testi · gerçek tuşlarla 6 dalga · sekme değiştirme, Turu bitir, tekrar oyna.</dd></dl>`;
+    return `<p class="muted">${esc(s.lineSubTr||"")}</p>${path}${(s.stages||[]).filter(g=>g.note).map(g=>`<div class="block"><span class="t">${esc(g.id)} · ${esc(g.title)}</span><span class="d">${esc(g.note)}</span></div>`).join("")}`;}
+  function sheetAuto(s){const a=s.automation||{},lf=a.liveFeed,ww=a.workWebhook||{},live=liveFeed(s),repo=s.repo||{},hd=s.head||{};
+    return `<div class="row"><div class="ic" style="color:var(--cyan)">${I.bolt}</div><div><div class="tt">Canlı veri hattı <span class="chip ${live?"good":"warn"}">${live?"çalışıyor":"sinyal bekliyor"}</span></div><div class="dd">GitHub'daki her değişiklik anında panele düşer. Son sinyal: ${esc(fmt(lf?.at))}</div></div></div>
+      <div class="row"><div class="ic" style="color:var(--work)">${I.user}</div><div><div class="tt">OpenAI uyandırma <span class="chip ${ww.enabled?"good":"warn"}">${ww.enabled?"etkin":"kapalı"}</span></div><div class="dd">Claude GitHub'a gönderince OpenAI kendiliğinden uyanır. Son OpenAI hareketi: ${esc(fmt(ww.lastSeenAt))}</div></div></div>
+      <div class="row"><div class="ic" style="color:var(--claude)">${I.clock}</div><div><div class="tt">Claude kontrolü</div><div class="dd">${a.claudeTask?.lastRunAt?`Son çalışma ${esc(fmt(a.claudeTask.lastRunAt))}${a.claudeTask.lastResult?" — "+esc(a.claudeTask.lastResult):""}`:"Zamanlanmış görev şu an kapalı; Claude elle başlatılıyor."}</div></div></div>
+      <div class="detail">${repo.url?`Depo: <a href="${esc(repo.prUrl||repo.url)}" target="_blank" rel="noopener">${esc(repo.name||repo.url)}</a>`:""}${hd?.commit?` · son gönderim ${esc(fmt(hd.at))} (<a href="${esc(repo.url||"")}/commit/${esc(hd.commit)}" target="_blank" rel="noopener">${esc(hd.commit.slice(0,7))}</a>)`:""}</div>
+      <h2 style="margin-top:6px">Son 3 gün · sıra kimdeydi</h2><svg class="tl" id="tl3" viewBox="0 0 600 58" role="img" aria-label="Son üç günde sıra kimdeydi"></svg><div class="legend"><span><i class="claude"></i>Claude çalıştı</span><span><i class="work"></i>OpenAI çalıştı</span><span><i class="wait"></i>Bekleme</span></div>`;}
   function sheetWork(){const wn=status?.workNote;const notes=feedDocs.map(d=>d.data()).filter(e=>e.actor==="work"&&e.kind==="note");
     let out=wn&&wn.textTr?`<div class="block"><span class="t">${esc(wn.titleTr||"OpenAI'nin notu")}</span><span class="d">${esc(wn.textTr)}</span><span class="detail">${esc(fmt(wn.at))}${wn.run_id?` · koşu ${esc(wn.run_id)}`:""}</span></div>`:'<div class="empty">OpenAI henüz not bırakmadı.</div>';
-    if(notes.length>1){out+='<h2 style="font-size:1rem;margin-top:6px">Önceki notlar</h2><div class="feed">';for(const e of notes.slice(1))out+=`<div class="msg work"><div class="av work">W</div><div class="bubble"><div class="h"><b>OpenAI</b><time datetime="${esc(e.at)}">${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;out+='</div>';}
-    return out+'<p class="detail">OpenAI (ChatGPT) her incelemeden sonra depoya kısa bir Türkçe not bırakır; Claude\'un 20 dakikalık kontrolü notu buraya taşır.</p>';}
-  const SHEETS={worknote:["OpenAI'dan son not",sheetWork],turn:["Sıra kimde",()=>status?sheetTurn(status):'<div class="empty">Veri yok.</div>'],stage:["Oyun nerede",()=>status?sheetStage(status):'<div class="empty">Veri yok.</div>'],
-    qa:["Son bulut testi",()=>status?sheetQa(status):'<div class="empty">Veri yok.</div>'],auto:["Otomasyon",()=>status?sheetAuto(status):'<div class="empty">Veri yok.</div>'],feed:["Ekip akışı",sheetFeed],terms:["Terimler ve roller",()=>TERMS]};
-  function show(key){openSheet=key;const [title,body]=SHEETS[key];$("sheetTitle").textContent=title;$("sheetBody").innerHTML=body();if(key==="auto")renderTimeline("tl3",72);$("sheet").classList.add("open");$("scrim").classList.add("open");$("sheetClose").focus();}
-  function hide(){openSheet=null;$("sheet").classList.remove("open");$("scrim").classList.remove("open");}
-  function refreshSheet(){if(openSheet){$("sheetBody").innerHTML=SHEETS[openSheet][1]();if(openSheet==="auto")renderTimeline("tl3",72);}}
-  document.querySelectorAll(".cardbtn").forEach(b=>b.addEventListener("click",()=>show(b.dataset.sheet)));
-  $("scrim").addEventListener("click",hide);$("sheetClose").addEventListener("click",hide);document.addEventListener("keydown",e=>{if(e.key==="Escape")hide();});
-  setInterval(()=>{freshness();if(status)renderHome(status);renderTimeline("tl",24);},60000);
-  // Data layer: Supabase Postgres + Realtime, behind team sign-in (magic link). Tables: projects / project_status / events / runs.
-  const CFG=window.ORYVONA||{};
-  let sb=null,current=null,channel=null,session=null;
-  const asDoc=row=>({id:row.id,data:()=>row});
-  function remember(id){try{localStorage.setItem("oryvona.project",id);}catch{}} function recall(){try{return localStorage.getItem("oryvona.project");}catch{return null;}}
-  function applyStatus(row){if(row&&row.data){status=row.data;freshness();renderHome(status);}else{status=null;freshness();$("heroV").textContent="Henüz kayıt yok";$("heroS").textContent="Bu proje için durum verisi gelince burada görünür.";}refreshSheet();}
-  // Sign-in screen (built here so the page design stays untouched).
-  const gate=document.createElement("div");gate.id="gate";gate.hidden=true;
-  gate.style.cssText="position:fixed;inset:0;z-index:50;background:#12112e;color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;font-family:var(--sans)";
-  gate.innerHTML=`<form id="gateForm" style="width:min(420px,100%);background:#1d1b45;border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 12px 40px rgba(0,0,0,.4)">
-    <img id="gateLogo" alt="Oryvona Games" style="width:200px;align-self:center;max-width:100%">
-    <div style="font-weight:900;font-size:1.15rem">Ekip girişi</div>
-    <p id="gateText" style="margin:0;color:#cfcbe6;font-size:.95rem">E-postanı yaz; sana tek kullanımlık bir giriş bağlantısı gönderelim. Şifre yok.</p>
-    <input id="gateEmail" type="email" required autocomplete="email" placeholder="ad@ornek.com" style="font:inherit;font-size:1rem;padding:12px 14px;border-radius:12px;border:1.5px solid #3a3870;background:#12112e;color:#fff">
-    <button id="gateBtn" type="submit" style="font:inherit;font-weight:900;font-size:1rem;padding:12px;border-radius:12px;border:0;background:#f0b429;color:#12112e;cursor:pointer">Giriş bağlantısı gönder</button>
-    <div id="gateCodeWrap" hidden data-enabled="false" style="display:flex;flex-direction:column;gap:8px">
-      <label for="gateCode" style="font-size:.9rem;color:#cfcbe6">E-postadaki 6 haneli kodu yaz:</label>
-      <input id="gateCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="123456" style="font:inherit;font-size:1.4rem;letter-spacing:.3em;text-align:center;padding:12px 14px;border-radius:12px;border:1.5px solid #3a3870;background:#12112e;color:#fff">
-      <button id="gateVerify" type="button" style="font:inherit;font-weight:900;font-size:1rem;padding:12px;border-radius:12px;border:0;background:#22c3ee;color:#12112e;cursor:pointer">Kodla giriş yap</button>
-    </div>
-    <div id="gateMsg" style="min-height:1.2em;font-size:.9rem;color:#8fe3ad"></div>
-  </form>`;
-  document.body.appendChild(gate);
-  const logoEl=document.querySelector(".band img");if(logoEl)gate.querySelector("#gateLogo").src=logoEl.getAttribute("src");
-  const gateMsg=(t,bad)=>{const m=gate.querySelector("#gateMsg");m.textContent=t;m.style.color=bad?"#ff9c9c":"#8fe3ad";};
-  gate.querySelector("#gateForm").addEventListener("submit",async e=>{e.preventDefault();const email=gate.querySelector("#gateEmail").value.trim();if(!email){gateMsg("Önce e-posta yaz.",true);return;}
-    gate.querySelector("#gateBtn").disabled=true;gateMsg("Gönderiliyor…");
-    const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});
-    gate.querySelector("#gateBtn").disabled=false;
-    if(error){gateMsg("Gönderilemedi: "+error.message,true);return;}
-    const codeUi=gate.querySelector("#gateCodeWrap");if(codeUi.dataset.enabled==="true"){codeUi.hidden=false;gate.querySelector("#gateCode").focus();}
-    gateMsg("Bağlantı gönderildi. E-postanı aç (gerekirse Gereksiz klasörü) ve bağlantıya dokun; uygulama kendiliğinden açılır.");});
-  gate.querySelector("#gateVerify").addEventListener("click",async()=>{const email=gate.querySelector("#gateEmail").value.trim();const token=gate.querySelector("#gateCode").value.replace(/\D/g,"");
-    if(token.length!==6){gateMsg("6 haneli kodu eksiksiz yaz.",true);return;}
-    gateMsg("Kontrol ediliyor…");const {error}=await sb.auth.verifyOtp({email,token,type:"email"});
-    if(error){gateMsg("Kod kabul edilmedi: "+error.message,true);return;}gateMsg("Giriş yapıldı.");});
-  gate.querySelector("#gateCode").addEventListener("input",()=>{if(gate.querySelector("#gateCode").value.replace(/\D/g,"").length===6)gate.querySelector("#gateVerify").click();});
-  // Sign-out control appended to the header band.
-  const out=document.createElement("button");out.type="button";out.textContent="Çıkış";out.hidden=true;
-  out.style.cssText="font:inherit;font-weight:800;font-size:.8rem;padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#cfcbe6;cursor:pointer";
-  document.querySelector(".band .meta")?.appendChild(out);
-  out.addEventListener("click",async()=>{await sb.auth.signOut();});
-  async function loadAll(id){
-    const [st,ev,rn]=await Promise.all([
-      sb.from("project_status").select("data,updated_at").eq("project_id",id).maybeSingle(),
-      sb.from("events").select("*").eq("project_id",id).order("at",{ascending:false}).limit(60),
-      sb.from("runs").select("run_id,data,started_at").eq("project_id",id).order("started_at",{ascending:true,nullsFirst:true}).limit(60)]);
-    if(st.error||ev.error||rn.error){console.error(st.error||ev.error||rn.error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
-    feedDocs=(ev.data||[]).map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));
-    runsDocs=(rn.data||[]).map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));
-    renderFeedCard();renderTimeline("tl",24);applyStatus(st.data);
-  }
-  function select(id){
-    if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];freshness();
-    document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.id===id)));
-    if(channel){sb.removeChannel(channel);channel=null;}
-    loadAll(id);
-    channel=sb.channel("panel-"+id)
-      .on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id))
-      .on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id))
-      .on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id))
-      .subscribe(state=>{if(state==="CHANNEL_ERROR"||state==="TIMED_OUT")console.warn("realtime",state);});
-  }
-  function renderTabs(list){const t=$("tabs");t.innerHTML="";
-    if(!list.length){t.innerHTML='<span class="muted small">Bu hesap ekip listesinde değil. Deniz\'den e-postanı ekletmesini iste.</span>';$("fresh").className="chip dot onnavy warn";$("fresh").textContent="Yetki yok";return;}
-    for(const p of list){const b=document.createElement("button");b.className="tab";b.type="button";b.setAttribute("role","tab");b.dataset.id=p.id;b.innerHTML=`${esc(p.name||p.id)}${p.code?` <span class="code">${esc(p.code)}</span>`:""}`;b.addEventListener("click",()=>select(p.id));t.appendChild(b);}
-    const want=recall();select(list.some(p=>p.id===want)?want:list[0].id);}
-  // Team management (owners only): a card + sheet to add/remove team emails.
-  let team=[],isOwner=false;
-  const teamCard=document.createElement("button");teamCard.className="cardbtn";teamCard.type="button";teamCard.hidden=true;teamCard.dataset.sheet="team";
-  teamCard.innerHTML=`<span class="ic deniz">${I.user}</span><span class="tx"><span class="k">Ekip</span><span class="v" id="cTeam">—</span><span class="s">Kim giriş yapabilir? Ekle / çıkar</span></span><span class="chev">${I.chev}</span>`;
-  const cardsBox=document.querySelector(".cards");if(cardsBox)cardsBox.insertBefore(teamCard,cardsBox.lastElementChild);
-  teamCard.addEventListener("click",()=>show("team"));
-  async function loadTeam(){const {data,error}=await sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(error){console.warn(error);return;}
-    team=data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>m.email===me&&m.role==="owner");
-    const dayAgo=Date.now()-24*3600e3;const active=team.filter(m=>m.last_seen_at&&new Date(m.last_seen_at).getTime()>dayAgo).length;const joined=team.filter(m=>m.first_seen_at).length;
-    teamCard.hidden=!isOwner;$("cTeam").textContent=`${team.length} kişi · ${joined} giriş yaptı`;teamCard.querySelector(".s").textContent=`Son 24 saatte ${active} kişi aktif · dokunup davet oluştur`;refreshSheet();}
-  function sheetTeam(){if(!isOwner)return '<div class="empty">Bu bölüm yalnız stüdyo sahibine açık.</div>';
-    const me=(session?.user?.email||"").toLowerCase();
-    let out=`<div class="block"><span class="t">Davet bağlantısı</span><span class="d">Bağlantıyı gönderdiğin kişi kendi e-postasıyla girer; bağlantı bir kez kullanılır ve süresi dolunca çalışmaz.</span>
-      <form id="inviteForm" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><select id="inviteHours" style="font:inherit;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line)"><option value="1">1 saat</option><option value="24" selected>1 gün</option><option value="168">7 gün</option></select><input id="inviteEmail" type="email" placeholder="Sadece bu e-posta (isteğe bağlı)" style="flex:1;min-width:200px;font:inherit;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line)"><button type="submit" style="font:inherit;font-weight:900;padding:10px 16px;border-radius:12px;border:0;background:var(--brand);color:#fff;cursor:pointer">Bağlantı oluştur</button></form>
-      <div id="inviteOut" hidden style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px"><input id="inviteLink" readonly style="flex:1;min-width:220px;font:inherit;font-size:.85rem;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface)"><button type="button" id="inviteCopy" style="font:inherit;font-weight:900;padding:10px 14px;border-radius:12px;border:0;background:var(--sun);color:#12112e;cursor:pointer">Kopyala</button></div><div id="inviteMsg" class="detail"></div></div>
-      <p class="muted" style="margin-top:8px">Davet yerine elle de ekleyebilirsin (herhangi bir e-posta sağlayıcısı olur):</p><form id="teamForm" style="display:flex;gap:8px;flex-wrap:wrap"><input id="teamEmail" type="email" required placeholder="yeni@ekip.com" style="flex:1;min-width:200px;font:inherit;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line)"><input id="teamName" placeholder="Ad (isteğe bağlı)" style="flex:1;min-width:140px;font:inherit;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line)"><button type="submit" style="font:inherit;font-weight:900;padding:10px 16px;border-radius:12px;border:0;background:var(--brand);color:#fff;cursor:pointer">Ekle</button></form><div id="teamMsg" class="detail"></div><div class="feed">`;
-    out+=`<h2 style="font-size:1rem;margin-top:6px">Kimler girdi</h2>`;
+    if(notes.length>1){out+='<h2 style="margin-top:6px">Önceki notlar</h2><div class="feed">';for(const e of notes.slice(1))out+=`<div class="msg work"><div class="av work">O</div><div class="bubble"><div class="h"><b>OpenAI</b><time>${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;out+='</div>';}return out;}
+  const DETAILS={turn:["Sıra kimde",()=>status?sheetTurn(status):emptyMsg],stage:["Oyun nerede",()=>status?sheetStage(status):emptyMsg],qa:["Son bulut testi",()=>status?sheetQa(status):emptyMsg],auto:["Otomasyon",()=>status?sheetAuto(status):emptyMsg],worknote:["OpenAI'dan son not",sheetWork],terms:["Terimler ve roller",()=>TERMS]};
+  // feed
+  function renderFeedList(){const f=$("feedList");const docs=feedDocs.map(d=>d.data()).filter(e=>feedFilter==="all"||(feedFilter==="note"?e.kind==="note":e.actor===feedFilter));
+    if(!docs.length){f.innerHTML='<div class="empty">Bu süzgeçte kayıt yok.</div>';return;}f.innerHTML=docs.map(e=>{const who=e.actor||"ci";const ini=who==="ci"?"GH":(NAME[who]||who).slice(0,1);return `<div class="msg ${esc(who)}"><div class="av ${esc(who)}">${esc(ini)}</div><div class="bubble"><div class="h"><b>${esc(NAME[who]||who)}</b><span class="k">${esc(kindTr(e))}</span><time datetime="${esc(e.at)}">${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;}).join("");}
+  $("feedFilters").addEventListener("click",e=>{const b=e.target.closest("button[data-f]");if(!b)return;feedFilter=b.dataset.f;document.querySelectorAll("#feedFilters button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderFeedList();});
+  // settings
+  function renderSettings(){$("accEmail").textContent=session?.user?.email||(demo?"Örnek görünüm":"—");$("accRole").textContent=demo?"Giriş yapılmadı":isOwner?"Stüdyo sahibi":"Ekip üyesi";
+    const sel=$("projectSel");sel.innerHTML=projects.map(p=>`<option value="${esc(p.id)}" ${p.id===current?"selected":""}>${esc(p.name)}${p.code?" · "+esc(p.code):""}</option>`).join("")||'<option>—</option>';
+    $("liveInfo").textContent=status?`Son güncelleme ${fmt(status.updatedAt)} · kaynak: ${status.source==="github-webhook"?"GitHub sinyali":status.source||"—"}`:"Henüz veri yok";
+    $("teamSection").hidden=!isOwner;if(isOwner)$("teamBody").innerHTML=sheetTeam();}
+  $("projectSel").addEventListener("change",e=>select(e.target.value));
+  $("reloadBtn").addEventListener("click",()=>{if(current)loadAll(current);});$("refreshBtn").addEventListener("click",()=>{if(current)loadAll(current);});
+  $("signOut").addEventListener("click",async()=>{if(sb)await sb.auth.signOut();});
+  function sheetTeam(){const me=(session?.user?.email||"").toLowerCase();
+    let out=`<div class="block"><span class="t">Davet bağlantısı</span><span class="d">Gönderdiğin kişi kendi e-postasıyla girer; bağlantı bir kez kullanılır, süresi dolunca çalışmaz.</span>
+      <form id="inviteForm" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><select id="inviteHours"><option value="1">1 saat</option><option value="24" selected>1 gün</option><option value="168">7 gün</option></select><input id="inviteEmail" type="email" placeholder="Sadece bu e-posta (isteğe bağlı)" style="flex:1;min-width:180px"><button type="submit" class="btn">Bağlantı oluştur</button></form>
+      <div id="inviteOut" hidden style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px"><input id="inviteLink" readonly style="flex:1;min-width:200px;font-size:.85rem"><button type="button" id="inviteCopy" class="btn gold">Kopyala</button></div><div id="inviteMsg" class="detail"></div></div>
+      <p class="muted small">Elle eklemek istersen:</p><form id="teamForm" style="display:flex;gap:8px;flex-wrap:wrap"><input id="teamEmail" type="email" required placeholder="yeni@ekip.com" style="flex:1;min-width:180px"><input id="teamName" placeholder="Ad (isteğe bağlı)" style="flex:1;min-width:120px"><button type="submit" class="btn">Ekle</button></form><div id="teamMsg" class="detail"></div>
+      <h2>Kimler girdi</h2><div class="feed">`;
     for(const m of team){const seen=m.last_seen_at?`son giriş ${ago(m.last_seen_at)} · ${m.login_count||0} kez`:"henüz giriş yapmadı";
-      out+=`<div class="block" style="flex-direction:row;align-items:center;justify-content:space-between;gap:10px"><div><div class="t">${esc(m.name||m.email)}${m.role==="owner"?' <span class="chip brand" style="font-size:.72rem;padding:2px 8px">sahip</span>':""}</div><div class="d">${esc(m.email)} · ${esc(seen)}</div></div>${m.email!==me?`<button type="button" data-remove="${esc(m.email)}" style="font:inherit;font-weight:800;padding:8px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer">Çıkar</button>`:'<span class="chip brand">sen</span>'}</div>`;}
+      out+=`<div class="block" style="flex-direction:row;align-items:center;justify-content:space-between;gap:10px"><div><div class="t">${esc(m.name||m.email)}${m.role==="owner"?' <span class="chip brand" style="font-size:.72rem;padding:2px 8px">sahip</span>':""}</div><div class="d">${esc(m.email)} · ${esc(seen)}</div></div>${m.email!==me?`<button type="button" class="btn ghost" data-remove="${esc(m.email)}">Çıkar</button>`:'<span class="chip brand">sen</span>'}</div>`;}
     return out+'</div>';}
-  document.addEventListener("submit",async e=>{if(e.target.id!=="teamForm")return;e.preventDefault();const email=$("teamEmail").value.trim().toLowerCase(),name=$("teamName").value.trim();
-    if(!email){$("teamMsg").textContent="E-posta yaz.";return;}const {error}=await sb.from("team_members").insert({email,name:name||null,role:"member"});
-    $("teamMsg").textContent=error?"Eklenemedi: "+error.message:"Eklendi: "+email;if(!error)loadTeam();});
-  document.addEventListener("click",async e=>{const b=e.target.closest("[data-remove]");if(!b)return;b.disabled=true;const {error}=await sb.from("team_members").delete().eq("email",b.dataset.remove);
-    if(error){$("teamMsg").textContent="Çıkarılamadı: "+error.message;b.disabled=false;}else loadTeam();});
-  document.addEventListener("submit",async e=>{if(e.target.id!=="inviteForm")return;e.preventDefault();const hours=Number($("inviteHours").value),forEmail=$("inviteEmail").value.trim()||null;
-    $("inviteMsg").textContent="Oluşturuluyor…";const {data,error}=await sb.rpc("create_invite",{hours,for_email:forEmail,note:null});
-    if(error){$("inviteMsg").textContent="Oluşturulamadı: "+error.message;return;}const row=Array.isArray(data)?data[0]:data;
-    const link=location.origin+location.pathname+"#davet="+row.token;$("inviteLink").value=link;$("inviteOut").hidden=false;
-    $("inviteMsg").textContent=`Geçerlilik: ${fmt(row.expires_at)}'e kadar · tek kullanımlık${forEmail?` · yalnız ${forEmail}`:""}`;});
-  document.addEventListener("click",async e=>{if(e.target.id!=="inviteCopy")return;const v=$("inviteLink").value;try{await navigator.clipboard.writeText(v);$("inviteMsg").textContent="Kopyalandı. WhatsApp vb. ile gönderebilirsin.";}catch{$("inviteLink").select();$("inviteMsg").textContent="Kopyalamak için bağlantıyı seçip kopyala.";}});
-  // Invite redemption: the token arrives in the URL hash, is remembered until sign-in, then redeemed once.
-  function pendingInvite(){const m=location.hash.match(/davet=([a-f0-9]+)/);if(m){try{localStorage.setItem("oryvona.invite",m[1]);}catch{}history.replaceState(null,"",location.pathname);}try{return localStorage.getItem("oryvona.invite");}catch{return null;}}
-  async function redeemIfPending(){const t=pendingInvite();if(!t||!session)return;const {data,error}=await sb.rpc("redeem_invite",{invite_token:t});
-    try{localStorage.removeItem("oryvona.invite");}catch{}
-    if(error){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Davet geçersiz";$("tabs").innerHTML=`<span class="muted small">Davet kullanılamadı: ${esc(error.message)}. Daveti gönderen kişiden yeni bağlantı iste.</span>`;return false;}
-    return true;}
-  SHEETS.team=["Ekip",sheetTeam];
-  async function start(){
-    const ok=await redeemIfPending();if(ok===false)return;
-    sb.rpc("touch_login").then(()=>{},()=>{});
-    const {data,error}=await sb.from("projects").select("id,name,code,sort_order").order("sort_order",{ascending:true});
-    if(error){console.error(error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
-    renderTabs(data||[]);loadTeam();
-  }
-  function stop(){if(channel){sb.removeChannel(channel);channel=null;}current=null;status=null;feedDocs=[];runsDocs=[];freshness();$("tabs").innerHTML="";}
+  document.addEventListener("submit",async e=>{
+    if(e.target.id==="teamForm"){e.preventDefault();if(!sb)return;const email=$("teamEmail").value.trim().toLowerCase(),name=$("teamName").value.trim();if(!email){$("teamMsg").textContent="E-posta yaz.";return;}const {error}=await sb.from("team_members").insert({email,name:name||null,role:"member"});$("teamMsg").textContent=error?"Eklenemedi: "+error.message:"Eklendi: "+email;if(!error)loadTeam();}
+    if(e.target.id==="inviteForm"){e.preventDefault();if(!sb){$("inviteMsg").textContent="Örnek görünümde davet oluşturulamaz.";return;}const hours=Number($("inviteHours").value),forEmail=$("inviteEmail").value.trim()||null;$("inviteMsg").textContent="Oluşturuluyor…";const {data,error}=await sb.rpc("create_invite",{hours,for_email:forEmail,note:null});if(error){$("inviteMsg").textContent="Oluşturulamadı: "+error.message;return;}const row=Array.isArray(data)?data[0]:data;const link=location.origin+location.pathname+"#davet="+row.token;$("inviteLink").value=link;$("inviteOut").hidden=false;$("inviteMsg").textContent=`Geçerlilik: ${fmt(row.expires_at)}'e kadar · tek kullanımlık${forEmail?` · yalnız ${forEmail}`:""}`;}
+    if(e.target.id==="gateForm"){e.preventDefault();const email=$("gateEmail").value.trim();if(!email){gateMsg("Önce e-posta yaz.",true);return;}$("gateBtn").disabled=true;gateMsg("Gönderiliyor…");const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});$("gateBtn").disabled=false;if(error){gateMsg("Gönderilemedi: "+error.message,true);return;}gateMsg("Bağlantı gönderildi. E-postanı aç (gerekirse Gereksiz klasörü) ve bağlantıya dokun; uygulama kendiliğinden açılır.");}});
+  document.addEventListener("click",async e=>{const r=e.target.closest("[data-remove]");if(r&&sb){r.disabled=true;const {error}=await sb.from("team_members").delete().eq("email",r.dataset.remove);if(error){$("teamMsg").textContent="Çıkarılamadı: "+error.message;r.disabled=false;}else loadTeam();}
+    if(e.target.id==="inviteCopy"){const v=$("inviteLink").value;try{await navigator.clipboard.writeText(v);$("inviteMsg").textContent="Kopyalandı. WhatsApp vb. ile gönderebilirsin.";}catch{$("inviteLink").select();$("inviteMsg").textContent="Kopyalamak için bağlantıyı seçip kopyala.";}}});
+  const gateMsg=(t,bad)=>{const m=$("gateMsg");m.textContent=t;m.style.color=bad?"#ff9c9c":"#8fe3ad";};
+
+  // ---------- data ----------
+  const CFG=window.ORYVONA||{};const asDoc=row=>({id:row.id,data:()=>row});
+  function remember(id){try{localStorage.setItem("oryvona.project",id);}catch{}} function recall(){try{return localStorage.getItem("oryvona.project");}catch{return null;}}
+  function applyStatus(row){status=row&&row.data?row.data:null;freshness();if(status)renderHome(status);else{$("heroV").textContent="Henüz kayıt yok";$("heroS").textContent="Bu proje için durum verisi gelince burada görünür.";}refreshOpen();}
+  async function loadAll(id){if(demo)return;
+    const [st,ev,rn]=await Promise.all([sb.from("project_status").select("data,updated_at").eq("project_id",id).maybeSingle(),sb.from("events").select("*").eq("project_id",id).order("at",{ascending:false}).limit(80),sb.from("runs").select("run_id,data,started_at").eq("project_id",id).order("started_at",{ascending:true,nullsFirst:true}).limit(60)]);
+    if(st.error||ev.error||rn.error){console.error(st.error||ev.error||rn.error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
+    feedDocs=(ev.data||[]).map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));runsDocs=(rn.data||[]).map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));
+    renderTimeline("tl",24);applyStatus(st.data);}
+  function select(id){if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];freshness();
+    if(channel){sb.removeChannel(channel);channel=null;}loadAll(id);
+    channel=sb.channel("panel-"+id).on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id)).subscribe();}
+  async function loadTeam(){const {data,error}=await sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(error){console.warn(error);return;}team=data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>m.email===me&&m.role==="owner");if(view==="settings")renderSettings();}
+  function pendingInvite(){const m=location.hash.match(/davet=([a-f0-9]+)/);if(m){try{localStorage.setItem("oryvona.invite",m[1]);}catch{}history.replaceState({view:"home"},"",location.pathname);}try{return localStorage.getItem("oryvona.invite");}catch{return null;}}
+  async function redeemIfPending(){const t=pendingInvite();if(!t||!session)return;const {error}=await sb.rpc("redeem_invite",{invite_token:t});try{localStorage.removeItem("oryvona.invite");}catch{}
+    if(error){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Davet geçersiz";$("banner").hidden=false;$("banner").textContent="Davet kullanılamadı: "+error.message+" Daveti gönderen kişiden yeni bağlantı iste.";return false;}return true;}
+  async function start(){const ok=await redeemIfPending();if(ok===false)return;sb.rpc("touch_login").then(()=>{},()=>{});
+    const {data,error}=await sb.from("projects").select("id,name,code,sort_order").order("sort_order",{ascending:true});if(error){console.error(error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Bağlantı hatası";return;}
+    projects=data||[];if(!projects.length){$("banner").hidden=false;$("banner").textContent="Bu hesap ekip listesinde değil. Stüdyo sahibinden davet bağlantısı iste.";$("fresh").className="chip dot onnavy warn";$("fresh").textContent="Yetki yok";return;}
+    $("banner").hidden=true;const want=recall();select(projects.some(p=>p.id===want)?want:projects[0].id);loadTeam();}
+  function stop(){if(channel&&sb){sb.removeChannel(channel);channel=null;}current=null;status=null;feedDocs=[];runsDocs=[];projects=[];team=[];isOwner=false;freshness();}
+
+  // ---------- demo (design preview without sign-in; clearly marked as sample data) ----------
+  function startDemo(){demo=true;$("gate").hidden=true;$("banner").hidden=false;$("banner").textContent="ÖRNEK VERİ · tasarım önizlemesi, gerçek durum değil";
+    const now=Date.now();const iso=ms=>new Date(now-ms).toISOString();
+    projects=[{id:"koza",name:"KOZA",code:"K01"}];current="koza";
+    status={updatedAt:iso(3*60000),source:"github-webhook",repo:{name:"oryvona/koza",url:"https://github.com",branch:"koza-work",pr:2},lineSubTr:"K01 · Ayışığı Bahçesi kabul aşamaları",handoff:{status:"WORK_WORKING",task_id:"C02-RETRY-CARD",turn:2,lease:{actor:"work",claimed_at:iso(9*60000)}},lastQa:{run_id:"38869107902",code_passed:99,browser_passed:45,natural_passed:33,lifecycle_status:"BLOCKED",limitsTr:"Kod 99/99, tarayıcı 45/45, gerçek oynanış 33/33. Sekme/çıkış testi altyapı engelinde, oyun hatası değil.",source_commit:"39d672b4"},head:{commit:"e4c1913770a8",at:iso(12*60000),subject:"Kart testi için gerçek kart seçimi"},automation:{liveFeed:{at:iso(3*60000)},workWebhook:{enabled:true,lastSeenAt:iso(9*60000)},claudeTask:null},phaseTr:"C02 · Gerçek oyun akışı",summaryTr:"8 aşamadan 2 tanesi geçti. Gerçek oynanış testleri geçiyor; sekme testi tarayıcı engelinde (oyun hatası değil).",taskTitleTr:"Kart alıp tekrar oynama testi",taskTextTr:"Claude çıkıştan önce gerçek bir kart seçilmesini sağlayacak; böylece tekrar sonrası temizlik kontrolü boş kalmayacak.",workNote:{at:iso(9*60000),titleTr:"İnceleme başladı",textTr:"Son koşunun ham kanıtını inceliyorum; sonucu 10 dakikaya yazarım."},
+      stages:[{id:"C00",title:"Kaynak aktarımı",status:"PASS",statusTr:"Geçti",note:"205 dosya"},{id:"C01",title:"Temel kabul",status:"PASS",statusTr:"Geçti",note:"99 kod / 45 tarayıcı"},{id:"C02",title:"Gerçek oyun akışı",status:"PARTIAL",statusTr:"Kısmi",note:"6 dalga geçti; sekme testi engelde"},{id:"C03",title:"Oynanış ve denge",status:"PENDING",statusTr:"Sırada"},{id:"C04",title:"Yeniden doğrulama",status:"PENDING",statusTr:"Sırada"},{id:"UT",title:"Deniz son testi",status:"PENDING",statusTr:"Sırada"}]};
+    const ev=[[9,"work","claim","WORK_WORKING","İnceleme için kilidi aldı."],[14,"claude","release","READY_WORK","Kart testi düzeltmesi gönderildi; yerel kontroller 14/14."],[52,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[75,"work","release","READY_CLAUDE","Koşu incelendi: 99/45/33 geçti, sekme testi engelde. Sonraki görev: gerçek kart testi."],[80,"work","note","","Kartsız temizlik kontrolü anlamlı değil; gerçek kartla tekrar."],[110,"work","claim","WORK_WORKING","İnceleme için kilidi aldı."],[140,"claude","release","READY_WORK","Sıra değişikliği gönderildi."],[200,"claude","claim","CLAUDE_WORKING","Görevi aldı."],[260,"work","release","READY_CLAUDE","Headed koşu da engelde; sıra değişikliği istendi."]];
+    feedDocs=ev.map(([m,a,k,to,t],i)=>asDoc({id:"d"+i,at:iso(m*60000),actor:a,kind:k,kindTr:(VERB_TR[k]||k)+" → "+to,text:t,textTr:t}));
+    runsDocs=[["C01",10*3600e3,{baseline:{status:"PASS"}},null],["Doğal",8*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"}},null],["Shell",6*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Tam",4*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Xvfb",2*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},"Turu bitir ve tekrar geçti; odak engelde."]].map(([l,ms,s,n],i)=>asDoc({run_id:"r"+i,label:l,startedAt:iso(ms),code:99,suites:s,note:n}));
+    team=[{email:"sahip@oryvona.games",name:"Deniz",role:"owner",last_seen_at:iso(60000),login_count:12},{email:"uye@ornek.com",name:"Ekip üyesi",role:"member",last_seen_at:iso(3*3600e3),login_count:3}];isOwner=true;session={user:{email:"sahip@oryvona.games"}};
+    renderTimeline("tl",24);applyStatus({data:status});requestAnimationFrame(()=>scrollTo(0,0));}
+
   (async()=>{
-    if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Veri kaynağı ayarlı değil";$("tabs").innerHTML="";return;}
-    // implicit flow: the magic link carries the session in the URL itself, so it works even when the link is opened in another browser/app than the one that requested it.
+    if(location.hash==="#demo"){startDemo();return;}
+    if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent="Veri kaynağı ayarlı değil";return;}
     sb=window.supabase.createClient(CFG.url,CFG.anonKey,{auth:{flowType:"implicit",detectSessionInUrl:true,persistSession:true,autoRefreshToken:true},realtime:{params:{eventsPerSecond:5}}});
-    sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"&&location.hash.includes("access_token"))history.replaceState(null,"",location.pathname);});
-    const apply=s=>{session=s;const signedIn=!!s;gate.hidden=signedIn;out.hidden=!signedIn;if(signedIn){start();}else{stop();$("fresh").className="chip dot onnavy";$("fresh").textContent="Giriş gerekli";}};
-    if(pendingInvite()){gate.querySelector("#gateText").textContent="Davet bağlantısıyla geldin. Kendi e-postanı yaz; gelen bağlantıya dokununca ekibe eklenirsin.";}
+    sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"&&location.hash.includes("access_token"))history.replaceState({view:"home"},"",location.pathname);});
+    if(pendingInvite())$("gateText").textContent="Davet bağlantısıyla geldin. Kendi e-postanı yaz; gelen bağlantıya dokununca ekibe eklenirsin.";
+    const apply=s=>{session=s;const signedIn=!!s;$("gate").hidden=signedIn;if(signedIn)start();else stop();};
     const {data:{session:s0}}=await sb.auth.getSession();apply(s0);
     sb.auth.onAuthStateChange((_e,s)=>{if(!!s!==!!session)apply(s);});
-    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&current)loadAll(current);});
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&current&&!demo)loadAll(current);});
+    setInterval(()=>{freshness();if(status)renderHome(status);renderTimeline("tl",24);},60000);
   })();
 })();
 </script>
-
-
 </body>
 </html>
