@@ -515,13 +515,17 @@ select,input{font:inherit;color:var(--fg);background:var(--surface);border:1px s
     try{const reg=await navigator.serviceWorker.ready;pushSub=await reg.pushManager.getSubscription();
       // Permission was reset in the browser (or revoked): the old subscription is dead — drop it so the switch shows "Aç" and asks again.
       if(pushSub&&Notification.permission!=="granted"){const ep=pushSub.endpoint;await pushSub.unsubscribe().catch(()=>{});pushSub=null;await sb.from("push_subscriptions").delete().eq("endpoint",ep);}
-      if(pushSub){const {data}=await sb.from("push_subscriptions").select("prefs").eq("endpoint",pushSub.endpoint).maybeSingle();if(data?.prefs)pushPrefs={...pushPrefs,...data.prefs};else await savePush();}}catch(e){console.warn(e);}
+      if(pushSub){const {data}=await sb.from("push_subscriptions").select("prefs").eq("endpoint",pushSub.endpoint).maybeSingle();if(data?.prefs)pushPrefs={...pushPrefs,...data.prefs};else await savePush();}
+      // The Android app already asked for permission at launch: turn push on by itself unless this device switched it off before.
+      let off=null;try{off=localStorage.getItem("oryvona.pushOff");}catch{}
+      if(!pushSub&&Notification.permission==="granted"&&!off){pushSub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(CFG.vapidPublicKey)});await savePush();}}catch(e){console.warn(e);}
     renderPush();}
   async function savePush(){if(!pushSub)return;const j=pushSub.toJSON();
     const {error}=await sb.from("push_subscriptions").upsert({endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,email:(session?.user?.email||"").toLowerCase(),prefs:pushPrefs,ua:navigator.userAgent.slice(0,120),updated_at:new Date().toISOString()});
     if(error)$("pushInfo").textContent="Kaydedilemedi: "+error.message;}
   $("pushToggle").addEventListener("click",async()=>{if(demo||!pushOk()){renderPush();return;}
-    if(pushSub){const ep=pushSub.endpoint;await pushSub.unsubscribe().catch(()=>{});pushSub=null;await sb.from("push_subscriptions").delete().eq("endpoint",ep);renderPush();return;}
+    if(pushSub){const ep=pushSub.endpoint;await pushSub.unsubscribe().catch(()=>{});pushSub=null;await sb.from("push_subscriptions").delete().eq("endpoint",ep);try{localStorage.setItem("oryvona.pushOff","1");}catch{}renderPush();return;}
+    try{localStorage.removeItem("oryvona.pushOff");}catch{}
     $("pushInfo").textContent="İzin isteniyor…";const perm=await Notification.requestPermission();if(perm!=="granted"){renderPush();if(perm==="default")$("pushInfo").textContent="İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.";return;}
     try{const reg=await navigator.serviceWorker.ready;pushSub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(CFG.vapidPublicKey)});await savePush();}catch(e){console.warn(e);$("pushInfo").textContent="Açılamadı: "+(e.message||e);renderPush();return;}
     renderPush();});
