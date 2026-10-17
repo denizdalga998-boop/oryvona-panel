@@ -15,134 +15,169 @@
 <script src="config.js"></script>
 <script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
 <style>
-/* Oryvona Games Paneli v4 — light-first app shell, TR/EN. Brand: deep indigo header/hero with the cyan→gold→violet logo gradient as accent; cards are white with hairline borders, dark mode is a soft indigo, not black. */
+/* Oryvona Games Paneli v2.6 (v16) — Premium Mobile App Shell (App Store / Revolut aesthetic), TR/EN. */
 :root{
-  --bg:#f4f4fa; --surface:#ffffff; --surface-2:#f1f0f8; --line:#e3e2ef; --line-2:#d2d0e4;
-  --fg:#17162f; --fg-2:#5a5876; --fg-3:#8e8ca8;
-  --ink:#1b1a3e; --ink-2:#2a2466; --on-ink:#ffffff; --on-ink-2:#d6d2f0;
-  --brand:#4f3fd6; --brand-soft:#ebe8fb; --brand-ink:#2d2490;
-  --cyan:#19b8e5; --gold:#f2b632; --violet:#a04fe0;
-  --good:#1f8a4c; --good-soft:#e2f5e9; --warn:#b4650a; --warn-soft:#fdeed3; --bad:#c43c3c; --bad-soft:#fbe3e3; --info:#2d6fd6; --info-soft:#e4edfc;
-  --claude:#b57a12; --claude-soft:#fdf0d2; --claude-bar:#e3a324; --work:#2d6fd6; --work-soft:#e4edfc; --deniz:#8a3fd6; --deniz-soft:#f0e5fc; --gemini:#0f8f7a; --gemini-soft:#d9f3ec;
-  --hatch-a:#eeedf6; --hatch-b:#d9d7ea;
-  --sans:"Nunito",ui-rounded,"Segoe UI",system-ui,Roboto,Arial,sans-serif; --r:20px; --r-s:14px;
-  --shadow:0 1px 2px rgba(23,22,47,.04),0 10px 30px -12px rgba(23,22,47,.12);
-  --tabbar:66px; color-scheme:light;
+  --bg:#f2f3f9; --surface:#ffffff; --surface-2:#edeef7; --line:rgba(24,22,58,.08); --line-2:rgba(24,22,58,.15);
+  --fg:#13122b; --fg-2:#565475; --fg-3:#8886a6;
+  --ink:#141233; --ink-2:#251f5e; --on-ink:#ffffff; --on-ink-2:#d5d1f2;
+  --brand:#503de0; --brand-soft:#ebe8ff; --brand-ink:#2c1f99;
+  --cyan:#15b8e8; --gold:#f3b629; --violet:#9f4ce3;
+  --good:#188647; --good-soft:#dff5e8; --warn:#b56208; --warn-soft:#fef0d6; --bad:#c83737; --bad-soft:#fde4e4; --info:#2569d4; --info-soft:#e3ecfc;
+  --claude:#b87910; --claude-soft:#fef1d4; --claude-bar:#e5a422; --work:#2569d4; --work-soft:#e3ecfc; --deniz:#893bd6; --deniz-soft:#f1e6fd; --gemini:#0d8d78; --gemini-soft:#daf4ee;
+  --hatch-a:#ecebf5; --hatch-b:#d8d6ea;
+  --sans:"Nunito",ui-rounded,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; --r:22px; --r-s:15px;
+  --shadow:0 2px 6px rgba(19,18,43,.04),0 14px 34px -12px rgba(19,18,43,.10),inset 0 1px 0 rgba(255,255,255,.85);
+  --shadow-lg:0 18px 42px -12px rgba(20,18,51,.28),0 4px 12px rgba(20,18,51,.10);
+  --glass:rgba(245,246,252,.84);
+  --tabbar:72px; color-scheme:light;
 }
 :root[data-theme="dark"]{
-  --bg:#16152d; --surface:#201f40; --surface-2:#2a2952; --line:#353466; --line-2:#44437a;
-  --fg:#f3f2ff; --fg-2:#bcb9da; --fg-3:#8f8db0;
-  --ink:#121128; --ink-2:#1f1c4a; --on-ink-2:#cfcbea;
-  --brand:#9d93ff; --brand-soft:#2f2c5e; --brand-ink:#dcd8ff;
-  --good:#5fd48c; --good-soft:#1b3b2a; --warn:#f2b632; --warn-soft:#3f2f10; --bad:#ff8f8f; --bad-soft:#4c2222; --info:#7fb0ff; --info-soft:#1f2d52;
-  --claude:#f2b632; --claude-soft:#3f2f10; --claude-bar:#f2b632; --work:#7fb0ff; --work-soft:#1f2d52; --deniz:#c89bff; --deniz-soft:#34224f; --gemini:#5fd6c0; --gemini-soft:#163d36;
-  --hatch-a:#2a2952; --hatch-b:#353466; --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 30px -12px rgba(0,0,0,.5); color-scheme:dark;
+  --bg:#0f0e22; --surface:#1a1936; --surface-2:#24234a; --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.17);
+  --fg:#f5f4ff; --fg-2:#bebbe0; --fg-3:#8b88ad;
+  --ink:#11102a; --ink-2:#211d52; --on-ink-2:#d2cef0;
+  --brand:#9e94ff; --brand-soft:#2d2a5c; --brand-ink:#e0dcff;
+  --good:#5bd68a; --good-soft:#183a28; --warn:#f3b629; --warn-soft:#3d2d10; --bad:#ff8b8b; --bad-soft:#4a2020; --info:#7db0ff; --info-soft:#1d2c52;
+  --claude:#f3b629; --claude-soft:#3d2d10; --claude-bar:#f3b629; --work:#7db0ff; --work-soft:#1d2c52; --deniz:#ca9cff; --deniz-soft:#34214f; --gemini:#5ad8c2; --gemini-soft:#153d36;
+  --hatch-a:#24234a; --hatch-b:#323162;
+  --shadow:0 2px 8px rgba(0,0,0,.30),0 16px 36px -12px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.07);
+  --shadow-lg:0 20px 46px -12px rgba(0,0,0,.65);
+  --glass:rgba(18,17,38,.84); color-scheme:dark;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{min-height:100%;scroll-padding-top:76px} body{min-height:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+html{min-height:100%;scroll-padding-top:138px} body{min-height:100%}
+body{margin:0;background-color:var(--bg);background-image:radial-gradient(130% 420px at 50% 0%,rgba(80,61,224,.11),transparent 70%);background-repeat:no-repeat;color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent;letter-spacing:-.005em}
 button{font:inherit}
 h1,h2,h3,p{margin:0} h1,h2,h3{text-wrap:balance}
 .muted{color:var(--fg-2)} .small{font-size:.9rem} .num{font-variant-numeric:tabular-nums}
 a{color:var(--brand);font-weight:800}
-.top{position:sticky;top:0;z-index:20;background:var(--ink);color:var(--on-ink);padding:calc(8px + env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:8px;box-shadow:0 2px 10px rgba(18,17,46,.22)}
-.top img{height:36px;width:auto;display:block;margin-left:auto}
-.band{background:linear-gradient(160deg,var(--ink) 0%,var(--ink-2) 55%,#3a2a7a 100%);color:#fff;margin:0;padding:16px 18px 20px;border-radius:var(--r);box-shadow:0 14px 34px -16px rgba(27,26,62,.6);position:relative;overflow:hidden}
-.band::before{content:"";position:absolute;width:280px;height:280px;right:-100px;top:-140px;border-radius:50%;background:radial-gradient(closest-side,rgba(160,79,224,.45),transparent 70%);pointer-events:none}
-.band::after{content:"";position:absolute;width:220px;height:220px;left:-90px;bottom:-140px;border-radius:50%;background:radial-gradient(closest-side,rgba(25,184,229,.35),transparent 70%);pointer-events:none}
-.band-top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1}
-.band-top .k{font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#cfcbea}
+
+/* Premium Mobile App Header + Horizontal Touch Game Switcher Showcase */
+.app-shell-top{position:sticky;top:0;z-index:25;background:var(--glass);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);border-bottom:1px solid var(--line);padding:calc(8px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));box-shadow:0 8px 28px -14px rgba(19,18,43,.12)}
+.app-top-inner{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.app-head{display:flex;align-items:center;gap:10px}
+.app-head .iconbtn{width:42px;height:42px;border-radius:14px;border:1px solid var(--line-2);background:var(--surface);color:var(--fg);box-shadow:0 2px 6px rgba(19,18,43,.05);display:grid;place-items:center;cursor:pointer;flex:none;transition:transform .12s}
+.app-head .iconbtn:active{transform:scale(.94)}
+.app-head .iconbtn svg{width:20px;height:20px}
+.app-head .title{display:flex;flex-direction:column;min-width:0;flex:1;align-items:flex-start;border:0;background:transparent;color:inherit;padding:2px 4px;text-align:left;cursor:pointer;gap:1px}
+.app-head .eyebrow{display:inline-flex;align-items:center;gap:5px;font-size:.66rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--brand)}
+.app-head .eyebrow img{width:14px;height:14px;border-radius:4px;object-fit:contain}
+.app-head .title-row{display:flex;align-items:center;gap:7px;max-width:100%;min-width:0}
+.app-head .title b{font-weight:900;font-size:1.22rem;line-height:1.15;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg)}
+.app-head .title span#topSub{font-size:.78rem;color:var(--fg-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.game-bar{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 2px 2px}
+.game-bar::-webkit-scrollbar{display:none}
+.g-pill{scroll-snap-align:start;flex:none;border:1px solid var(--line-2);background:var(--surface);color:var(--fg);border-radius:16px;padding:7px 12px 7px 9px;min-height:48px;display:flex;align-items:center;gap:9px;cursor:pointer;box-shadow:0 3px 10px -4px rgba(19,18,43,.07);transition:transform .12s,box-shadow .15s,background .15s;text-align:left}
+.g-pill:active{transform:scale(.97)}
+.g-pill .g-ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:1.02rem;background:var(--surface-2);flex:none}
+.g-pill .g-tx{display:flex;flex-direction:column;min-width:0;gap:1px}
+.g-pill .g-tx b{font-size:.86rem;font-weight:900;line-height:1.15;white-space:nowrap}
+.g-pill .g-tx small{font-size:.69rem;font-weight:800;color:var(--fg-2);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.g-pill .g-dot{width:6px;height:6px;border-radius:50%;background:var(--good);flex:none}
+.g-pill.transfer .g-dot{background:var(--warn)}
+.g-pill[aria-current="true"]{background:linear-gradient(135deg,#18163b 0%,#2d2370 60%,#432c99 100%);border-color:rgba(255,255,255,.18);color:#fff;box-shadow:0 10px 22px -8px rgba(45,35,112,.55)}
+.g-pill[aria-current="true"] .g-ic{background:rgba(255,255,255,.15);color:#fff}
+.g-pill[aria-current="true"] .g-tx small{color:#dcd8ff}
+.g-pill[aria-current="true"] .g-dot{background:#5fd48c;box-shadow:0 0 6px #5fd48c}
+.g-pill.transfer[aria-current="true"] .g-dot{background:#ffd26a;box-shadow:0 0 6px #ffd26a}
+
+.band{background:linear-gradient(145deg,#13112e 0%,#221c57 52%,#3b267d 100%);color:#fff;margin:0;padding:18px 18px 20px;border-radius:26px;box-shadow:var(--shadow-lg),inset 0 1px 0 rgba(255,255,255,.16);position:relative;overflow:hidden}
+.band::before{content:"";position:absolute;width:280px;height:280px;right:-100px;top:-140px;border-radius:50%;background:radial-gradient(closest-side,rgba(160,79,224,.48),transparent 70%);pointer-events:none}
+.band::after{content:"";position:absolute;width:220px;height:220px;left:-90px;bottom:-140px;border-radius:50%;background:radial-gradient(closest-side,rgba(25,184,229,.38),transparent 70%);pointer-events:none}
+.band-top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:1;flex-wrap:wrap}
+.band-top .k{font-size:.73rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#cfcbea}
 .band .hero{background:none;box-shadow:none;padding:10px 0 0;border-radius:0}
 .band .hero::before,.band .hero::after{display:none}
 .drawer{position:fixed;inset:0;z-index:40}
-.scrim{position:absolute;inset:0;background:rgba(10,9,30,.45)}
-.dpanel{position:absolute;left:0;top:0;bottom:0;width:min(300px,84vw);background:var(--surface);color:var(--fg);box-shadow:12px 0 40px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:6px;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 20px;overflow:auto;animation:slidein .22s ease-out}
+.scrim{position:absolute;inset:0;background:rgba(10,9,30,.52);backdrop-filter:blur(4px)}
+.dpanel{position:absolute;left:0;top:0;bottom:0;width:min(310px,85vw);background:var(--surface);color:var(--fg);box-shadow:16px 0 44px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:6px;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 20px;overflow:auto;animation:slidein .22s ease-out}
 @keyframes slidein{from{transform:translateX(-30px);opacity:0}to{transform:none;opacity:1}}
-.dhead{display:flex;align-items:center;gap:12px;background:var(--ink);color:#fff;border-radius:16px;padding:14px}
+.dhead{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--ink),var(--ink-2));color:#fff;border-radius:18px;padding:14px}
 .dhead img{height:44px;width:auto} .dhead div{display:flex;flex-direction:column;min-width:0} .dhead b{font-weight:900} .dhead span{font-size:.8rem;color:var(--on-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dlist{display:flex;flex-direction:column;gap:4px}
-.ditem{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--fg);text-align:left;padding:11px 10px;border-radius:12px;font-weight:800;cursor:pointer;min-width:0}
+.ditem{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--fg);text-align:left;padding:11px 10px;border-radius:14px;font-weight:800;cursor:pointer;min-width:0}
 .ditem:active,.ditem[aria-current="true"]{background:var(--brand-soft);color:var(--brand-ink)}
-.ditem .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);color:var(--brand);flex:none;font-size:.8rem;font-weight:900} .ditem .ic svg{width:18px;height:18px}
-.ditem .tx{display:flex;flex-direction:column;min-width:0;flex:1} .ditem .tx span{font-size:.8rem;color:var(--fg-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ditem .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--surface-2);color:var(--brand);flex:none;font-size:.85rem;font-weight:900} .ditem .ic svg{width:18px;height:18px}
+.ditem .tx{display:flex;flex-direction:column;min-width:0;flex:1} .ditem .tx span{font-size:.78rem;color:var(--fg-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ditem .chip{margin-left:auto;padding:3px 9px;font-size:.72rem}
-.top .title{display:flex;flex-direction:column;min-width:0;flex:1;align-items:flex-start;border:0;background:transparent;color:inherit;padding:2px 4px;text-align:left;cursor:pointer}
 .games{display:flex;flex-direction:column;gap:12px}
 .games .tile.wide .v{font-size:1.15rem} .games .ic{width:46px;height:46px;border-radius:14px;font-weight:900;font-size:1rem}
 .wk{width:100%;height:auto;display:block} .wk .lab{font-family:var(--sans);font-size:19px;fill:var(--fg-2);font-weight:800} .wk .val{font-family:var(--sans);font-size:17px;fill:var(--fg-3);font-weight:800} .wk .grid{stroke:var(--line);stroke-width:1}
 .legend i.run{background:var(--good)}
 .checks{flex:1 1 100%;display:flex;flex-direction:column;gap:8px;padding-left:48px} .checks label{display:flex;gap:10px;align-items:center;font-size:.92rem;color:var(--fg-2);font-weight:700} .checks input{width:20px;height:20px;accent-color:var(--brand);margin:0;padding:0}
 .act.on{background:var(--good-soft);color:var(--good);border-color:transparent}
-.top .title b{font-weight:900;font-size:1.05rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.top .title b::after{content:" ▾";font-size:.8em;opacity:.7}
-.top .title span{font-size:.78rem;color:var(--on-ink-2);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.iconbtn{width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+.iconbtn{width:42px;height:42px;border-radius:13px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.10);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
 .iconbtn svg{width:20px;height:20px}
-.chip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;font-size:.8rem;font-weight:800;white-space:nowrap;background:var(--surface-2);color:var(--fg-2)}
-.chip.dot::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:.78rem;font-weight:800;white-space:nowrap;background:var(--surface-2);color:var(--fg-2)}
+.chip.dot::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
 .chip.good{background:var(--good-soft);color:var(--good)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.info{background:var(--info-soft);color:var(--info)} .chip.brand{background:var(--brand-soft);color:var(--brand-ink)}
-.chip.onnavy{background:rgba(255,255,255,.12);color:#ece9ff} .chip.onnavy.good{background:rgba(95,212,140,.2);color:#9af0bb} .chip.onnavy.warn{background:rgba(242,182,50,.22);color:#ffd77a} .chip.onnavy.bad{background:rgba(255,120,120,.22);color:#ffb0b0}
+.chip.onnavy{background:rgba(255,255,255,.12);color:#ece9ff} .chip.onnavy.good{background:rgba(95,212,140,.22);color:#9af0bb} .chip.onnavy.warn{background:rgba(242,182,50,.22);color:#ffd77a} .chip.onnavy.bad{background:rgba(255,120,120,.22);color:#ffb0b0}
 .chip.sm{padding:3px 9px;font-size:.72rem}
-main{max-width:720px;margin:0 auto;padding:18px max(16px,env(safe-area-inset-right,0px)) calc(var(--tabbar) + 28px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(var(--tabbar) + 30px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
 .view{display:flex;flex-direction:column;gap:14px}
-.pagehead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 2px 4px;scroll-margin-top:76px;flex-wrap:wrap}
-.pagehead h1{font-size:1.45rem;font-weight:900;letter-spacing:-.01em;flex:1;min-width:120px}
-.back{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--fg);display:grid;place-items:center;cursor:pointer;flex:none}
+.pagehead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 2px 2px;scroll-margin-top:138px;flex-wrap:wrap}
+.pagehead h1{font-size:1.45rem;font-weight:900;letter-spacing:-.02em;flex:1;min-width:120px}
+.back{width:42px;height:42px;border-radius:13px;border:1px solid var(--line-2);background:var(--surface);color:var(--fg);display:grid;place-items:center;cursor:pointer;flex:none;box-shadow:var(--shadow)}
 .back svg{width:20px;height:20px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;min-width:0;scroll-margin-top:76px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;min-width:0;scroll-margin-top:138px}
 .card h2{font-size:1.05rem;font-weight:900}
-.secthead{font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);padding:6px 4px 0;scroll-margin-top:76px}
+.secthead{font-size:.73rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-3);padding:6px 4px 0;scroll-margin-top:138px}
 .hero{background:linear-gradient(135deg,var(--ink) 0%,var(--ink-2) 55%,#3a2a7a 100%);color:#fff;border-radius:var(--r);padding:20px 18px;display:flex;align-items:center;gap:16px;box-shadow:0 14px 34px -14px rgba(27,26,62,.55);position:relative;overflow:hidden}
 .hero .txt{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;position:relative}
 .hero .k{font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#cfcbea}
-.hero .v{font-size:1.6rem;font-weight:900;line-height:1.12;letter-spacing:-.01em}
-.hero .s{font-size:.95rem;color:#dcd8f2;line-height:1.4}
+.hero .v{font-size:1.62rem;font-weight:900;line-height:1.12;letter-spacing:-.015em}
+.hero .s{font-size:.95rem;color:#dcd8f2;line-height:1.42}
 .ring{width:92px;height:92px;flex:none;position:relative} .ring text{font-family:var(--sans);font-weight:900;fill:#fff}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.tile{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:7px;min-width:0;text-align:left;color:inherit;cursor:pointer}
-.tile:active{transform:scale(.985)}
-.tile::after{content:"›";position:absolute;right:14px;top:10px;font-size:1.3rem;font-weight:900;color:var(--line-2);line-height:1}
+.tile{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:15px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:7px;min-width:0;text-align:left;color:inherit;cursor:pointer;transition:transform .12s,box-shadow .15s}
+.tile:active{transform:scale(.982)}
+.tile::after{content:"›";position:absolute;right:14px;top:12px;font-size:1.3rem;font-weight:900;color:var(--fg-3);opacity:.55;line-height:1}
 .tile.flat{cursor:default} .tile.flat::after{display:none}
-.tile .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
+.tile .ic{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
 .tile .ic svg{width:21px;height:21px}
 .tile .ic.claude{background:var(--claude-soft);color:var(--claude)} .tile .ic.work{background:var(--work-soft);color:var(--work)} .tile .ic.deniz{background:var(--deniz-soft);color:var(--deniz)} .tile .ic.good{background:var(--good-soft);color:var(--good)} .tile .ic.warn{background:var(--warn-soft);color:var(--warn)} .tile .ic.bad{background:var(--bad-soft);color:var(--bad)} .tile .ic.info{background:var(--info-soft);color:var(--info)} .tile .ic.gemini{background:var(--gemini-soft);color:var(--gemini)}
-.now-card{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:var(--r);padding:12px 15px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px}
-.now-card .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none;background:var(--brand-soft);color:var(--brand)} .now-card .ic svg{width:20px;height:20px}
-.now-card .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.now-card{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:var(--r);padding:13px 15px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.now-card .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--brand-soft);color:var(--brand)} .now-card .ic svg{width:20px;height:20px}
+.now-card .tx{display:flex;flex-direction:column;gap:2px;min-width:160px;flex:1}
 .now-card .k{font-size:.7rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;color:var(--brand)}
-.now-card .v{font-size:.95rem;font-weight:800;line-height:1.35;color:var(--fg)}
+.now-card .v{font-size:.94rem;font-weight:800;line-height:1.35;color:var(--fg)}
 .now-card.good{border-left-color:var(--good)} .now-card.good .ic{background:var(--good-soft);color:var(--good)} .now-card.good .k{color:var(--good)}
 .now-card.warn{border-left-color:var(--warn)} .now-card.warn .ic{background:var(--warn-soft);color:var(--warn)} .now-card.warn .k{color:var(--warn)}
 .now-card.bad{border-left-color:var(--bad)} .now-card.bad .ic{background:var(--bad-soft);color:var(--bad)} .now-card.bad .k{color:var(--bad)}
 .now-card.deniz{border-left-color:var(--deniz)} .now-card.deniz .ic{background:var(--deniz-soft);color:var(--deniz)} .now-card.deniz .k{color:var(--deniz)}
-.hero-play{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15);display:flex;flex-direction:column;gap:8px;position:relative;z-index:1}
-.play-cta{width:100%;border:1px solid rgba(242,182,50,.6);background:linear-gradient(135deg,#f2b632 0%,#ffcf5c 100%);color:#17162f;border-radius:14px;padding:11px 14px;min-height:50px;display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;box-shadow:0 8px 20px -6px rgba(242,182,50,.55);transition:transform .12s}
+
+/* Contextual small action buttons (Onayla / Durdur) on active cards */
+.ctx-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto}
+.ctx-btn{border:1px solid var(--line-2);background:var(--surface-2);color:var(--fg);border-radius:999px;padding:6px 12px;min-height:34px;font-size:.78rem;font-weight:900;display:inline-flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap;transition:transform .1s,background .15s}
+.ctx-btn:active{transform:scale(.96)}
+.ctx-btn.approve{background:var(--good-soft);border-color:rgba(24,134,71,.3);color:var(--good)}
+.ctx-btn.stop{background:var(--bad-soft);border-color:rgba(200,55,55,.3);color:var(--bad)}
+
+/* Hero Real Game / APK Launch Row */
+.hero-play{margin-top:14px;padding-top:13px;border-top:1px solid rgba(255,255,255,.14);display:flex;flex-direction:column;gap:8px;position:relative;z-index:1}
+.play-row{display:flex;align-items:stretch;gap:8px}
+.play-cta{flex:1;min-width:0;border:1px solid rgba(243,182,41,.65);background:linear-gradient(135deg,#f3b629 0%,#ffd262 100%);color:#14122e;border-radius:16px;padding:11px 14px;min-height:52px;display:flex;align-items:center;gap:10px;text-align:left;cursor:pointer;box-shadow:0 10px 24px -6px rgba(243,182,41,.5);transition:transform .12s;text-decoration:none}
 .play-cta:active{transform:scale(.98)}
 .play-cta .play-ic{font-size:1.35rem;line-height:1;flex:none}
 .play-cta .play-tx{display:flex;flex-direction:column;min-width:0;flex:1}
-.play-cta .play-tx b{font-weight:900;font-size:.96rem;line-height:1.2;color:#17162f}
-.play-cta .play-tx small{font-size:.76rem;font-weight:800;color:rgba(23,22,47,.78)}
-.play-cta .play-arr{font-size:1.35rem;font-weight:900;flex:none;color:#17162f}
-.play-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.play-qbtn{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);color:#fff;border-radius:11px;padding:8px 10px;min-height:40px;font-weight:800;font-size:.81rem;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:transform .1s,background .15s}
-.play-qbtn:active{transform:scale(.97);background:rgba(255,255,255,.2)}
-.play-qbtn.ok{background:rgba(95,212,140,.22);border-color:rgba(95,212,140,.48);color:#c2f9d7}
-.play-qbtn.fix{background:rgba(242,182,50,.2);border-color:rgba(242,182,50,.45);color:#ffe4a3}
-#playModal{position:fixed;inset:0;z-index:60;background:rgba(12,11,30,.94);backdrop-filter:blur(8px);display:flex;flex-direction:column;color:#fff;padding:calc(10px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
-.pm-card{max-width:440px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
-.pm-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.pm-title{display:flex;flex-direction:column;min-width:0}
-.pm-title b{font-weight:900;font-size:1.05rem}
-.pm-title span{font-size:.76rem;color:#cfcbea;font-weight:700}
-.pm-scenes{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
-.pm-scenes::-webkit-scrollbar{display:none}
-.pm-scenes button{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#dcd8f2;border-radius:999px;padding:6px 12px;min-height:34px;font-weight:800;font-size:.78rem;white-space:nowrap;cursor:pointer}
-.pm-scenes button[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#17162f}
-.pm-stage{position:relative;flex:1;min-height:240px;background:#12112a;border:1px solid rgba(255,255,255,.16);border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
-#playCanvas{width:100%;height:100%;display:block;touch-action:none;cursor:pointer;flex:1}
-.pm-hud{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:rgba(0,0,0,.48);font-size:.78rem;font-weight:800;color:#dcd8f2;flex-wrap:wrap}
-.pm-foot{display:flex;flex-direction:column;gap:8px}
+.play-cta .play-tx b{font-weight:900;font-size:.96rem;line-height:1.2;color:#14122e}
+.play-cta .play-tx small{font-size:.75rem;font-weight:800;color:rgba(20,18,46,.78);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.play-cta .play-arr{font-size:1.15rem;font-weight:900;flex:none;color:#14122e}
+.play-link-btn{width:50px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.12);color:#fff;border-radius:16px;display:grid;place-items:center;cursor:pointer;flex:none;font-size:1.05rem;transition:transform .12s,background .15s}
+.play-link-btn:active{transform:scale(.95);background:rgba(255,255,255,.22)}
+
+/* Real Test Link / APK Modal (#linkModal) */
+#linkModal{position:fixed;inset:0;z-index:60;background:rgba(12,11,30,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px}
+.lm-card{max-width:440px;width:100%;background:var(--surface);color:var(--fg);border:1px solid var(--line-2);border-radius:24px;padding:20px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:14px}
+.lm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.lm-head b{font-size:1.1rem;font-weight:900; display:block}
+.lm-head span{font-size:.82rem;color:var(--fg-2);font-weight:700}
+.lm-close{width:36px;height:36px;border-radius:11px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--fg);font-weight:900;cursor:pointer;display:grid;place-items:center;flex:none}
+.lm-fields{display:flex;flex-direction:column;gap:10px}
+.lm-fields label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:800;color:var(--fg-2)}
+.lm-fields input{width:100%;font-size:.9rem}
+.lm-foot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:2px}
+
 .rdy-wrap{display:flex;flex-direction:column;gap:7px;width:100%;margin-top:4px}
 .rdy-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.84rem;font-weight:900}
 .rdy-top .pct{color:var(--good);font-variant-numeric:tabular-nums;background:var(--good-soft);padding:2px 9px;border-radius:999px;font-size:.78rem}
@@ -153,13 +188,13 @@ main{max-width:720px;margin:0 auto;padding:18px max(16px,env(safe-area-inset-rig
 .rdy-pill.ok{background:var(--good-soft);color:var(--good)}
 .rdy-pill.wait{background:var(--warn-soft);color:var(--warn)}
 .digest-list{display:flex;flex-direction:column;gap:8px}
-.digest-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:12px;background:var(--surface-2);font-size:.88rem;line-height:1.4;font-weight:700;color:var(--fg)}
+.digest-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:14px;background:var(--surface-2);font-size:.88rem;line-height:1.4;font-weight:700;color:var(--fg)}
 .digest-item .d-ic{font-size:1.05rem;line-height:1.25;flex:none}
 .cmd-chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:2px 0 4px}
-.chip-btn{border:1px solid var(--line-2);background:var(--surface-2);color:var(--fg);border-radius:12px;padding:8px 11px;min-height:42px;font-weight:800;font-size:.82rem;text-align:left;display:flex;align-items:center;gap:6px;cursor:pointer;transition:transform .1s,background .15s}
+.chip-btn{border:1px solid var(--line-2);background:var(--surface-2);color:var(--fg);border-radius:13px;padding:8px 11px;min-height:42px;font-weight:800;font-size:.82rem;text-align:left;display:flex;align-items:center;gap:6px;cursor:pointer;transition:transform .1s,background .15s}
 .chip-btn:active{transform:scale(.97);background:var(--brand-soft);border-color:var(--brand);color:var(--brand-ink)}
 .cmd-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:2px 0}
-.tool-btn{border:1px dashed var(--brand);background:var(--brand-soft);color:var(--brand-ink);border-radius:12px;padding:8px 10px;min-height:42px;font-weight:800;font-size:.81rem;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:transform .1s}
+.tool-btn{border:1px dashed var(--brand);background:var(--brand-soft);color:var(--brand-ink);border-radius:13px;padding:8px 10px;min-height:42px;font-weight:800;font-size:.81rem;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:transform .1s}
 .tool-btn:active{transform:scale(.97)}
 .tool-btn.recording{background:var(--bad-soft);border-style:solid;border-color:var(--bad);color:var(--bad);animation:beat 1.1s ease-in-out infinite}
 .img-prev-box{background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
@@ -170,7 +205,22 @@ main{max-width:720px;margin:0 auto;padding:18px max(16px,env(safe-area-inset-rig
 .img-prev-ops button[aria-pressed="true"]{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
 #cmdAnnotCanvas{width:100%;max-height:210px;object-fit:contain;border-radius:10px;border:1px solid var(--line);background:#12112a;touch-action:none;cursor:crosshair;display:block}
 .cmd-thumb{width:46px;height:46px;border-radius:8px;object-fit:cover;border:1px solid var(--line-2);flex:none;cursor:pointer}
-.cmd-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px} .cmd-actions .btn{flex:1 1 45%;min-height:44px} .btn.danger{color:var(--bad);border-color:var(--bad)} .cmdrow{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)} .cmdrow .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1} .cmdrow .s{color:var(--fg-2);font-size:.9rem;overflow-wrap:anywhere}
+
+/* Modern Messaging Composer Bar: [🤖 Claude Yapsın | 🔍 Gemini İncelesin] + [Gönder ➤] */
+.cmd-composer-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;flex-wrap:wrap}
+.cmd-target-seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:3px;gap:3px;flex:1;min-width:210px}
+.cmd-target-seg .t-opt{flex:1;border:0;background:transparent;color:var(--fg-2);border-radius:11px;padding:8px 10px;min-height:38px;font-weight:800;font-size:.82rem;display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,box-shadow .15s}
+.cmd-target-seg .t-opt[aria-pressed="true"]{background:var(--surface);color:var(--brand-ink);font-weight:900;box-shadow:0 2px 8px rgba(19,18,43,.09)}
+.cmd-send-btn{border:0;border-radius:14px;padding:0 18px;min-height:44px;font-weight:900;font-size:.9rem;background:linear-gradient(135deg,var(--brand) 0%,#6c56f5 100%);color:#fff;display:inline-flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;box-shadow:0 8px 18px -6px rgba(80,61,224,.55);transition:transform .12s;flex:none}
+.cmd-send-btn:active{transform:scale(.96)}
+.cmd-send-btn:disabled{opacity:.55;cursor:default}
+.cmd-send-btn .arr{font-size:.88rem}
+
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.cmdrow{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
+.cmdrow .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.cmdrow .s{color:var(--fg-2);font-size:.88rem;overflow-wrap:anywhere}
+.cmdrow-r{display:flex;align-items:center;gap:6px;flex:none}
 .tile .k{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);margin-top:2px}
 .tile .v{font-size:1.08rem;font-weight:900;line-height:1.2;overflow-wrap:anywhere;color:var(--fg)}
 .tile .s{font-size:.85rem;color:var(--fg-2);line-height:1.35}
@@ -214,7 +264,6 @@ main{max-width:720px;margin:0 auto;padding:18px max(16px,env(safe-area-inset-rig
 .bubble{background:var(--surface-2);border-left:3px solid var(--line-2);border-radius:14px;border-top-left-radius:4px;padding:10px 14px;display:flex;flex-direction:column;gap:5px;min-width:0}
 .msg.claude .bubble{border-left-color:var(--claude)} .msg.work .bubble{border-left-color:var(--work)} .msg.deniz .bubble{border-left-color:var(--deniz)} .msg.gemini .bubble{border-left-color:var(--gemini)}
 .bubble .h{display:flex;gap:4px 8px;align-items:baseline;flex-wrap:wrap} .bubble .h b{font-weight:900} .bubble .h .k{font-size:.8rem;font-weight:800;color:var(--fg-2)} .bubble .h time{font-size:.76rem;color:var(--fg-3);flex-basis:100%}
-/* Two voices: "İş" rows are compact system records (small, muted, sans); "Yorum" rows are someone speaking (serif italic, larger, dark, tinted paper). */
 .bubble .m{font-size:.92rem;overflow-wrap:anywhere;color:var(--fg);font-weight:700;line-height:1.42}
 .msg:not(.note) .bubble{border-left-style:dashed;background:var(--surface-2)}
 .msg:not(.note) .bubble .h b{font-size:.9rem}
@@ -242,15 +291,15 @@ details.tech-more .tech-body{margin-top:6px;padding:10px 12px;background:var(--s
 .item .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);flex:none} .item .ic svg{width:19px;height:19px}
 .item .tx{flex:1;min-width:0;display:flex;flex-direction:column}
 .item .tx b{font-weight:800} .item .tx span{font-size:.86rem;color:var(--fg-2);overflow-wrap:anywhere}
-.item .act,.act{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:8px 13px;min-height:40px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;text-decoration:none;white-space:nowrap;font-size:.9rem;flex:none}
+.item .act,.act{border:1px solid var(--line-2);background:var(--surface);color:var(--fg);border-radius:11px;padding:8px 13px;min-height:40px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;text-decoration:none;white-space:nowrap;font-size:.88rem;flex:none}
 .item.wrap{flex-wrap:wrap} .item.wrap .seg{flex:1 1 100%}
 .seg{display:inline-flex;background:var(--surface-2);border-radius:12px;padding:3px;gap:2px}
 .seg button{flex:1;border:0;background:transparent;color:var(--fg-2);border-radius:10px;padding:8px 12px;min-height:38px;font-weight:800;font-size:.9rem;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:var(--shadow)}
-select,input,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;max-width:100%}
+select,input,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line-2);border-radius:13px;padding:10px 12px;max-width:100%}
 textarea{width:100%;min-height:80px;resize:vertical}
-.btn{border:0;border-radius:12px;padding:11px 16px;min-height:44px;font-weight:900;cursor:pointer;background:var(--brand);color:#fff;display:inline-flex;align-items:center;justify-content:center}
-.btn.gold{background:var(--gold);color:#17162f} .btn.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--line)} .btn:disabled{opacity:.6;cursor:default}
+.btn{border:0;border-radius:13px;padding:11px 16px;min-height:44px;font-weight:900;cursor:pointer;background:var(--brand);color:#fff;display:inline-flex;align-items:center;justify-content:center}
+.btn.gold{background:var(--gold);color:#17162f} .btn.ghost{background:var(--surface);color:var(--fg);border:1px solid var(--line-2)} .btn:disabled{opacity:.6;cursor:default}
 .form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px} .form label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;font-weight:800;color:var(--fg-2);min-width:0} .form label.full{grid-column:1/-1} .form input,.form select{width:100%}
 .form .actions{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 /* store */
@@ -264,27 +313,35 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .rev .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap} .rev .h b{font-weight:800} .rev .h time{font-size:.78rem;color:var(--fg-3)}
 .rev .m{font-size:.95rem;overflow-wrap:anywhere} .rev .reply{background:var(--surface-2);border-radius:10px;padding:8px 12px;font-size:.88rem;color:var(--fg-2)}
 .track{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:var(--r-s);background:var(--surface-2)} .track b{font-weight:900} .track span{font-size:.88rem;color:var(--fg-2)}
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
-.tabs button{flex:1;max-width:140px;border:0;background:transparent;color:var(--fg-3);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:12px;font-weight:800;font-size:.7rem;cursor:pointer;position:relative}
-.tabs button svg{width:24px;height:24px} .tabs button[aria-selected="true"]{color:var(--brand)} .tabs button[aria-selected="true"] .pill{background:var(--brand-soft)}
-.tabs .pill{padding:3px 14px;border-radius:999px;display:grid}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--glass);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);border-top:1px solid var(--line);box-shadow:0 -8px 28px -12px rgba(19,18,43,.12);display:flex;justify-content:space-around;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.tabs button{flex:1;max-width:140px;border:0;background:transparent;color:var(--fg-3);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:14px;font-weight:800;font-size:.71rem;cursor:pointer;position:relative;transition:color .15s}
+.tabs button svg{width:23px;height:23px} .tabs button[aria-selected="true"]{color:var(--brand)} .tabs button[aria-selected="true"] .pill{background:var(--brand-soft)}
+.tabs .pill{padding:3px 15px;border-radius:999px;display:grid;transition:background .15s}
 .tabs .badge{position:absolute;top:2px;right:calc(50% - 22px);min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:900;display:grid;place-items:center;padding:0 5px}
 #gate{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,#1b1a3e,#2a2466 60%,#3a2a7a);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
 #gate form{width:min(420px,100%);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:26px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.35);backdrop-filter:blur(8px)}
 #gate input{background:rgba(0,0,0,.25);color:#fff;border-color:rgba(255,255,255,.2);font-size:1rem}
 #gate .msg{min-height:1.2em;font-size:.9rem;color:#9af0bb;display:block}
 #gate .langs{display:flex;gap:8px;justify-content:center} #gate .langs button{border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:999px;padding:5px 12px;font-weight:800;font-size:.82rem;cursor:pointer} #gate .langs button[aria-pressed="true"]{background:#fff;color:#1b1a3e}
-.banner{background:var(--warn-soft);color:var(--warn);border-radius:var(--r-s);padding:10px 14px;font-weight:800;font-size:.9rem;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.banner{background:var(--warn-soft);color:var(--warn);border-radius:var(--r-s);padding:10px 14px;font-weight:800;font-size:.88rem;display:flex;gap:10px;align-items:center;justify-content:space-between}
 @media (prefers-reduced-motion:no-preference){.chip.good.dot::before{animation:beat 2.6s ease-in-out infinite}@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}}
 @media (min-width:720px){.grid2{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
 </head>
 <body>
-<header class="top">
-  <button class="iconbtn" id="menuBtn" type="button" aria-label="Menü" data-i18n-aria="ui.menu"></button>
-  <button class="title" id="titleBtn" type="button" aria-label="Oyun seç" data-i18n-aria="ui.pickGame"><b id="topTitle">Oryvona Games</b><span id="topSub" data-i18n="ui.studio">Stüdyo paneli</span></button>
-  <img src="logo.png" alt="Oryvona Games">
-  <button class="iconbtn" id="refreshBtn" type="button" aria-label="Yenile" data-i18n-aria="ui.refresh"></button>
+<header class="app-shell-top">
+  <div class="app-top-inner">
+    <div class="app-head">
+      <button class="iconbtn" id="menuBtn" type="button" aria-label="Menü" data-i18n-aria="ui.menu"></button>
+      <button class="title" id="titleBtn" type="button" aria-label="Oyun seç" data-i18n-aria="ui.pickGame">
+        <span class="eyebrow"><img src="icon-192.png" alt=""> ORYVONA KOMUTA MERKEZİ</span>
+        <span class="title-row"><b id="topTitle">KOZA</b><span class="chip sm good" id="topLocChip">DJ-KABIN · Aktif</span></span>
+        <span id="topSub" data-i18n="ui.studio">Stüdyo paneli</span>
+      </button>
+      <button class="iconbtn" id="refreshBtn" type="button" aria-label="Yenile" data-i18n-aria="ui.refresh"></button>
+    </div>
+    <div class="game-bar" id="gameSwitcherBar" role="navigation" aria-label="Oyun Seçici Bar"></div>
+  </div>
 </header>
 
 <div class="drawer" id="drawer" hidden>
@@ -316,6 +373,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <span class="k" data-i18n="home.whatNow">Şimdi ne yapmalıyım?</span>
         <span class="v" id="nowActionText">Proje durumu yükleniyor…</span>
       </div>
+      <div class="ctx-actions" id="nowCtxActions"></div>
     </div>
     <div class="band">
       <div class="band-top"><span class="k" data-i18n="home.now">Şu an</span><span class="chip dot onnavy" id="fresh">Bağlanıyor…</span></div>
@@ -324,14 +382,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <svg class="ring" id="ring" viewBox="0 0 100 100" role="img" aria-label="Aşama ilerlemesi"></svg>
       </div>
       <div class="hero-play" id="heroPlay">
-        <button type="button" class="play-cta" id="playNowBtn">
-          <span class="play-ic">🎮</span>
-          <span class="play-tx"><b data-i18n="play.btn">Son Sürümü Telefonumda Aç</b><small id="playVerSub">Canlı dokunmatik test ve önizleme ekranı</small></span>
-          <span class="play-arr">›</span>
-        </button>
-        <div class="play-quick">
-          <button type="button" class="play-qbtn ok" data-quick-play="approve" data-i18n="play.approve">✅ Onaylıyorum</button>
-          <button type="button" class="play-qbtn fix" data-quick-play="fix" data-i18n="play.fix">🛠️ Şurası Olmamış (Düzelt)</button>
+        <div class="play-row">
+          <button type="button" class="play-cta" id="playNowBtn">
+            <span class="play-ic" id="playBtnIcon">🎮</span>
+            <span class="play-tx"><b id="playBtnTitle" data-i18n="play.btn">Oyunu Aç / Test Et</b><small id="playVerSub">Canlı test adresini veya APK paketini açar</small></span>
+            <span class="play-arr">↗</span>
+          </button>
+          <button type="button" class="play-link-btn" id="editLinkBtn" title="Test Linki / APK Adresi Ekle veya Düzenle" aria-label="Test Linki / APK Adresi">🔗</button>
         </div>
       </div>
     </div>
@@ -358,7 +415,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     <button class="tile wide quote-tile" id="cardWork" data-detail="worknote" hidden><span class="ic work" id="icWork"></span><span class="tx"><span class="k"><span id="cardWorkLabel" data-i18n="home.workNote">Ekipten son not</span> <span class="tag yorum" data-i18n="ui.comment">Yorum</span></span><span class="v" id="cWork">—</span><span class="s quote" id="cWorkS" style="font-size:.96rem"></span></span></button>
     <button class="tile wide" id="cardGemini" data-detail="gemini" hidden><span class="ic gemini" id="icGemini">G</span><span class="tx"><span class="k"><span data-i18n="gemini.title">Gemini İncelemesi</span> <span class="tag yorum" data-i18n="ui.comment">Yorum</span></span><span class="v" id="cGemini">—</span><span class="s" id="cGeminiS"></span></span></button>
     <div class="card" id="cmdBox" hidden>
-      <div class="hd"><b data-i18n="cmd.title">Komut Kutusu</b><span data-i18n="cmd.sub">Hazır tuşlardan birine dokun veya istediğin görevi yaz</span></div>
+      <div class="hd"><b data-i18n="cmd.title">Komut Kutusu</b><span data-i18n="cmd.sub">Hazır tuşa dokun, sesle konuş veya görsel ekle; hedefi seçip gönder</span></div>
       <div class="cmd-chips" id="cmdChips">
         <button type="button" class="chip-btn" data-preset="check" data-i18n="cmd.p1">🔍 Son durumu kontrol et</button>
         <button type="button" class="chip-btn" data-preset="fix" data-i18n="cmd.p2">🛠️ Son hatayı düzelt</button>
@@ -383,13 +440,14 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <canvas id="cmdAnnotCanvas" width="360" height="220"></canvas>
         <span class="detail" data-i18n="cmd.drawHint">Görselin üzerine parmağınla dokunarak sorunlu yeri kırmızıyla işaretleyebilirsin.</span>
       </div>
-      <div class="cmd-actions">
-        <button type="button" class="btn gold" data-cmd="claude_do" data-i18n="cmd.claude">Claude'a Yaptır</button>
-        <button type="button" class="btn ghost" data-cmd="gemini_review" data-i18n="cmd.gemini">Gemini'ye İncelet</button>
-        <button type="button" class="btn ghost" data-cmd="approve" data-i18n="cmd.approve">Onayla</button>
-        <button type="button" class="btn ghost danger" data-cmd="stop" data-i18n="cmd.stop">Durdur</button>
+      <div class="cmd-composer-bar">
+        <div class="cmd-target-seg" id="cmdTargetSeg" role="group" aria-label="Hedef Seçici">
+          <button type="button" class="t-opt" data-target="claude_do" aria-pressed="true">🤖 <span data-i18n="cmd.targetClaude">Claude Yapsın</span></button>
+          <button type="button" class="t-opt" data-target="gemini_review" aria-pressed="false">🔍 <span data-i18n="cmd.targetGemini">Gemini İncelesin</span></button>
+        </div>
+        <button type="button" class="cmd-send-btn" id="cmdSendBtn"><span data-i18n="cmd.send">Gönder</span> <span class="arr">➤</span></button>
       </div>
-      <div class="s" id="cmdMsg" style="min-height:1.2em;margin-top:6px"></div>
+      <div class="s" id="cmdMsg" style="min-height:1.2em;margin-top:4px"></div>
       <div class="secthead" data-i18n="cmd.recent">Son komutlar</div>
       <div id="cmdList"></div>
     </div>
@@ -461,7 +519,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     </div>
     <div class="secthead" data-i18n="set.app">Uygulama</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 2.5 · Canlı Komuta Merkezi</span></div></div>
+      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 2.6 · Premium Komuta Merkezi</span></div></div>
       <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b data-i18n="set.apk">Android kurulum dosyası</b><span data-i18n="set.apkSub">Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/latest" target="_blank" rel="noopener" data-i18n="ui.download">İndir</a></div>
       <div class="item"><span class="ic" id="icHelp"></span><div class="tx"><b data-i18n="ui.terms">Terimler ve roller</b><span data-i18n="set.termsSub">Claude, OpenAI, Gemini ve süreç adımları</span></div><button class="act" type="button" data-detail="terms" data-i18n="ui.open">Aç</button></div>
     </div>
@@ -473,31 +531,33 @@ textarea{width:100%;min-height:80px;resize:vertical}
   </section>
 </main>
 
-<div id="playModal" hidden role="dialog" aria-modal="true" aria-label="Telefon Test Önizlemesi">
-  <div class="pm-card">
-    <div class="pm-head">
-      <div class="pm-title">
-        <b id="playModalTitle">KOZA · v0.9.5 Test Önizlemesi</b>
-        <span id="playModalSub">🔇 Sessiz dokunmatik test alanı · dokun veya sürükle</span>
+<div id="linkModal" hidden role="dialog" aria-modal="true" aria-label="Test Linki ve APK Adresi">
+  <form class="lm-card" id="linkModalForm">
+    <div class="lm-head">
+      <div>
+        <b id="linkModalTitle">🔗 Test Linki / APK Adresi Ekle</b>
+        <span id="linkModalSub">Oyunun gerçek web test adresini veya APK / Google Play test bağlantısını girin</span>
       </div>
-      <button type="button" class="iconbtn" id="playCloseBtn" aria-label="Kapat">✕</button>
+      <button type="button" class="lm-close" id="linkModalClose" aria-label="Kapat">✕</button>
     </div>
-    <div class="pm-scenes" id="playScenes"></div>
-    <div class="pm-stage">
-      <canvas id="playCanvas" width="358" height="420"></canvas>
-      <div class="pm-hud">
-        <span id="playTouchInfo">Dokunuş: 0 · Hedef testi hazır</span>
-        <button type="button" class="play-qbtn" id="playSnapBtn" style="min-height:32px;padding:4px 10px;font-size:.75rem" data-i18n="play.snap">📸 Bu Anı Göreve Ekle</button>
-      </div>
+    <div class="lm-fields">
+      <label><span data-i18n="play.lblWeb">🌐 Canlı Web Test Adresi (Web tabanlı oyunlar için)</span>
+        <input type="url" id="inpWebUrl" placeholder="https://denizdalga998-boop.github.io/koza/">
+      </label>
+      <label><span data-i18n="play.lblApk">📦 Son Üretilen APK İndirme Linki</span>
+        <input type="url" id="inpApkUrl" placeholder="https://github.com/.../releases/download/.../oyun.apk">
+      </label>
+      <label><span data-i18n="play.lblPlay">▶️ Google Play Kapalı / İç Test Linki</span>
+        <input type="url" id="inpPlayUrl" placeholder="https://play.google.com/apps/testing/com.oryvonagames...">
+      </label>
     </div>
-    <div class="pm-foot">
-      <div class="play-quick">
-        <button type="button" class="play-qbtn ok" data-quick-play="approve" style="min-height:44px;font-size:.86rem" data-i18n="play.approve">✅ Onaylıyorum</button>
-        <button type="button" class="play-qbtn fix" data-quick-play="fix" style="min-height:44px;font-size:.86rem" data-i18n="play.fix">🛠️ Şurası Olmamış (Düzelt)</button>
-      </div>
-      <div id="playModalMsg" style="font-size:.82rem;text-align:center;color:#9af0bb;min-height:1.2em;font-weight:800"></div>
+    <div class="detail" id="linkModalMsg"></div>
+    <div class="lm-foot">
+      <button type="button" class="btn ghost" id="linkModalOpenNow" hidden data-i18n="play.openNow">Yeni Sekmede Aç ↗</button>
+      <button type="button" class="btn ghost" id="linkModalCancel" data-i18n="ui.cancel">Vazgeç</button>
+      <button type="submit" class="btn gold" data-i18n="ui.save">Kaydet</button>
     </div>
-  </div>
+  </form>
 </div>
 
 <nav class="tabs" role="tablist" aria-label="Bölümler">
@@ -552,9 +612,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
   // ---------- language (TR default, EN) ----------
   const L={};
   L.tr={
-    ui:{menu:"Menü",pickGame:"Oyun seç",studio:"Stüdyo paneli",refresh:"Yenile",games:"Oyunlar",help:"Yardım",terms:"Terimler ve roller",waiting:"Bekleme",comment:"Yorum",work:"İş",all:"Hepsi",cloudTest:"Bulut testi",back:"Geri",edit:"Düzenle",download:"İndir",open:"Aç",noData:"Veri yok",none:"Henüz yok",save:"Kaydet",cancel:"Vazgeç",add:"Ekle",delete:"Sil",close:"Kapat",yes:"Evet",you:"sen",owner:"sahip",connecting:"Bağlanıyor…",loginNeeded:"Giriş gerekli",connErr:"Bağlantı hatası",live:v=>"Canlı · "+v,lastMove:v=>"Son hareket "+v,optional:"isteğe bağlı"},
+    ui:{menu:"Menü",pickGame:"Oyun seç",studio:"Stüdyo Komuta Merkezi",refresh:"Yenile",games:"Oyunlar",help:"Yardım",terms:"Terimler ve roller",waiting:"Bekleme",comment:"Yorum",work:"İş",all:"Hepsi",cloudTest:"Bulut testi",back:"Geri",edit:"Düzenle",download:"İndir",open:"Aç",noData:"Veri yok",none:"Henüz yok",save:"Kaydet",cancel:"Vazgeç",add:"Ekle",delete:"Sil",close:"Kapat",yes:"Evet",you:"sen",owner:"sahip",connecting:"Bağlanıyor…",loginNeeded:"Giriş gerekli",connErr:"Bağlantı hatası",live:v=>"Canlı · "+v,lastMove:v=>"Son hareket "+v,optional:"isteğe bağlı"},
     tab:{home:"Özet",feed:"Akış",tests:"Testler",store:"Mağaza",settings:"Ayarlar"},
-    games:{sub:"Stüdyodaki projeler · dokununca paneli açılır",noStatus:"Henüz durum verisi yok",noProjects:"Henüz proje yok.",allGames:"Tüm oyunlar"},
+    games:{sub:"Stüdyodaki 4 oyunumuz · dokununca komuta paneli açılır",noStatus:"Henüz durum verisi yok",noProjects:"Henüz proje yok.",allGames:"Tüm oyunlar (4)"},
     home:{whatNow:"Şimdi ne yapmalıyım?",whatNowMap:{
         USER_TEST_READY:"Sıra sende: Oyunu telefonunda deneyip son onayını verebilirsin.",
         BLOCKED:"Teknik bir sınır var: Komut Kutusu'ndan ekibe yeni yönlendirme verebilirsin.",
@@ -579,9 +639,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
     feed:{title:"Ekip akışı",week:"Bu hafta",records:"Kayıtlar",notes:"Notlar",empty:"Henüz akış kaydı yok.",emptyFilter:"Bu süzgeçte kayıt yok.",last7:"son 7 gün",turns:"Tur",turnsSub:"sıra el değiştirdi",runsSub:n=>`${n} tanesi sorunsuz`,noRuns:"koşu yok",workTime:"çalışma süresi",reviewTime:"inceleme süresi",today:"Bugün",hm:(h,m)=>`${h} sa ${m} dk`,min:m=>`${m} dk`,hr:h=>`${h} sa`,worked:v=>v+" çalıştı",waitFor:v=>"Bekleme: "+v,nowLabel:"şimdi"},
     tests:{title:"Testler",code:"Kod testleri",browser:"Tarayıcı testleri",natural:"Gerçek oynanış",lifecycle:"Sekme / Turu bitir",allPassed:"Hepsi geçti",missing:"Eksik var",waiting:"Bekleniyor",pass:"Geçti",blocked:"Engel",fail:"Hata",blockedSub:"Altyapı sınırı, oyun hatası değil",failSub:"Gerçek bir sorun bulundu",notRun:"Henüz koşmadı",runLog:"Detaylı test raporu: ",openReport:"Son test raporunu aç ›",noRun:"Henüz bulut testi yapılmadı.",history:"Test geçmişi",noHistory:"Test geçmişi yok.",rowCode:"Kod",rowBrowser:"Tarayıcı",rowNatural:"Oynanış",rowLife:"Sekme / çıkış",cellPass:"geçti",cellBlocked:"engel",cellFail:"hata",cellNone:"koşmadı",lastRun:"Son test notu: "},
     gemini:{title:"Gemini İncelemesi",sub:"Bağımsız kalite kontrol · sırayı etkilemez, ikinci görüş sunar",pass:"Geçti",fail:"Sorun Buldu",unverified:"Kanıt Bekliyor",blocked:"Durduruldu",matchYes:"OpenAI ile aynı fikirde",matchNo:"OpenAI'dan farklı görüşte",matchUnknown:"OpenAI kararı bekleniyor",none:"Henüz Gemini incelemesi yok.",err:v=>"Durum: "+v,dur:v=>v+" sn sürdü",geminiSaid:v=>`Gemini'nin ilk değerlendirmesi: ${v}`,source:{gemini:"Doğrudan inceleme",'runner-override':"Eksik kanıt nedeniyle beklemeye alındı",'runner-fallback':"Teknik eksiklik nedeniyle tamamlanamadı"},task:"İncelenen iş: "},
-    cmd:{title:"Komut Kutusu",sub:"Hazır tuşlardan birine dokun, sesle konuş veya görsel ekleyerek görev ver",ph:"Yapılmasını istediğin görevi kısaca yaz veya sesle söyle…",
+    cmd:{title:"Komut Kutusu",sub:"Görevini yaz veya sesle söyle, hedefi seçip Gönder'e dokun",ph:"Yapılmasını istediğin görevi veya inceleme notunu kısaca yaz…",
       p1:"🔍 Son durumu kontrol et",p2:"🛠️ Son hatayı düzelt",p3:"📱 Dokunmatik testi çalıştır",p4:"📦 Mağaza durumunu özetle",
-      voice:"Sesle Yaz",voiceStop:"Dinliyor… (Durdur)",voiceUnsup:"Tarayıcınız doğrudan sesle yazmayı desteklemiyor; klavyedeki mikrofon tuşunu kullanabilirsiniz.",voiceDone:"Ses metne çevrildi · aşağıdan kimin yapacağını seç.",
+      voice:"Sesle Yaz",voiceStop:"Dinliyor… (Durdur)",voiceUnsup:"Tarayıcınız doğrudan sesle yazmayı desteklemiyor; klavyedeki mikrofon tuşunu kullanabilirsiniz.",voiceDone:"Ses metne çevrildi · hedefi seçip Gönder'e dokun.",
       attachImg:"Ekran Görüntüsü / Görsel Ekle",draw:"✏️ İşaretle",clearDraw:"↺ Temizle",removeImg:"✕ Kaldır",drawHint:"Görselin üzerine parmağınla dokunarak sorunlu yeri kırmızıyla işaretleyebilirsin.",imgReady:"📸 Görsel Kanıt Hazır",
       presets:{
         check:"Son teslim edilen çalışmayı ve kanıtları kontrol edip durumu Türkçe özetle.",
@@ -589,16 +649,30 @@ textarea{width:100%;min-height:80px;resize:vertical}
         touch:"Dokunmatik kontrol testlerini bulut ortamında doğrula ve kanıt paketini güncelle.",
         store:"Play Store yayın hazırlığını, açık eksikleri ve mağaza durumunu kısaca özetle."
       },
-      presetReady:"Hazır görev kutuya yazıldı; aşağıdan kimin yapacağını seç.",
-      claude:"Claude'a Yaptır",gemini:"Gemini'ye İncelet",approve:"Onayla",stop:"Durdur",sent:"Gönderildi · sistem sıradaki komutu otomatik işleme alacak",fail:"Gönderilemedi: ",needText:"Önce görevi yaz, sesle söyle veya üstteki hazır tuşlardan birine dokun.",confirmStop:"Çalışan iş kesilsin ve sıradaki komutlar iptal edilsin mi?",recent:"Son komutlar",none:"Henüz komut gönderilmedi.",notTable:"Komut kutusu bağlantısı hazırlanıyor.",demo:"Örnek görünümde komut yerel listeye eklendi.",st:{queued:"sırada",running:"çalışıyor",done:"tamamlandı",failed:"sorun oluştu",cancelled:"iptal edildi"},act:{claude_do:"Claude'a Görev",gemini_review:"Gemini İncelemesi",approve:"Deniz Onayı",stop:"Durdurma"}},
-    play:{btn:"Son Sürümü Telefonumda Aç",sub:v=>`${v} · Canlı dokunmatik test ve önizleme`,approve:"✅ Onaylıyorum",fix:"🛠️ Şurası Olmamış (Düzelt)",snap:"📸 Bu Anı Göreve Ekle",approvedMsg:"✅ Onayınız kaydedildi ve ekip akışına iletildi!",fixPre:v=>`[${v} Telefon Testi] Son sürümü telefonumda denedim; şu noktada düzeltme gerekiyor: `,snapAdded:"📸 Önizleme görüntüsü Komut Kutusu'na eklendi; üzerini işaretleyip gönderebilirsin."},
+      presetReady:"Hazır görev kutuya yazıldı; hedefi kontrol edip Gönder ➤ tuşuna dokun.",
+      targetClaude:"🤖 Claude Yapsın",targetGemini:"🔍 Gemini İncelesin",send:"Gönder ➤",
+      targetPickedClaude:"Hedef: Claude (Geliştirme) · Göndermek için Gönder ➤ tuşuna dokun.",
+      targetPickedGemini:"Hedef: Gemini (Bağımsız İnceleme) · Göndermek için Gönder ➤ tuşuna dokun.",
+      claude:"Claude Yapsın",gemini:"Gemini İncelesin",approve:"Onayla",stop:"Durdur",
+      sent:"Gönderildi · sistem sıradaki komutu otomatik işleme alacak",
+      approvedSent:"✅ Onayınız kaydedildi ve ekip akışına iletildi.",
+      stoppedSent:"⏹️ Durdurma komutu gönderildi.",
+      fail:"Gönderilemedi: ",needText:"Önce görevi yaz, sesle söyle veya üstteki hazır tuşlardan birine dokun.",confirmStop:"Çalışan iş kesilsin ve sıradaki komutlar iptal edilsin mi?",recent:"Son komutlar",none:"Henüz komut gönderilmedi.",notTable:"Komut kutusu bağlantısı hazırlanıyor.",demo:"Örnek görünümde komut listeye eklendi.",st:{queued:"sırada",running:"çalışıyor",done:"tamamlandı",failed:"sorun oluştu",cancelled:"iptal edildi"},act:{claude_do:"Claude'a Görev",gemini_review:"Gemini İncelemesi",approve:"Deniz Onayı",stop:"Durdurma"}},
+    play:{btn:"Oyunu Aç / Test Et",btnWeb:"🎮 Oyunu Aç / Test Et (Canlı Web)",btnApk:"📲 APK İndir / Test Et",btnPlay:"▶️ Google Play Testini Aç",btnAdd:"🔗 Test Linki / APK Adresi Ekle",
+      subWeb:v=>`${v} · Canlı web test sürümü yeni sekmede açılır`,
+      subApk:v=>`${v} · Son üretilen APK / Play test bağlantısı hazır`,
+      subMissing:v=>`${v} · Henüz test/APK adresi girilmedi (eklemek için dokun)`,
+      lblWeb:"Canlı Web Test Adresi (Web tabanlı oyunlar için)",
+      lblApk:"Son Üretilen APK İndirme Linki (Mobil/APK oyunlar için)",
+      lblPlay:"Google Play Kapalı/Açık Test Linki",
+      openNow:"Kaydet ve Şimdi Aç",saved:"Test bağlantısı kaydedildi."},
     rdy:{title:"Mağazaya Hazırlık Durumu",sub:"Play Store yayın kontrol listesi",readyPct:v=>`%${v} Mağazaya Hazır`},
     digest:{title:"📊 Haftalık Stüdyo Özeti",sub:"Son 7 gün · Yönetici özeti"},
     det:{turn:"Sıra kimde",stage:"Oyun nerede",qa:"Son bulut testi",auto:"Otomasyon",worknote:"OpenAI'dan son not",gemini:"Gemini İncelemesi",terms:"Terimler ve roller",noTask:"Aktif görev yok",taskCode:(id,t)=>`Görev: ${id} · ${t}. tur`,lock:(who,at)=>` · ${who} çalışıyor (${at})`,lockFree:" · şu an kimse çalışmıyor",
       pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`Yapılan her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI otomatik geçişi",on:"etkin",off:"kapalı",wakeSub:v=>`Claude çalışmasını bitirince OpenAI kendiliğinden devreye girer. Son hareket: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Claude görev geldiğinde otomatik veya Komut Kutusu ile çalışır.",repo:"Proje bağlantısı: ",openRepo:"Proje sayfasını aç ›",lastPush:v=>` · son güncelleme ${v}`,openCommit:"Son değişikliği gör ›",last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
       workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar"},
-    terms:[["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Gemini","Bağımsız denetçi. Teslim edilen işi ikinci bir göz olarak inceler ve yöneticiye özet sunar."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Telefonundan ekibe tek dokunuşla, sesle veya ekran görüntüsüyle görev vermeni sağlayan komuta alanı."]],
-    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 2.5 · Canlı Komuta Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Claude, OpenAI, Gemini ve süreç adımları",
+    terms:[["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Gemini","Bağımsız denetçi. Teslim edilen işi ikinci bir göz olarak inceler ve yöneticiye özet sunar."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Hedef seçerek (Claude veya Gemini) sesle, yazıyla veya ekran görüntüsüyle görev vermeni sağlayan alan."]],
+    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 2.6 · Premium Komuta Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Claude, OpenAI, Gemini ve süreç adımları",
       demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · ${src}`,ghSignal:"Canlı senkronizasyon aktif",noDataYet:"Henüz veri yok",
       pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
     pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
@@ -619,9 +693,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
       events_track_change:"Mağaza durumu değişti"}
   };
   L.en={
-    ui:{menu:"Menu",pickGame:"Pick a game",studio:"Studio panel",refresh:"Refresh",games:"Games",help:"Help",terms:"Terms and roles",waiting:"Waiting",comment:"Comment",work:"Action",all:"All",cloudTest:"Cloud test",back:"Back",edit:"Edit",download:"Download",open:"Open",noData:"No data",none:"None yet",save:"Save",cancel:"Cancel",add:"Add",delete:"Delete",close:"Close",yes:"Yes",you:"you",owner:"owner",connecting:"Connecting…",loginNeeded:"Sign-in needed",connErr:"Connection error",live:v=>"Live · "+v,lastMove:v=>"Last activity "+v,optional:"optional"},
+    ui:{menu:"Menu",pickGame:"Pick a game",studio:"Studio Command Center",refresh:"Refresh",games:"Games",help:"Help",terms:"Terms and roles",waiting:"Waiting",comment:"Comment",work:"Action",all:"All",cloudTest:"Cloud test",back:"Back",edit:"Edit",download:"Download",open:"Open",noData:"No data",none:"None yet",save:"Save",cancel:"Cancel",add:"Add",delete:"Delete",close:"Close",yes:"Yes",you:"you",owner:"owner",connecting:"Connecting…",loginNeeded:"Sign-in needed",connErr:"Connection error",live:v=>"Live · "+v,lastMove:v=>"Last activity "+v,optional:"optional"},
     tab:{home:"Overview",feed:"Activity",tests:"Tests",store:"Store",settings:"Settings"},
-    games:{sub:"Projects in the studio · tap to open its panel",noStatus:"No status data yet",noProjects:"No projects yet.",allGames:"All games"},
+    games:{sub:"4 studio games · tap to open its command panel",noStatus:"No status data yet",noProjects:"No projects yet.",allGames:"All games (4)"},
     home:{whatNow:"What should I do now?",whatNowMap:{
         USER_TEST_READY:"Your turn: Try the game on your phone and give final approval.",
         BLOCKED:"Technical limit: You can guide the team from the Command Box below.",
@@ -646,9 +720,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
     feed:{title:"Team activity",week:"This week",records:"Records",notes:"Notes",empty:"No activity yet.",emptyFilter:"No records for this filter.",last7:"last 7 days",turns:"Turns",turnsSub:"hand-overs",runsSub:n=>`${n} clean`,noRuns:"no runs",workTime:"working time",reviewTime:"review time",today:"Today",hm:(h,m)=>`${h} h ${m} min`,min:m=>`${m} min`,hr:h=>`${h} h`,worked:v=>v+" worked",waitFor:v=>"Waiting: "+v,nowLabel:"now"},
     tests:{title:"Tests",code:"Code tests",browser:"Browser tests",natural:"Real gameplay",lifecycle:"Tab switch / finish run",allPassed:"All passed",missing:"Some missing",waiting:"Waiting",pass:"Passed",blocked:"Blocked",fail:"Failed",blockedSub:"Infrastructure limit, not a game bug",failSub:"A real problem was found",notRun:"Not run yet",runLog:"Detailed test report: ",openReport:"Open latest test report ›",noRun:"No cloud test run yet.",history:"Test history",noHistory:"No test history.",rowCode:"Code",rowBrowser:"Browser",rowNatural:"Gameplay",rowLife:"Tab / quit",cellPass:"passed",cellBlocked:"blocked",cellFail:"failed",cellNone:"not run",lastRun:"Latest test note: "},
     gemini:{title:"Gemini Review",sub:"Independent quality review · never changes the turn, offers a second opinion",pass:"Passed",fail:"Found Issues",unverified:"Awaiting Evidence",blocked:"Blocked",matchYes:"Agrees with OpenAI",matchNo:"Differs from OpenAI",matchUnknown:"Waiting for OpenAI's verdict",none:"No Gemini review yet.",err:v=>"Status: "+v,dur:v=>v+" s",geminiSaid:v=>`Gemini's initial verdict: ${v}`,source:{gemini:"Direct review",'runner-override':"Held: missing evidence",'runner-fallback':"Incomplete due to technical limit"},task:"Reviewed work: "},
-    cmd:{title:"Command Box",sub:"Tap a preset, speak by voice, or attach a screenshot",ph:"Briefly describe what you want done…",
+    cmd:{title:"Command Box",sub:"Write or dictate a task, pick the target below, and tap Send",ph:"Briefly describe the task or review note…",
       p1:"🔍 Check latest status",p2:"🛠️ Fix latest issue",p3:"📱 Run touch test",p4:"📦 Summarize store status",
-      voice:"Voice Dictate",voiceStop:"Listening… (Stop)",voiceUnsup:"Voice recognition is not supported in this browser; use your keyboard mic.",voiceDone:"Voice transcribed · pick who should run it below.",
+      voice:"Voice Dictate",voiceStop:"Listening… (Stop)",voiceUnsup:"Voice recognition is not supported in this browser; use your keyboard mic.",voiceDone:"Voice transcribed · pick target and tap Send.",
       attachImg:"Attach Screenshot / Image",draw:"✏️ Mark",clearDraw:"↺ Clear",removeImg:"✕ Remove",drawHint:"Touch and drag on the image to circle the issue in red.",imgReady:"📸 Visual Evidence Ready",
       presets:{
         check:"Son teslim edilen çalışmayı ve kanıtları kontrol edip durumu Türkçe özetle.",
@@ -656,78 +730,30 @@ textarea{width:100%;min-height:80px;resize:vertical}
         touch:"Dokunmatik kontrol testlerini bulut ortamında doğrula ve kanıt paketini güncelle.",
         store:"Play Store yayın hazırlığını, açık eksikleri ve mağaza durumunu kısaca özetle."
       },
-      presetReady:"Preset written to the box; pick who should run it below.",
-      claude:"Have Claude do it",gemini:"Have Gemini review",approve:"Approve",stop:"Stop",sent:"Sent · the system will pick it up automatically",fail:"Could not send: ",needText:"Write the task first or tap a preset chip above.",confirmStop:"Interrupt the running job and cancel queued commands?",recent:"Recent commands",none:"No commands sent yet.",notTable:"Command box connection is being prepared.",demo:"Command added to local preview list.",st:{queued:"queued",running:"running",done:"completed",failed:"issue",cancelled:"cancelled"},act:{claude_do:"Task for Claude",gemini_review:"Gemini Review",approve:"Owner Approval",stop:"Stop"}},
-    play:{btn:"Open Latest Build on My Phone",sub:v=>`${v} · Live touch test & preview`,approve:"✅ I Approve",fix:"🛠️ Needs Fix (Edit)",snap:"📸 Attach Frame to Task",approvedMsg:"✅ Approval recorded and added to team activity!",fixPre:v=>`[${v} Phone Test] Tested the latest build on my phone; please fix: `,snapAdded:"📸 Preview snapshot attached to Command Box; you can mark it up and send."},
+      presetReady:"Preset written to the box; check the target and tap Send ➤.",
+      targetClaude:"🤖 Claude Does It",targetGemini:"🔍 Gemini Reviews",send:"Send ➤",
+      targetPickedClaude:"Target: Claude (Development) · Tap Send ➤ to dispatch.",
+      targetPickedGemini:"Target: Gemini (Independent Review) · Tap Send ➤ to dispatch.",
+      claude:"Claude Does It",gemini:"Gemini Reviews",approve:"Approve",stop:"Stop",
+      sent:"Sent · the system will pick it up automatically",
+      approvedSent:"✅ Approval recorded and sent to the team.",
+      stoppedSent:"⏹️ Stop command sent.",
+      fail:"Could not send: ",needText:"Write the task first or tap a preset chip above.",confirmStop:"Interrupt the running job and cancel queued commands?",recent:"Recent commands",none:"No commands sent yet.",notTable:"Command box connection is being prepared.",demo:"Command added to local preview list.",st:{queued:"queued",running:"running",done:"completed",failed:"issue",cancelled:"cancelled"},act:{claude_do:"Task for Claude",gemini_review:"Gemini Review",approve:"Owner Approval",stop:"Stop"}},
+    play:{btn:"Open / Test Game",btnWeb:"🎮 Open / Test Game (Live Web)",btnApk:"📲 Download APK / Test",btnPlay:"▶️ Open Google Play Test",btnAdd:"🔗 Add Test Link / APK URL",
+      subWeb:v=>`${v} · Opens live web test build in a new tab`,
+      subApk:v=>`${v} · Latest APK / Play test link ready`,
+      subMissing:v=>`${v} · No test/APK link set yet (tap to add)`,
+      lblWeb:"Live Web Test URL (For web-based games)",
+      lblApk:"Latest APK Download Link (For mobile/APK games)",
+      lblPlay:"Google Play Closed/Open Test URL",
+      openNow:"Save & Open Now",saved:"Test link saved."},
     rdy:{title:"Store Readiness",sub:"Play Store release checklist",readyPct:v=>`${v}% Store Ready`},
     digest:{title:"📊 Weekly Studio Summary",sub:"Last 7 days · Executive digest"},
     det:{turn:"Whose turn",stage:"Where the game is",qa:"Last cloud test",auto:"Automation",worknote:"Latest note from OpenAI",gemini:"Gemini Review",terms:"Terms and roles",noTask:"No active task",taskCode:(id,t)=>`Task: ${id} · round ${t}`,lock:(who,at)=>` · ${who} working (${at})`,lockFree:" · no one working right now",
       pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI auto-handoff",on:"enabled",off:"off",wakeSub:v=>`When Claude finishes, OpenAI steps in automatically. Last activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"Claude runs automatically on new tasks or via the Command Box.",repo:"Project link: ",openRepo:"Open project page ›",lastPush:v=>` · last update ${v}`,openCommit:"View latest change ›",last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
       workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes"},
-    terms:[["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Gemini","Independent auditor. Reviews deliveries as a second pair of eyes and summarizes for the manager."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Lets you assign tasks by preset, voice, or annotated screenshot from your phone."]],
-    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 2.5 · Live Command Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Claude, OpenAI, Gemini and workflow steps",
-      demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · ${src}`,ghSignal:"Canlı senkronizasyon aktif",noDataYet:"Henüz veri yok",
-      pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
-    pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
-    team:{invite:"Davet bağlantısı",inviteSub:"Gönderdiğin kişi kendi e-postasıyla girer; bağlantı bir kez kullanılır, süresi dolunca çalışmaz.",h1:"1 saat",d1:"1 gün",d7:"7 gün",onlyEmail:"Sadece bu e-posta (isteğe bağlı)",create:"Bağlantı oluştur",copy:"Kopyala",manual:"Elle eklemek istersen:",newEmail:"yeni@ekip.com",name:"Ad (isteğe bağlı)",who:"Kimler girdi",lastSeen:(a,n)=>`son giriş ${a} · ${n} kez`,never:"henüz giriş yapmadı",remove:"Çıkar",
-      writeEmail:"E-posta yaz.",addFail:"Eklenemedi: ",added:"Eklendi: ",demoInvite:"Örnek görünümde davet oluşturulamaz.",creating:"Oluşturuluyor…",createFail:"Oluşturulamadı: ",valid:(t,e)=>`Geçerlilik: ${t}'e kadar · tek kullanımlık${e?` · yalnız ${e}`:""}`,copied:"Kopyalandı. WhatsApp vb. ile gönderebilirsin.",copyManual:"Kopyalamak için bağlantıyı seçip kopyala.",removeFail:"Çıkarılamadı: "},
-    gate:{title:"Ekip girişi",text:"E-postanı yaz; sana tek kullanımlık bir giriş bağlantısı gönderelim. Şifre yok.",send:"Giriş bağlantısı gönder",invited:"Davet bağlantısıyla geldin. Kendi e-postanı yaz; gelen bağlantıya dokununca ekibe eklenirsin.",writeEmail:"Önce e-posta yaz.",sending:"Gönderiliyor…",sendFail:"Gönderilemedi: ",sent:"Bağlantı gönderildi. E-postanı aç (gerekirse Gereksiz klasörü) ve bağlantıya dokun; uygulama kendiliğinden açılır.",
-      inviteBad:"Davet geçersiz",inviteFail:v=>`Davet kullanılamadı: ${v} Daveti gönderen kişiden yeni bağlantı iste.`,notTeam:"Bu hesap ekip listesinde değil. Stüdyo sahibinden davet bağlantısı iste.",noAuth:"Yetki yok",noConfig:"Veri kaynağı ayarlı değil",demoBanner:"ÖRNEK VERİ · tasarım önizlemesi, gerçek durum değil"},
-    kind:{console:"Play Console",review:"Yorum",tester:"Testçi",support:"Destek",other:"E-posta"},
-    stage:{development:"Geliştirme",closed_testing:"Kapalı test",open_testing:"Açık test",production:"Yayında",paused:"Durduruldu"},
-    track:{internal:"İç test",alpha:"Kapalı test",beta:"Açık test",production:"Yayın"},
-    trackSt:{completed:"tamamlandı",inProgress:"aşamalı yayında",halted:"durduruldu",draft:"taslak"},
-    store:{title:"Mağaza",addGame:"+ Oyun ekle",gamesSub:"Oyunlar · dokununca takip sayfası açılır",inbox:"Gelen kutusu",unread:"Okunmamış",unmatched:"Eşleşmeyen",noGames:"Henüz mağaza oyunu yok. Sahip \"Oyun ekle\" ile ekler.",noMail:"Bu süzgeçte e-posta yok.",mailWaiting:"Gmail bağlanınca e-postalar burada toplanır.",
-      gmail:"Gmail",play:"Play Console",connected:"bağlı",notConnected:"kurulum bekliyor",syncErr:"hata",lastSync:v=>"son eşitleme "+v,neverSync:"henüz eşitlenmedi",unreadMail:"Okunmamış e-posta",last30d:"Son 30 gün",noSubject:"(Konu başlığı yok)",newReviews:"Yeni yorum",reviews:"Yorumlar",avg:"ortalama",noReviews:"Henüz yorum yok",reviewsLocked:"Yorumlar açık teste geçince gelir",lastEvent:"Son hareket",
-      openGmail:"Gmail'de aç",markRead:"Okundu",markUnread:"Okunmadı yap",assign:"Oyuna bağla",noGame:"— oyun yok —",seen:"Görüldü",newTag:"Yeni",reply:"Geliştirici yanıtı",
-      tracks:"Mağaza durumu",noTracks:"Play Console bağlanınca test/yayın kanalları burada görünür.",versions:"sürüm",rollout:v=>`%${v} kullanıcıya`,emptyTrack:"boş",
-      notes:"Ekip notları",notePh:"Not yaz… (ör. testçi geri bildirimi, yapılacak)",noNotes:"Henüz not yok.",events:"Olaylar",noEvents:"Henüz olay yok.",mailFor:"Bu oyunun e-postaları",links:"Bağlantılar",storeLink:"Play Store sayfası",consoleLink:"Play Console",pkg:"Paket",syncedAt:v=>"Play eşitlemesi "+v,
-      fName:"Oyun adı",fPkg:"Paket adı (com.oryvonagames.x)",fStage:"Aşama",fStore:"Play Store bağlantısı",fConsole:"Play Console bağlantısı",fKeys:"E-posta eşleştirme sözcükleri (virgülle)",fProject:"Geliştirme projesi",fNone:"— yok —",saveFail:"Kaydedilemedi: ",saved:"Kaydedildi.",needName:"Oyun adı gerekli.",confirmDel:"Bu oyunu ve bağlı yorum/not kayıtlarını silmek istiyor musun?",
-      events_track_change:"Mağaza durumu değişti"}
-  };
-  L.en={
-    ui:{menu:"Menu",pickGame:"Pick a game",studio:"Studio panel",refresh:"Refresh",games:"Games",help:"Help",terms:"Terms and roles",waiting:"Waiting",comment:"Comment",work:"Action",all:"All",cloudTest:"Cloud test",back:"Back",edit:"Edit",download:"Download",open:"Open",noData:"No data",none:"None yet",save:"Save",cancel:"Cancel",add:"Add",delete:"Delete",close:"Close",yes:"Yes",you:"you",owner:"owner",connecting:"Connecting…",loginNeeded:"Sign-in needed",connErr:"Connection error",live:v=>"Live · "+v,lastMove:v=>"Last activity "+v,optional:"optional"},
-    tab:{home:"Overview",feed:"Activity",tests:"Tests",store:"Store",settings:"Settings"},
-    games:{sub:"Projects in the studio · tap to open its panel",noStatus:"No status data yet",noProjects:"No projects yet.",allGames:"All games"},
-    home:{whatNow:"What should I do now?",whatNowMap:{
-        USER_TEST_READY:"Your turn: Try the game on your phone and give final approval.",
-        BLOCKED:"Technical limit: You can guide the team from the Command Box below.",
-        CLAUDE_WORKING:"Nothing needed from you right now; Claude is preparing the update.",
-        READY_CLAUDE:"Claude's turn; the next task will start automatically or you can send instructions.",
-        WORK_WORKING:"Nothing needed right now; OpenAI is reviewing the latest test results.",
-        READY_WORK:"Claude finished its work; OpenAI will begin quality review shortly.",
-        default:"System is ready; follow progress here or assign a task below."
-      },
-      now:"Right now",last24:"Last 24 hours · who worked",statusSub:"Status · tap for details",turn:"Whose turn",stage:"Where the game is",qa:"Last test",auto:"Automation",workNote:"Latest note from OpenAI",waitingData:"Waiting for data",waitingSub:"The project's status appears here with the first update.",noRecord:"No record yet",noRecordSub:"Status data for this project will show here once it arrives.",stagesPassed:"stages passed",started:v=>`started ${v}`,passed:(a,b)=>`${a}/${b} passed`,blockedOne:"1 test blocked by infrastructure",allPassed:"All passed",pending:"Some pending",running:"Running",idle:"Idle",lastSignal:v=>"Last signal "+v,lastCheck:v=>"Last check "+v,noSignal:"No signal yet",note:"Note",strip:(n,c,w)=>`${n} turns · Claude ${c} min · OpenAI ${w} min`},
-    turn:{READY_CLAUDE:{v:"Claude",s:"Task waiting",text:"Claude is waiting to pick up the task; the automatic check starts work when it sees the turn."},
-      CLAUDE_WORKING:{v:"Claude working",s:"Task in progress",text:"Claude is doing the task; when done it pushes to the cloud and hands the turn to OpenAI."},
-      READY_WORK:{v:"OpenAI",s:"Awaiting review",text:"Claude pushed its delivery. OpenAI waits for the cloud test to finish and reviews the evidence."},
-      WORK_WORKING:{v:"OpenAI reviewing",s:"Evidence under review",text:"OpenAI is reviewing the cloud test evidence; then it writes the next task and hands the turn to Claude."},
-      BLOCKED:{v:"Blocked",s:"Not a game bug",text:"An infrastructure or access blocker was recorded; it is not a game bug."},
-      USER_TEST_READY:{v:"Deniz",s:"Final test is yours",text:"All mandatory tests passed. Deniz does the final player test; the APK decision comes after."}},
-    turnOf:v=>`${v}'s turn`,
-    state:{READY_CLAUDE:"Claude's turn",CLAUDE_WORKING:"Claude working",READY_WORK:"OpenAI's turn",WORK_WORKING:"OpenAI reviewing",BLOCKED:"blocked",USER_TEST_READY:"Deniz's test"},
-    verb:{claim:"started work",release:"handed over the turn",resume:"resumed",run:"automatic check",note:"left a note"},
-    stageSt:{PASS:"Passed",PARTIAL:"Partial",ACTIVE:"Active",BLOCKED:"Blocked",PENDING:"Queued"},
-    ago:{now:"just now",m:v=>v+" min ago",h:v=>v+" h ago",d:v=>v+" d ago"},
-    feed:{title:"Team activity",week:"This week",records:"Records",notes:"Notes",empty:"No activity yet.",emptyFilter:"No records for this filter.",last7:"last 7 days",turns:"Turns",turnsSub:"hand-overs",runsSub:n=>`${n} clean`,noRuns:"no runs",workTime:"working time",reviewTime:"review time",today:"Today",hm:(h,m)=>`${h} h ${m} min`,min:m=>`${m} min`,hr:h=>`${h} h`,worked:v=>v+" worked",waitFor:v=>"Waiting: "+v,nowLabel:"now"},
-    tests:{title:"Tests",code:"Code tests",browser:"Browser tests",natural:"Real gameplay",lifecycle:"Tab switch / finish run",allPassed:"All passed",missing:"Some missing",waiting:"Waiting",pass:"Passed",blocked:"Blocked",fail:"Failed",blockedSub:"Infrastructure limit, not a game bug",failSub:"A real problem was found",notRun:"Not run yet",runLog:"Detailed test report: ",openReport:"Open latest test report ›",noRun:"No cloud test run yet.",history:"Test history",noHistory:"No test history.",rowCode:"Code",rowBrowser:"Browser",rowNatural:"Gameplay",rowLife:"Tab / quit",cellPass:"passed",cellBlocked:"blocked",cellFail:"failed",cellNone:"not run",lastRun:"Latest test note: "},
-    gemini:{title:"Gemini Review",sub:"Independent quality review · never changes the turn, offers a second opinion",pass:"Passed",fail:"Found Issues",unverified:"Awaiting Evidence",blocked:"Blocked",matchYes:"Agrees with OpenAI",matchNo:"Differs from OpenAI",matchUnknown:"Waiting for OpenAI's verdict",none:"No Gemini review yet.",err:v=>"Status: "+v,dur:v=>v+" s",geminiSaid:v=>`Gemini's initial verdict: ${v}`,source:{gemini:"Direct review",'runner-override':"Held: missing evidence",'runner-fallback':"Incomplete due to technical limit"},task:"Reviewed work: "},
-    cmd:{title:"Command Box",sub:"Tap a quick preset or write a task below",ph:"Briefly describe what you want done…",
-      p1:"🔍 Check latest status",p2:"🛠️ Fix latest issue",p3:"📱 Run touch test",p4:"📦 Summarize store status",
-      presets:{
-        check:"Son teslim edilen çalışmayı ve kanıtları kontrol edip durumu Türkçe özetle.",
-        fix:"Son incelemede veya testlerde tespit edilen hatayı en sade şekilde düzelt.",
-        touch:"Dokunmatik kontrol testlerini bulut ortamında doğrula ve kanıt paketini güncelle.",
-        store:"Play Store yayın hazırlığını, açık eksikleri ve mağaza durumunu kısaca özetle."
-      },
-      presetReady:"Preset written to the box; pick who should run it below.",
-      claude:"Have Claude do it",gemini:"Have Gemini review",approve:"Approve",stop:"Stop",sent:"Sent · the system will pick it up automatically",fail:"Could not send: ",needText:"Write the task first or tap a preset chip above.",confirmStop:"Interrupt the running job and cancel queued commands?",recent:"Recent commands",none:"No commands sent yet.",notTable:"Command box connection is being prepared.",demo:"Commands are not sent in the sample view.",st:{queued:"queued",running:"running",done:"completed",failed:"issue",cancelled:"cancelled"},act:{claude_do:"Task for Claude",gemini_review:"Gemini Review",approve:"Owner Approval",stop:"Stop"}},
-    det:{turn:"Whose turn",stage:"Where the game is",qa:"Last cloud test",auto:"Automation",worknote:"Latest note from OpenAI",gemini:"Gemini Review",terms:"Terms and roles",noTask:"No active task",taskCode:(id,t)=>`Task: ${id} · round ${t}`,lock:(who,at)=>` · ${who} working (${at})`,lockFree:" · no one working right now",
-      pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI auto-handoff",on:"enabled",off:"off",wakeSub:v=>`When Claude finishes, OpenAI steps in automatically. Last activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"Claude runs automatically on new tasks or via the Command Box.",repo:"Project link: ",openRepo:"Open project page ›",lastPush:v=>` · last update ${v}`,openCommit:"View latest change ›",last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
-      workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes"},
-    terms:[["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Gemini","Independent auditor. Reviews deliveries as a second pair of eyes and summarizes for the manager."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Lets you assign tasks or trigger reviews from your phone with one tap."]],
-    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 2.4 · Live Command Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Claude, OpenAI, Gemini and workflow steps",
+    terms:[["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Gemini","Independent auditor. Reviews deliveries as a second pair of eyes and summarizes for the manager."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Choose target (Claude or Gemini), write/dictate or attach screenshot, and tap Send."]],
+    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 2.6 · Premium Command Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Claude, OpenAI, Gemini and workflow steps",
       demoView:"Sample view",notSignedIn:"Not signed in",ownerRole:"Studio owner",memberRole:"Team member",liveInfo:(t,src)=>`Last update ${t} · ${src}`,ghSignal:"Live sync active",noDataYet:"No data yet",
       pushOn:"On",pushOff:"Turn on",pushDemo:"Off in the sample view",pushUnsup:"This browser does not support it",pushDenied:"Notification permission is off; enable it in the phone's app settings",pushActive:"This device receives notifications. If they arrive as \"Chrome\": open phone Settings → Apps → Oryvona → Notifications.",pushIdle:"Alerts you even when the app is closed",pushSaveErr:"Could not save: ",pushAsking:"Asking for permission…",pushClosed:"The permission box closed; tap Turn on again and choose Allow.",pushFail:"Could not enable: ",pushSending:"Sending…",pushSendFail:"Could not send: ",pushSent:n=>`Test sent · ${n} device(s). It arrives within seconds.`},
     pref:{mine:"When the turn comes to me (final test)",blocked:"When a blocker is recorded",turns:"On every hand-over (Claude ↔ OpenAI)",runs:"When a cloud test finishes",store:"Store: new review, mail, status change"},
@@ -770,8 +796,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
     "C02-TOUCH-CONTROL-EVIDENCE":"Dokunmatik Kontrol Testi",
     "C02-KORU-SAMPLE-CADENCE":"Koru Zamanlama Testi",
     "C02-RETRY-CARD":"Kart Seçimi ve Tekrar Oyna Testi",
-    "FR-02-ANVIL-COMBO":"Örs Kombo ve Hız Dengesi",
     "CD-01-DROP-PHYSICS":"Tılsım Düşüş Fiziği ve Efektler",
+    "FR-01-TRANSFER-PREP":"Animasyon PC'den Kaynak Aktarımı",
+    "FR-02-ANVIL-COMBO":"Örs Kombo ve Hız Dengesi",
+    "AE-01-TRANSFER-PREP":"AERYO Proje Paketi Aktarımı",
     "C00":"Hazırlık Aşaması","C01":"Temel Kalite Kontrolü","C02":"Oyun Akışı Kontrolü","C03":"Oynanış ve Denge","C04":"Son Doğrulama","UT":"Deniz Son Testi"
   };
   const ERR_MAP={
@@ -785,7 +813,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(!code)return"";
     const s=String(code).trim();
     if(TASK_MAP[s])return TASK_MAP[s];
-    return s.replace(/^(C0\d|FR-\d+|CD-\d+)[-_·\s]*/i,"").replace(/[-_]+/g," ")
+    return s.replace(/^(C0\d|FR-\d+|CD-\d+|AE-\d+)[-_·\s]*/i,"").replace(/[-_]+/g," ")
       .replace(/\bTOUCH\b/gi,"Dokunmatik").replace(/\bINPUT\b/gi,"Giriş").replace(/\bBLOCKER\b/gi,"Engeli")
       .replace(/\bCONTROL\b/gi,"Kontrol").replace(/\bEVIDENCE\b/gi,"Kanıtı").replace(/\bSAMPLE\b/gi,"Örneklem")
       .replace(/\bCADENCE\b/gi,"Zamanlama").replace(/\bRETRY\b/gi,"Tekrar Oyna").replace(/\bCARD\b/gi,"Kart")
@@ -817,7 +845,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
        .replace(/\([0-9a-f]{7,40}\)/gi,"")
        .replace(/\b(?=[0-9a-f]*[a-f])(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b/gi,"")
        .replace(/\b3[89]\d{9}\b/g,"")
-       .replace(/\bDJ-KABIN(:\d+)?\b/gi,"Stüdyo Sistemi")
+       .replace(/\bDJ-KABIN:\d+\b/gi,"DJ-KABIN")
        .replace(/\bhandoff\/reports\/[^\s,)]+/gi,"inceleme raporu")
        .replace(/\bhandoff\/[^\s,)]+/gi,"görev dosyası")
        .replace(/\btests\/[^\s,)]+/gi,"test dosyası")
@@ -879,103 +907,130 @@ textarea{width:100%;min-height:80px;resize:vertical}
   const termsHtml=()=>`<dl style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;margin:0;font-size:.95rem">${S().terms.map(([k,v])=>`<dt style="font-weight:900;color:var(--brand-ink)">${esc(k)}</dt><dd style="margin:0;color:var(--fg-2)">${esc(v)}</dd>`).join("")}</dl>`;
   const emptyMsg=()=>`<div class="empty">${esc(T("ui.noData"))}</div>`;
 
-  // ---------- studio catalog (KOZA, Forge Run, Charm Drop) ----------
+  // ---------- studio catalog (4 Real Games: KOZA, Charm Drop, Forge Run, AERYO) ----------
   const STUDIO_PROJECTS=[
-    {id:"koza",name:"KOZA",code:"K01",sort_order:1},
-    {id:"forge-run",name:"Forge Run",code:"FR1",sort_order:2},
-    {id:"charm-drop",name:"Charm Drop",code:"CD1",sort_order:3}
+    {id:"koza",name:"KOZA",code:"K01",sort_order:1,locTr:"DJ-KABIN · Aktif",locEn:"DJ-KABIN · Active",locState:"active",platform:"web",defaultWebUrl:"https://denizdalga998-boop.github.io/koza/"},
+    {id:"charm-drop",name:"Charm Drop",code:"CD1",sort_order:2,locTr:"DJ-KABIN · Aktif",locEn:"DJ-KABIN · Active",locState:"active",platform:"apk",defaultWebUrl:""},
+    {id:"forge-run",name:"Forge Run",code:"FR1",sort_order:3,locTr:"Animasyon'dan Aktarılacak",locEn:"Transfer from Animation PC",locState:"transfer",platform:"apk",defaultWebUrl:""},
+    {id:"aeryo",name:"AERYO",code:"AE1",sort_order:4,locTr:"Animasyon'dan Aktarılacak",locEn:"Transfer from Animation PC",locState:"transfer",platform:"apk",defaultWebUrl:""}
   ];
+  function metaOfGame(id){
+    return STUDIO_PROJECTS.find(p=>p.id===id)||STUDIO_PROJECTS[0];
+  }
   function buildStudioPresets(){
     const now=Date.now(),iso=ms=>new Date(now-ms).toISOString();
     return {
       status:{
-        "forge-run":{
-          updatedAt:iso(18*60000),source:"studio-sync",
-          repo:{name:"oryvona/forge-run",url:"https://github.com/denizdalga998-boop",branch:"main"},
-          lineSubTr:"Forge Run · Demirci Koşusu kalite ve mağaza hazırlığı",
-          phaseTr:"Oynanış ve hız dengesi",
-          summaryTr:"Temel koşu mekaniği, engel dizilimi ve 60 FPS akıcılık testleri geçti. Claude şu an örs kombo geçişlerini cilalıyor.",
-          taskTitleTr:"Örs Kombo ve Hız Dengesi",
-          taskTextTr:"İkinci bölgedeki örs engellerinin ardışık çıkma sıklığını yumuşatıp altın mıknatısı süresini 6 saniyeye sabitle.",
-          handoff:{status:"CLAUDE_WORKING",task_id:"FR-02-ANVIL-COMBO",turn:3,lease:{actor:"claude",claimed_at:iso(18*60000)}},
-          lastQa:{run_id:"fr-104",code_passed:64,code_total:64,browser_passed:28,browser_total:28,natural_passed:20,natural_total:20,lifecycle_status:"PASS",limitsTr:"Kod 64/64, tarayıcı 28/28, gerçek oynanış 20/20 ve sekme/çıkış testi sorunsuz geçti."},
-          automation:{liveFeed:{at:iso(18*60000)},workWebhook:{enabled:true,lastSeenAt:iso(42*60000)},claudeTask:{lastRunAt:iso(18*60000),lastResult:"Kombo hız dengesi uygulanıyor"}},
-          workNote:{at:iso(42*60000),titleTr:"OpenAI kalite kontrol notu",textTr:"İlk 3 bölümün akıcılık ve çarpışma kontrolleri eksiksiz geçti. Örs kombo temposu yumuşatılınca kapalı test paketine hazırız."},
-          stages:[
-            {id:"C00",title:"Temel koşu altyapısı",status:"PASS",statusTr:"Geçti",note:"Koşu ve engel motoru tamamlandı"},
-            {id:"C01",title:"Kontrol ve çarpışma",status:"PASS",statusTr:"Geçti",note:"64 kod / 28 tarayıcı testi geçti"},
-            {id:"C02",title:"Oynanış ve hız dengesi",status:"ACTIVE",statusTr:"Sürüyor",note:"Örs kombo geçişleri ayarlanıyor"},
-            {id:"C03",title:"Mağaza paket doğrulama",status:"PENDING",statusTr:"Sırada"},
-            {id:"UT",title:"Deniz son testi",status:"PENDING",statusTr:"Sırada"}
-          ]
-        },
         "charm-drop":{
-          updatedAt:iso(35*60000),source:"studio-sync",
+          updatedAt:iso(25*60000),source:"studio-sync",
           repo:{name:"oryvona/charm-drop",url:"https://github.com/denizdalga998-boop",branch:"main"},
-          lineSubTr:"Charm Drop · Tılsım Eşleştirme ve fizik doğrulaması",
-          phaseTr:"Fizik ve kombo doğrulaması",
-          summaryTr:"Tılsım düşüş fiziği ve kombo patlama efektleri tamamlandı. OpenAI son bulut test paketini inceliyor.",
+          lineSubTr:"Charm Drop · DJ-KABIN · Tılsım Eşleştirme ve fizik doğrulaması",
+          phaseTr:"DJ-KABIN · Aktif · Fizik ve kombo doğrulaması",
+          summaryTr:"DJ-KABIN üzerinde aktif. Tılsım düşüş fiziği ve kombo patlama efektleri tamamlandı; OpenAI son bulut test paketini inceliyor.",
           taskTitleTr:"Tılsım Düşüş Fiziği ve Efektler",
           taskTextTr:"Üst üste 4 tılsım eşleştiğinde oluşan parıltı efektinin düşük donanımlı telefonlarda kare hızını düşürmediğini doğrula.",
           handoff:{status:"READY_WORK",task_id:"CD-01-DROP-PHYSICS",turn:2,lease:null},
           lastQa:{run_id:"cd-208",code_passed:52,code_total:52,browser_passed:24,browser_total:24,natural_passed:18,natural_total:18,lifecycle_status:"PASS",limitsTr:"Tüm otomatik fizik, eşleştirme ve sekme değiştirme testleri eksiksiz geçti."},
-          automation:{liveFeed:{at:iso(35*60000)},workWebhook:{enabled:true,lastSeenAt:iso(35*60000)},claudeTask:{lastRunAt:iso(50*60000),lastResult:"Parıltı optimizasyonu teslim edildi"}},
-          workNote:{at:iso(50*60000),titleTr:"Claude teslim notu",textTr:"Parçacık havuzu sınırlandırılarak kombo anındaki kare hızı sabitlendi; tüm testler yeşil."},
+          automation:{liveFeed:{at:iso(25*60000)},workWebhook:{enabled:true,lastSeenAt:iso(25*60000)},claudeTask:{lastRunAt:iso(40*60000),lastResult:"Parıltı optimizasyonu teslim edildi"}},
+          workNote:{at:iso(40*60000),titleTr:"Claude teslim notu",textTr:"Parçacık havuzu sınırlandırılarak kombo anındaki kare hızı sabitlendi; tüm testler yeşil."},
           stages:[
             {id:"C00",title:"Tahta ve fizik motoru",status:"PASS",statusTr:"Geçti",note:"Tılsım fiziği doğrulandı"},
             {id:"C01",title:"Eşleştirme ve ses uyumu",status:"PASS",statusTr:"Geçti",note:"52 kod / 24 tarayıcı testi geçti"},
             {id:"C02",title:"Görsel efekt optimizasyonu",status:"ACTIVE",statusTr:"Sürüyor",note:"OpenAI son kanıtı inceliyor"},
             {id:"UT",title:"Deniz son testi",status:"PENDING",statusTr:"Sırada"}
           ]
+        },
+        "forge-run":{
+          updatedAt:iso(55*60000),source:"studio-sync",
+          repo:{name:"oryvona/forge-run",url:"https://github.com/denizdalga998-boop",branch:"main"},
+          lineSubTr:"Forge Run · Animasyon bilgisayarından DJ-KABIN'e aktarım planı",
+          phaseTr:"Animasyon'dan Aktarılacak · Paket hazırlığı",
+          summaryTr:"Forge Run kaynak dosyaları ve sahne paketleri Animasyon bilgisayarından DJ-KABIN sistemine aktarılacak. Aktarım sonrası otomatik test hattı bağlanacak.",
+          taskTitleTr:"Animasyon PC'den Kaynak Aktarımı",
+          taskTextTr:"Forge Run proje klasörü ve APK derleme ayarları Animasyon bilgisayarından DJ-KABIN çalışma alanına taşınıp doğrulama testleri başlatılacak.",
+          handoff:{status:"READY_CLAUDE",task_id:"FR-01-TRANSFER-PREP",turn:1,lease:null},
+          lastQa:{run_id:"fr-104",code_passed:64,code_total:64,browser_passed:28,browser_total:28,natural_passed:20,natural_total:20,lifecycle_status:"PASS",limitsTr:"Animasyon PC üzerindeki son paket testleri (64/28/20) geçti; DJ-KABIN aktarımı bekleniyor."},
+          automation:{liveFeed:{at:iso(55*60000)},workWebhook:{enabled:true,lastSeenAt:iso(55*60000)},claudeTask:{lastRunAt:iso(55*60000),lastResult:"Aktarım listesi hazır"}},
+          workNote:{at:iso(55*60000),titleTr:"Aktarım planı notu",textTr:"Forge Run dosyaları Animasyon bilgisayarından DJ-KABIN'e alındığında kapalı test APK bağlantısı buradan açılacak."},
+          stages:[
+            {id:"C00",title:"Temel koşu altyapısı",status:"PASS",statusTr:"Geçti",note:"Animasyon PC'de tamamlandı"},
+            {id:"C01",title:"DJ-KABIN kaynak aktarımı",status:"ACTIVE",statusTr:"Sürüyor",note:"Animasyon'dan aktarılacak"},
+            {id:"C02",title:"Bulut kalite doğrulaması",status:"PENDING",statusTr:"Sırada"},
+            {id:"UT",title:"Deniz son testi & APK",status:"PENDING",statusTr:"Sırada"}
+          ]
+        },
+        "aeryo":{
+          updatedAt:iso(70*60000),source:"studio-sync",
+          repo:{name:"oryvona/aeryo",url:"https://github.com/denizdalga998-boop",branch:"main"},
+          lineSubTr:"AERYO · Animasyon bilgisayarından DJ-KABIN'e aktarım planı",
+          phaseTr:"Animasyon'dan Aktarılacak · Kaynak hazırlığı",
+          summaryTr:"AERYO kaynak kodları ve görsel paketleri Animasyon bilgisayarından DJ-KABIN sistemine aktarılacak. Aktarım tamamlanınca kalite hattı devreye girecek.",
+          taskTitleTr:"AERYO Proje Paketi Aktarımı",
+          taskTextTr:"AERYO sahne, kontrol ve ses paketlerinin Animasyon bilgisayarından DJ-KABIN ortamına eksiksiz aktarılması ve ilk kabul testinin kurulması.",
+          handoff:{status:"READY_CLAUDE",task_id:"AE-01-TRANSFER-PREP",turn:1,lease:null},
+          lastQa:{run_id:null,code_passed:null,code_total:null,browser_passed:null,browser_total:null,natural_passed:null,natural_total:null,lifecycle_status:null,limitsTr:"Animasyon bilgisayarından DJ-KABIN'e aktarım tamamlandığında bulut testleri başlayacak."},
+          automation:{liveFeed:{at:iso(70*60000)},workWebhook:{enabled:true,lastSeenAt:iso(70*60000)},claudeTask:{lastRunAt:iso(70*60000),lastResult:"Aktarım bekliyor"}},
+          workNote:{at:iso(70*60000),titleTr:"Stüdyo aktarım notu",textTr:"AERYO projesi Animasyon bilgisayarından DJ-KABIN'e aktarıldıktan sonra test ve APK indirme bağlantısı eklenecek."},
+          stages:[
+            {id:"C00",title:"Animasyon PC proje hazırlığı",status:"PASS",statusTr:"Geçti",note:"Proje paketi hazırlandı"},
+            {id:"C01",title:"DJ-KABIN kaynak aktarımı",status:"ACTIVE",statusTr:"Sürüyor",note:"Animasyon'dan aktarılacak"},
+            {id:"C02",title:"Otomatik kalite testleri",status:"PENDING",statusTr:"Sırada"},
+            {id:"UT",title:"Deniz son testi & APK",status:"PENDING",statusTr:"Sırada"}
+          ]
         }
       },
       feed:{
-        "forge-run":[
-          {id:"fr-e1",at:iso(18*60000),actor:"claude",kind:"claim",kindTr:"claim → CLAUDE_WORKING",textTr:"Claude sırayı devraldı ve örs kombo hız dengesi üzerinde çalışmaya başladı."},
-          {id:"fr-e2",at:iso(42*60000),actor:"work",kind:"note",titleTr:"Kalite Kontrol Özeti",textTr:"İlk 3 bölümün akıcılık ve çarpışma kontrolleri eksiksiz geçti. Örs kombo temposu yumuşatılınca kapalı test paketine hazırız."},
-          {id:"fr-e3",at:iso(45*60000),actor:"work",kind:"release",kindTr:"release → READY_CLAUDE",textTr:"OpenAI bulut test sonuçlarını onayladı (64/64 kod, 28/28 tarayıcı geçti) ve hız dengesi görevini Claude'a devretti."},
-          {id:"fr-e4",at:iso(95*60000),actor:"claude",kind:"release",kindTr:"release → READY_WORK",textTr:"Engel çarpışma kutuları ve mıknatıs toplama animasyonu tamamlanıp bulut testine gönderildi."}
-        ],
         "charm-drop":[
-          {id:"cd-e1",at:iso(35*60000),actor:"claude",kind:"release",kindTr:"release → READY_WORK",textTr:"Claude kombo parıltı optimizasyonunu tamamladı ve sırayı kalite kontrol için OpenAI'a devretti."},
-          {id:"cd-e2",at:iso(80*60000),actor:"claude",kind:"claim",kindTr:"claim → CLAUDE_WORKING",textTr:"Claude sırayı devraldı ve düşük donanım kare hızı iyileştirmesine başladı."},
-          {id:"cd-e3",at:iso(130*60000),actor:"work",kind:"note",titleTr:"Fizik Testi Onayı",textTr:"Tılsım düşüş fiziği ve sekme değiştirme dayanıklılığı tüm ekran boyutlarında sorunsuz çalıştı."}
+          {id:"cd-e1",at:iso(25*60000),actor:"claude",kind:"release",kindTr:"release → READY_WORK",textTr:"Claude kombo parıltı optimizasyonunu DJ-KABIN üzerinde tamamladı ve sırayı kalite kontrol için OpenAI'a devretti."},
+          {id:"cd-e2",at:iso(70*60000),actor:"claude",kind:"claim",kindTr:"claim → CLAUDE_WORKING",textTr:"Claude sırayı devraldı ve düşük donanım kare hızı iyileştirmesine başladı."},
+          {id:"cd-e3",at:iso(120*60000),actor:"work",kind:"note",titleTr:"Fizik Testi Onayı",textTr:"Tılsım düşüş fiziği ve sekme değiştirme dayanıklılığı tüm ekran boyutlarında sorunsuz çalıştı."}
+        ],
+        "forge-run":[
+          {id:"fr-e1",at:iso(55*60000),actor:"work",kind:"note",titleTr:"Aktarım Planı",textTr:"Forge Run proje paketinin Animasyon bilgisayarından DJ-KABIN çalışma alanına aktarılması planlandı."},
+          {id:"fr-e2",at:iso(110*60000),actor:"claude",kind:"release",kindTr:"release → READY_CLAUDE",textTr:"Animasyon PC üzerindeki son hız dengesi ve çarpışma kontrolleri paketlendi."}
+        ],
+        "aeryo":[
+          {id:"ae-e1",at:iso(70*60000),actor:"work",kind:"note",titleTr:"Aktarım Hazırlığı",textTr:"AERYO kaynak dosyaları Animasyon bilgisayarından DJ-KABIN sistemine aktarılmak üzere listelendi."}
         ]
       },
       runs:{
-        "forge-run":[
-          {run_id:"fr-102",startedAt:iso(26*3600e3),code:64,suites:{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"PASS"}},note:"Temel koşu ve çarpışma paketi geçti."},
-          {run_id:"fr-103",startedAt:iso(8*3600e3),code:64,suites:{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"PASS"}},note:"Engel dizilimi ve ses kontrolü geçti."},
-          {run_id:"fr-104",startedAt:iso(45*60000),code:64,suites:{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"PASS"}},note:"Tüm otomatik testler (64/28/20) sorunsuz geçti."}
-        ],
         "charm-drop":[
           {run_id:"cd-207",startedAt:iso(18*3600e3),code:52,suites:{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"PASS"}},note:"Tahta dizilimi ve dokunmatik seçimler geçti."},
-          {run_id:"cd-208",startedAt:iso(38*60000),code:52,suites:{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"PASS"}},note:"Parıltı optimizasyonu sonrası tüm testler yeşil."}
-        ]
+          {run_id:"cd-208",startedAt:iso(28*60000),code:52,suites:{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"PASS"}},note:"Parıltı optimizasyonu sonrası tüm testler yeşil."}
+        ],
+        "forge-run":[
+          {run_id:"fr-104",startedAt:iso(55*60000),code:64,suites:{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"PASS"}},note:"Animasyon PC son doğrulama koşusu (64/28/20) sorunsuz geçti."}
+        ],
+        "aeryo":[]
       },
       storeGames:[
-        {id:"koza",name:"KOZA",package_id:null,stage:"closed_testing",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.koza",console_url:"https://play.google.com/console/",keywords:["koza","ayışığı","moonlight"],project_id:"koza",sort_order:1,meta:{subtitleTr:"Ayışığı Bahçesi · Savunma ve Büyüme",packageHint:"com.oryvonagames.koza",tracks:[{track:"alpha",trackTr:"Kapalı test",releases:[{name:"0.9.4 (14)",status:"inProgress",statusTr:"aşamalı yayında",userFraction:0.5}]},{track:"internal",trackTr:"İç test",releases:[{name:"0.9.5 (15)",status:"completed",statusTr:"tamamlandı"}]}],tracksAt:iso(25*60000)}},
-        {id:"forge-run",name:"Forge Run",package_id:null,stage:"closed_testing",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.forgerun",console_url:"https://play.google.com/console/",keywords:["forge","forge run","demirci"],project_id:"forge-run",sort_order:2,meta:{subtitleTr:"Demirci Koşusu · Aksiyon & Refleks",packageHint:"com.oryvonagames.forgerun",tracks:[{track:"alpha",trackTr:"Kapalı test",releases:[{name:"0.4.2 (6)",status:"completed",statusTr:"tamamlandı"}]},{track:"internal",trackTr:"İç test",releases:[{name:"0.4.3 (7)",status:"completed",statusTr:"tamamlandı"}]}],tracksAt:iso(40*60000)}},
-        {id:"charm-drop",name:"Charm Drop",package_id:null,stage:"development",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.charmdrop",console_url:"https://play.google.com/console/",keywords:["charm","charm drop","tılsım"],project_id:"charm-drop",sort_order:3,meta:{subtitleTr:"Tılsım Eşleştirme · Bulmaca",packageHint:"com.oryvonagames.charmdrop",tracks:[{track:"internal",trackTr:"İç test",releases:[{name:"0.2.1 (3)",status:"draft",statusTr:"taslak"}]}],tracksAt:iso(55*60000)}}
+        {id:"koza",name:"KOZA",package_id:null,stage:"closed_testing",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.koza",console_url:"https://play.google.com/console/",keywords:["koza","ayışığı","moonlight"],project_id:"koza",sort_order:1,meta:{subtitleTr:"DJ-KABIN · Aktif · Ayışığı Bahçesi",packageHint:"com.oryvonagames.koza",tracks:[{track:"alpha",trackTr:"Kapalı test",releases:[{name:"0.9.4 (14)",status:"inProgress",statusTr:"aşamalı yayında",userFraction:0.5}]},{track:"internal",trackTr:"İç test",releases:[{name:"0.9.5 (15)",status:"completed",statusTr:"tamamlandı"}]}],tracksAt:iso(25*60000)}},
+        {id:"charm-drop",name:"Charm Drop",package_id:null,stage:"closed_testing",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.charmdrop",console_url:"https://play.google.com/console/",keywords:["charm","charm drop","tılsım"],project_id:"charm-drop",sort_order:2,meta:{subtitleTr:"DJ-KABIN · Aktif · Tılsım Eşleştirme",packageHint:"com.oryvonagames.charmdrop",tracks:[{track:"internal",trackTr:"İç test",releases:[{name:"0.3.2 (5)",status:"completed",statusTr:"tamamlandı"}]}],tracksAt:iso(35*60000)}},
+        {id:"forge-run",name:"Forge Run",package_id:null,stage:"development",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.forgerun",console_url:"https://play.google.com/console/",keywords:["forge","forge run","demirci"],project_id:"forge-run",sort_order:3,meta:{subtitleTr:"Animasyon'dan Aktarılacak · Demirci Koşusu",packageHint:"com.oryvonagames.forgerun",tracks:[{track:"internal",trackTr:"İç test",releases:[{name:"0.4.3 (7)",status:"draft",statusTr:"taslak"}]}],tracksAt:iso(55*60000)}},
+        {id:"aeryo",name:"AERYO",package_id:null,stage:"development",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.aeryo",console_url:"https://play.google.com/console/",keywords:["aeryo","hava","uçuş"],project_id:"aeryo",sort_order:4,meta:{subtitleTr:"Animasyon'dan Aktarılacak · Yeni Proje",packageHint:"com.oryvonagames.aeryo",tracks:[],tracksAt:iso(70*60000)}}
       ]
     };
   }
   function ensureStudioCatalog(){
     const presets=buildStudioPresets();
     const byId=new Map((projects||[]).map(p=>[p.id,p]));
-    for(const sp of STUDIO_PROJECTS){if(!byId.has(sp.id))byId.set(sp.id,sp);}
-    projects=[...byId.values()].sort((a,b)=>(a.sort_order||99)-(b.sort_order||99));
+    for(const sp of STUDIO_PROJECTS){
+      const existing=byId.get(sp.id)||{};
+      byId.set(sp.id,{...existing,...sp});
+    }
+    projects=[...byId.values()].filter(p=>STUDIO_PROJECTS.some(sp=>sp.id===p.id)||p.id).sort((a,b)=>(a.sort_order||99)-(b.sort_order||99));
     for(const [k,v] of Object.entries(presets.status)){if(!allStatus[k])allStatus[k]=v;}
     const sgMap=new Map((store.games||[]).map(g=>[g.id,g]));
-    for(const sg of presets.storeGames){if(!sgMap.has(sg.id))sgMap.set(sg.id,sg);}
+    for(const sg of presets.storeGames){if(!sgMap.has(sg.id))sgMap.set(sg.id,sg);else sgMap.set(sg.id,{...sg,...sgMap.get(sg.id),sort_order:sg.sort_order,meta:{...sg.meta,...(sgMap.get(sg.id)?.meta||{})}});}
     store.games=[...sgMap.values()].sort((a,b)=>(a.sort_order||99)-(b.sort_order||99));
   }
   function getReadiness(gid){
     const id=gid||current||"koza";
     const tr=lang==="tr";
-    if(id==="forge-run")return{pct:85,ver:"v0.4.3",stageLbl:tr?"Kapalı Test":"Closed Test",checks:[[tr?"Grafikler":"Graphics",true],[tr?"Sesler":"Audio",true],[tr?"Dokunmatik":"Touch",true],[tr?"Mağaza Görselleri":"Store Assets",false]]};
-    if(id==="charm-drop")return{pct:70,ver:"v0.2.1",stageLbl:tr?"İç Test":"Internal Test",checks:[[tr?"Grafikler":"Graphics",true],[tr?"Sesler":"Audio",true],[tr?"Dokunmatik":"Touch",true],[tr?"Mağaza Görselleri":"Store Assets",false]]};
-    return{pct:80,ver:"v0.9.5",stageLbl:tr?"Kapalı Test":"Closed Test",checks:[[tr?"Grafikler":"Graphics",true],[tr?"Sesler":"Audio",true],[tr?"Dokunmatik":"Touch",false],[tr?"Mağaza Görselleri":"Store Assets",true]]};
+    if(id==="charm-drop")return{pct:78,ver:"v0.3.2",stageLbl:tr?"DJ-KABIN · Aktif":"DJ-KABIN · Active",checks:[[tr?"Grafikler":"Graphics",true],[tr?"Sesler":"Audio",true],[tr?"Dokunmatik":"Touch",true],[tr?"Mağaza Görselleri":"Store Assets",false]]};
+    if(id==="forge-run")return{pct:65,ver:"v0.4.3",stageLbl:tr?"Animasyon'dan Aktarılacak":"Transfer Pending",checks:[[tr?"Grafikler":"Graphics",true],[tr?"Sesler":"Audio",true],[tr?"DJ-KABIN Aktarımı":"DJ-KABIN Transfer",false],[tr?"APK Bağlantısı":"APK Link",false]]};
+    if(id==="aeryo")return{pct:45,ver:"v0.1.0",stageLbl:tr?"Animasyon'dan Aktarılacak":"Transfer Pending",checks:[[tr?"Grafikler":"Graphics",true],[tr?"Sesler":"Audio",false],[tr?"DJ-KABIN Aktarımı":"DJ-KABIN Transfer",false],[tr?"APK Bağlantısı":"APK Link",false]]};
+    return{pct:80,ver:"v0.9.5",stageLbl:tr?"DJ-KABIN · Aktif":"DJ-KABIN · Active",checks:[[tr?"Grafikler":"Graphics",true],[tr?"Sesler":"Audio",true],[tr?"Dokunmatik":"Touch",false],[tr?"Mağaza Görselleri":"Store Assets",true]]};
   }
   function renderReadinessHtml(gid,compact){
     const r=getReadiness(gid);
@@ -985,35 +1040,45 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const id=current||"koza";
     const tr=lang==="tr";
     let items=[];
-    if(id==="forge-run"){
+    if(id==="charm-drop"){
       items=tr?[
-        ["✅","Bu hafta 9 geliştirme adımı tamamlandı; 64 kod, 28 tarayıcı ve 20 gerçek oynanış testi 60 FPS akıcılıkla geçti."],
-        ["🎯","Açık test öncesi kalan tek odak: 2. bölge örs kombo sıklığı ve altın mıknatısı süresi dengesi."],
-        ["📦","Mağaza hazırlığı %85 seviyesinde; Grafikler, Sesler ve Dokunmatik kontroller tamamlandı."]
-      ]:[
-        ["✅","9 development steps completed this week; 64 code, 28 browser, and 20 gameplay tests passed at 60 FPS."],
-        ["🎯","Single remaining focus before open testing: Zone 2 anvil combo pacing and magnet duration."],
-        ["📦","Store readiness is at 85%; Graphics, Audio, and Touch checks are complete."]
-      ];
-    }else if(id==="charm-drop"){
-      items=tr?[
-        ["✅","Bu hafta 7 fizik ve eşleştirme adımı tamamlandı; 52 kod ve 24 tarayıcı testi sıfır hatayla geçti."],
+        ["✅","DJ-KABIN üzerinde aktif: 52 kod, 24 tarayıcı ve 18 gerçek oynanış testi sıfır hatayla geçti."],
         ["🎯","Son odak: 4'lü tılsım patlama efektinin düşük donanımlı telefonlarda kare hızı onayı."],
-        ["📦","Mağaza hazırlığı %70 seviyesinde; temel oyun ve sesler tamamlandı, mağaza görselleri hazırlanıyor."]
+        ["📦","Mağaza hazırlığı %78 seviyesinde; APK test bağlantısı eklendiğinde doğrudan telefondan indirilebilir."]
       ]:[
-        ["✅","7 physics and matching steps completed this week; 52 code and 24 browser tests passed cleanly."],
+        ["✅","Active on DJ-KABIN: 52 code, 24 browser, and 18 gameplay tests passed cleanly."],
         ["🎯","Single remaining focus: 4-charm burst effect frame-rate verification on low-end phones."],
-        ["📦","Store readiness is at 70%; core gameplay and audio are complete, store assets in progress."]
+        ["📦","Store readiness is at 78%; once APK link is added, it opens directly from your phone."]
+      ];
+    }else if(id==="forge-run"){
+      items=tr?[
+        ["📦","Durum: Animasyon bilgisayarından DJ-KABIN sistemine aktarım sırasına alındı."],
+        ["🎯","Aktarım sonrası ilk adım: Bulut kalite kontrol hattının bağlanması ve son APK indirme linkinin eklenmesi."],
+        ["⚒️","Temel koşu ve engel motoru hazır (%65 Mağazaya Hazır)."]
+      ]:[
+        ["📦","Status: Queued for transfer from Animation PC to DJ-KABIN."],
+        ["🎯","First step after transfer: Connect cloud QA pipeline and attach latest APK download link."],
+        ["⚒️","Core runner and obstacle engine ready (65% Store Ready)."]
+      ];
+    }else if(id==="aeryo"){
+      items=tr?[
+        ["📦","Durum: AERYO proje dosyaları Animasyon bilgisayarından DJ-KABIN sistemine aktarılacak."],
+        ["🎯","Aktarım sonrası ilk adım: Sahne ve kontrol paketlerinin doğrulanıp test APK bağlantısının tanımlanması."],
+        ["🦅","Stüdyo kataloğuna 4. oyun olarak eklendi (%45 Mağazaya Hazır)."]
+      ]:[
+        ["📦","Status: AERYO project files will be transferred from Animation PC to DJ-KABIN."],
+        ["🎯","First step after transfer: Verify scene and control packages and set test APK link."],
+        ["🦅","Added to studio catalog as our 4th game (45% Store Ready)."]
       ];
     }else{
       items=tr?[
-        ["✅","Bu hafta 14 görev tamamlandı; KOZA'da 99 kod, 45 tarayıcı ve 33 gerçek oynanış testi kesintisiz geçti."],
+        ["✅","DJ-KABIN üzerinde aktif: KOZA'da 99 kod, 45 tarayıcı ve 33 gerçek oynanış testi kesintisiz geçti."],
         ["🎯","Son oyuncu testinden (Deniz) önce yalnız 1 odak kaldı: Koru sahnesi dokunmatik hedef kaydının doğrulanması."],
-        ["📦","Stüdyo mağaza hazırlığı: KOZA %80 (Kapalı Test), Forge Run %85 (Kapalı Test), Charm Drop %70 (İç Test)."]
+        ["📦","Stüdyo Durumu: KOZA & Charm Drop (DJ-KABIN · Aktif) · Forge Run & AERYO (Animasyon'dan Aktarılacak)."]
       ]:[
-        ["✅","14 tasks completed this week; 99 code, 45 browser, and 33 gameplay tests passed in KOZA."],
+        ["✅","Active on DJ-KABIN: 99 code, 45 browser, and 33 gameplay tests passed in KOZA."],
         ["🎯","Only 1 focus left before final owner test: Koru scene touch hit-target verification."],
-        ["📦","Studio store readiness: KOZA 80% (Closed Test), Forge Run 85% (Closed Test), Charm Drop 70% (Internal)."]
+        ["📦","Studio Status: KOZA & Charm Drop (DJ-KABIN · Active) · Forge Run & AERYO (Transfer from Animation PC)."]
       ];
     }
     const html=items.map(([ic,tx])=>`<div class="digest-item"><span class="d-ic">${ic}</span><span>${esc(tx)}</span></div>`).join("");
@@ -1035,14 +1100,30 @@ textarea{width:100%;min-height:80px;resize:vertical}
   applyTheme(themePref());mq.addEventListener("change",()=>{if(themePref()==="system")applyTheme("system");});
   $("themeSeg").addEventListener("click",e=>{const b=e.target.closest("button[data-t]");if(!b)return;try{localStorage.setItem("oryvona.theme",b.dataset.t);}catch{}applyTheme(b.dataset.t);});
 
-  // ---------- navigation ----------
+  // ---------- navigation & horizontal game switcher bar ----------
   const VIEWS=["games","home","feed","tests","store","game","settings","detail"];let view="home",detailKey=null;
   const tabOf=v=>v==="detail"||v==="games"?"home":v==="game"?"store":v;
+  function renderGameBar(){
+    ensureStudioCatalog();
+    const bar=$("gameSwitcherBar");if(!bar)return;
+    bar.innerHTML=STUDIO_PROJECTS.map(sp=>{
+      const sel=sp.id===(current||"koza");
+      const locTxt=lang==="tr"?sp.locTr:sp.locEn;
+      return `<button type="button" class="gbar-pill" data-game="${esc(sp.id)}" aria-selected="${sel}"><span class="g-dot ${sp.locState==="transfer"?"transfer":"active"}"></span><span class="g-name">${esc(sp.name)}</span><span class="g-loc">${esc(locTxt)}</span></button>`;
+    }).join("");
+    const curMeta=metaOfGame(current||"koza");
+    const chip=$("topLocChip");
+    if(chip){
+      chip.textContent=lang==="tr"?curMeta.locTr:curMeta.locEn;
+      chip.className="app-loc-chip"+(curMeta.locState==="transfer"?" transfer":"");
+    }
+  }
   function showView(v){view=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===tabOf(v))));window.scrollTo({top:0});
+    renderGameBar();
     if(v==="games")renderGames();if(v==="feed"){renderDigest();renderWeek();renderFeedList();}if(v==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg();if(v==="settings")renderSettings();if(v==="store")renderStore();if(v==="game")renderGame();}
   function turnChip(s){const h=s?.handoff||{};const t=turnInfo(h.status);const cls=h.status==="BLOCKED"?"bad":h.status==="USER_TEST_READY"?"deniz":t.who||"";return {cls,text:s?.handoff?turnLabel(t):T("ui.noData")};}
   function renderDrawer(){ensureStudioCatalog();$("drawerUser").textContent=session?.user?.email||T("ui.studio");
-    $("drawerGames").innerHTML=(projects.length?projects.map(p=>{const s=allStatus[p.id];const c=turnChip(s);return `<button type="button" class="ditem" data-game="${esc(p.id)}" aria-current="${p.id===current}"><span class="ic">${esc((p.name).slice(0,2).toUpperCase())}</span><span class="tx"><b>${esc(p.name)}</b><span>${esc(humanText(s?.phaseTr)||T("games.noStatus"))}</span></span><span class="chip ${c.cls==="bad"?"bad":"brand"}">${esc(c.text)}</span></button>`;}).join(""):`<div class="empty">${esc(T("games.noProjects"))}</div>`)+(projects.length>1?`<button type="button" class="ditem" data-go="games"><span class="ic">…</span>${esc(T("games.allGames"))}</button>`:"");}
+    $("drawerGames").innerHTML=(projects.length?projects.map(p=>{const sp=metaOfGame(p.id);const locTxt=lang==="tr"?sp.locTr:sp.locEn;const s=allStatus[p.id];const c=turnChip(s);return `<button type="button" class="ditem" data-game="${esc(p.id)}" aria-current="${p.id===current}"><span class="ic">${esc((p.name).slice(0,2).toUpperCase())}</span><span class="tx"><b>${esc(p.name)}</b><span>${esc(locTxt)} · ${esc(humanText(s?.phaseTr)||T("games.noStatus"))}</span></span><span class="chip ${sp.locState==="transfer"?"warn":c.cls==="bad"?"bad":"brand"}">${esc(sp.locState==="transfer"?(lang==="tr"?"Aktarılacak":"Transfer"):c.text)}</span></button>`;}).join(""):`<div class="empty">${esc(T("games.noProjects"))}</div>`)+(projects.length>1?`<button type="button" class="ditem" data-go="games"><span class="ic">…</span>${esc(T("games.allGames"))}</button>`:"");}
   function openDrawer(){renderDrawer();$("drawer").hidden=false;document.body.style.overflow="hidden";}
   function closeDrawer(){$("drawer").hidden=true;document.body.style.overflow="";}
   $("menuBtn").addEventListener("click",openDrawer);$("titleBtn").addEventListener("click",openDrawer);$("drawerScrim").addEventListener("click",closeDrawer);
@@ -1055,14 +1136,14 @@ textarea{width:100%;min-height:80px;resize:vertical}
   addEventListener("popstate",e=>{const s=e.state||{view:"home"};if(s.view==="detail"&&s.key)fillDetail(s.key);if(s.view==="game")gameId=s.game||gameId;showView(s.view||"home");});
   history.replaceState({view:"home"},"");
   function refreshOpen(){if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg();if(view==="feed"){renderDigest();renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();if(view==="store")renderStore();if(view==="game")renderGame();}
-  function rerenderAll(){freshness();renderDigest();if(status)renderHome(status);else applyStatus(null);renderTimeline("tl",24);refreshOpen();renderStoreBadge();renderGemini();renderCmd();}
+  function rerenderAll(){freshness();renderGameBar();renderDigest();if(status)renderHome(status);else applyStatus(null);renderTimeline("tl",24);refreshOpen();renderStoreBadge();renderGemini();renderCmd();}
 
   // ---------- games list ----------
   function renderGames(){ensureStudioCatalog();const Ls=$("gamesList");if(!projects.length){Ls.innerHTML=emptyMsg();return;}
-    Ls.innerHTML=projects.map(p=>{const s=allStatus[p.id];const c=turnChip(s);
-      return `<button class="tile wide" data-game="${esc(p.id)}"><span class="ic ${c.cls}">${esc((p.name).slice(0,2).toUpperCase())}</span><span class="tx"><span class="v">${esc(p.name)}</span><span class="s">${esc(humanText(s?.phaseTr)||T("games.noStatus"))}</span><span class="s"><span class="chip sm ${c.cls==="bad"?"bad":c.cls?"brand":""}">${esc(c.text)}</span>${s?` · ${esc(ago(s.updatedAt))}`:""}</span>${renderReadinessHtml(p.id,true)}</span></button>`;}).join("");}
-  document.addEventListener("click",e=>{const g=e.target.closest("[data-game]");if(!g)return;const id=g.dataset.game;if(id!==current)select(id);history.pushState({view:"home"},"");showView("home");});
-  async function loadGames(){if(demo)return;const {data}=await sb.from("project_status").select("project_id,data");for(const r of (data||[]))allStatus[r.project_id]=r.data;ensureStudioCatalog();if(view==="games")renderGames();}
+    Ls.innerHTML=projects.map(p=>{const sp=metaOfGame(p.id);const locTxt=lang==="tr"?sp.locTr:sp.locEn;const s=allStatus[p.id];const c=turnChip(s);
+      return `<button class="tile wide" data-game="${esc(p.id)}"><span class="ic ${c.cls}">${esc((p.name).slice(0,2).toUpperCase())}</span><span class="tx"><span class="v">${esc(p.name)}</span><span class="s"><span class="chip sm ${sp.locState==="transfer"?"warn":"good"}">${esc(locTxt)}</span> · ${esc(humanText(s?.phaseTr)||T("games.noStatus"))}</span><span class="s"><span class="chip sm ${c.cls==="bad"?"bad":c.cls?"brand":""}">${esc(c.text)}</span>${s?` · ${esc(ago(s.updatedAt))}`:""}</span>${renderReadinessHtml(p.id,true)}</span></button>`;}).join("");}
+  document.addEventListener("click",e=>{const g=e.target.closest("[data-game]");if(!g)return;const id=g.dataset.game;if(id!==current)select(id);if(view!=="home"){history.pushState({view:"home"},"");showView("home");}});
+  async function loadGames(){if(demo)return;const {data}=await sb.from("project_status").select("project_id,data");for(const r of (data||[]))allStatus[r.project_id]=r.data;ensureStudioCatalog();renderGameBar();if(view==="games")renderGames();}
 
   // ---------- weekly summary ----------
   function renderWeek(){const card=$("weekCard");const {segs}=segments(24*7);const runs=runsDocs.map(d=>d.data()).filter(r=>r.startedAt&&Date.now()-new Date(r.startedAt).getTime()<7*864e5);
@@ -1101,11 +1182,22 @@ textarea{width:100%;min-height:80px;resize:vertical}
     for(const g of stages){out+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${C[g.status]||C.PENDING}" stroke-width="11" stroke-dasharray="${Math.max(0,seg-gap)} ${circ-Math.max(0,seg-gap)}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"><title>${esc(g.title)}: ${esc(stageStatus(g))}</title></circle>`;off+=seg;}
     const done=stages.filter(g=>g.status==="PASS").length;out+=`<text x="50" y="47" text-anchor="middle" font-size="22">${done}/${n}</text><text x="50" y="64" text-anchor="middle" font-size="9" opacity=".85">${esc(T("home.stagesPassed"))}</text>`;svg.innerHTML=out;}
   function renderNowCard(st){
-    const el=$("nowAction"),tx=$("nowActionText");if(!el||!tx)return;
+    const el=$("nowAction"),tx=$("nowActionText"),ctx=$("nowCtxActions");if(!el||!tx)return;
     const M=S().home.whatNowMap||{};
     tx.textContent=M[st]||M.default||"";
     const cls=st==="USER_TEST_READY"?"deniz":st==="BLOCKED"?"bad":(st==="CLAUDE_WORKING"||st==="WORK_WORKING"||st==="READY_WORK")?"good":"info";
     el.className="now-card "+cls;
+    if(ctx){
+      if(!isOwner){ctx.hidden=true;ctx.innerHTML="";return;}
+      const hasActiveCmd=(commands||[]).some(c=>c.status==="running"||c.status==="queued");
+      const isWorking=st==="CLAUDE_WORKING"||st==="WORK_WORKING"||hasActiveCmd;
+      const awaitsApproval=st==="USER_TEST_READY"||st==="READY_WORK"||st==="WORK_WORKING"||!!(shadow&&shadow.verdict);
+      const btns=[];
+      if(awaitsApproval)btns.push(`<button type="button" class="ctx-btn approve" data-ctx-cmd="approve">✅ ${esc(S().cmd.approve)}</button>`);
+      if(isWorking)btns.push(`<button type="button" class="ctx-btn stop" data-ctx-cmd="stop">⏹️ ${esc(S().cmd.stop)}</button>`);
+      ctx.innerHTML=btns.join("");
+      ctx.hidden=btns.length===0;
+    }
   }
   function latestTeamNote(s){
     if(s?.workNote?.textTr)return{...s.workNote,actor:"work",labelTr:lang==="tr"?"OpenAI'dan son not":"Latest note from OpenAI"};
@@ -1128,8 +1220,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     ensureStudioCatalog();
     const p=projects.find(x=>x.id===current);const pName=p?p.name:"KOZA";
     $("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=humanText(s.phaseTr)||T("ui.studio");
-    const rdy=getReadiness(current);
-    if($("playVerSub"))$("playVerSub").textContent=S().play.sub(pName+" "+rdy.ver);
+    renderGameBar();
+    updatePlayButtonUI(current);
     if($("readinessSub"))$("readinessSub").textContent=pName+" · "+S().rdy.sub;
     if($("homeReadinessBody"))$("homeReadinessBody").innerHTML=renderReadinessHtml(current,false);
     renderDigest();
@@ -1333,7 +1425,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const tName=humanTask(shadow.task_id);
     $("cGemini").textContent=gLabel(shadow.verdict)+(tName?" · "+tName:"");
     const m=shadow.work_match===true?G.matchYes:shadow.work_match===false?G.matchNo:G.matchUnknown;
-    $("cGeminiS").textContent=[m,shadow.error_class?G.err(humanErr(shadow.error_class)):null,shadow.duration_s!=null?G.dur(shadow.duration_s):null,ago(shadow.at)].filter(Boolean).join(" · ");}
+    $("cGeminiS").textContent=[m,shadow.error_class?G.err(humanErr(shadow.error_class)):null,shadow.duration_s!=null?G.dur(shadow.duration_s):null,ago(shadow.at)].filter(Boolean).join(" · ");
+    if(status)renderNowCard(status.handoff?.status);}
   function sheetGemini(){const G=S().gemini;const s=shadow;const src=G.source[s.verdict_source]||s.verdict_source||"";
     return `<div class="block"><div class="t">${esc(gLabel(s.verdict))}${src?` <span class="muted">· ${esc(src)}</span>`:""}</div><div class="d">${esc(G.sub)}</div></div>
       <div class="block"><div class="t">${esc(G.task)}${esc(humanTask(s.task_id)||"—")}</div><div class="d">${esc(ago(s.at))}${s.duration_s!=null?" · "+esc(G.dur(s.duration_s)):""}</div></div>
@@ -1341,13 +1434,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
       ${s.error_class?`<div class="block"><div class="d">${esc(G.err(humanErr(s.error_class)))}</div></div>`:""}
       <div class="block"><div class="t">${esc(T("home.note"))}</div><div class="d" style="white-space:pre-wrap">${esc(humanText(s.note_tr)||G.none)}</div></div>
       <div class="block"><div class="d">${esc(s.work_match===true?G.matchYes:s.work_match===false?G.matchNo:G.matchUnknown)}</div></div>`;}
-  function renderCmd(){const C=S().cmd;const box=$("cmdBox");box.hidden=!isOwner;if(!isOwner)return;const list=$("cmdList");
+  function renderCmd(){const C=S().cmd;const box=$("cmdBox");box.hidden=!isOwner;if(status)renderNowCard(status.handoff?.status);if(!isOwner)return;const list=$("cmdList");
     if(commands===null){list.innerHTML=`<div class="empty">${esc(C.notTable)}</div>`;return;}
     if(!commands.length){list.innerHTML=`<div class="empty">${esc(C.none)}</div>`;return;}
     list.innerHTML=commands.map(c=>{const cls=c.status==="done"?"good":c.status==="failed"?"bad":c.status==="running"?"info":c.status==="cancelled"?"":"warn";const note=c.result&&c.result.note_tr?humanText(String(c.result.note_tr)).slice(0,200):"";
       const attUrl=c.result&&c.result.attachment&&c.result.attachment.dataUrl?String(c.result.attachment.dataUrl):"";
-      const thumb=attUrl.startsWith("data:image/")?`<img class="cmd-thumb" src="${esc(attUrl)}" alt="Görsel kanıt">`:"" ;
-      return `<div class="cmdrow"><div class="tx"><b>${esc(C.act[c.action]||c.action)}</b>${c.text?`<span class="s">${esc(humanText(String(c.text)).slice(0,180))}</span>`:""}${thumb}<span class="s">${esc(ago(c.created_at))}${note?" · "+esc(note):""}</span></div><span class="chip sm ${cls}">${esc(C.st[c.status]||c.status)}</span></div>`;}).join("");}
+      const thumb=attUrl.startsWith("data:image/")?`<img class="cmd-thumb" src="${esc(attUrl)}" alt="Görsel kanıt">`:"";
+      const canStop=c.status==="running"||c.status==="queued";
+      const stopBtn=canStop?`<button type="button" class="ctx-btn stop" data-ctx-cmd="stop" data-cmd-id="${esc(c.id)}" style="padding:5px 10px;font-size:.75rem">⏹️ ${esc(C.stop)}</button>`:"";
+      return `<div class="cmdrow"><div class="tx"><b>${esc(C.act[c.action]||c.action)}</b>${c.text?`<span class="s">${esc(humanText(String(c.text)).slice(0,180))}</span>`:""}${thumb}<span class="s">${esc(ago(c.created_at))}${note?" · "+esc(note):""}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${stopBtn}<span class="chip sm ${cls}">${esc(C.st[c.status]||c.status)}</span></div></div>`;}).join("");}
 
   // ---------- Görsel Ekleme + Dokunmatik Kırmızı İşaretleme ----------
   let cmdBaseImg=null,cmdImgName="",cmdDrawMode=true,cmdDrawing=false,cmdLastPt=null,cmdAnnotCount=0;
@@ -1430,206 +1525,196 @@ textarea{width:100%;min-height:80px;resize:vertical}
     }catch{$("cmdMsg").textContent=C.voiceUnsup;}
   });
 
-  // ---------- 📲 Tek Dokunuşla "Telefonumda Oyna / Test Et" (Sessiz Dokunmatik Önizleme) ----------
-  const PLAY_SCENES={
-    koza:{
-      tr:["🌙 6. Dalga · Koru & Lumi","🃏 Kart Seçimi & Tekrar","📱 Dokunmatik Alan Testi"],
-      en:["🌙 Wave 6 · Koru & Lumi","🃏 Card Pick & Retry","📱 Touch Control Test"]
-    },
-    "forge-run":{
-      tr:["🔥 Ateş Hattı · Koşu","⚒️ Çekiç Güçlendirme","🛡️ Engel Geçişi"],
-      en:["🔥 Lava Lane · Run","⚒️ Hammer Upgrade","🛡️ Obstacle Dodge"]
-    },
-    "charm-drop":{
-      tr:["✨ Bölüm 14 · Tılsım Tahtası","💥 4'lü Kombo Efekti","🏆 Bölüm Sonu Ekranı"],
-      en:["✨ Lv 14 · Charm Board","💥 4x Combo Burst","🏆 Stage Clear"]
-    }
-  };
-  let playSceneIdx=0,playTaps=0,playTx=179,playTy=220,playRipple=0;
-  function drawPlayCanvas(){
-    const cv=$("playCanvas");if(!cv)return;
-    const ctx=cv.getContext("2d"),w=cv.width,h=cv.height,gid=current||"koza";
-    ctx.clearRect(0,0,w,h);
-    if(gid==="forge-run"){
-      const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,"#2a120a");g.addColorStop(1,"#120807");
-      ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
-      // Lava track
-      ctx.strokeStyle="rgba(255,140,60,.28)";ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(75,60);ctx.lineTo(35,h);ctx.moveTo(w-75,60);ctx.lineTo(w-35,h);ctx.stroke();
-      // Gates / Obstacles
-      ctx.fillStyle=playSceneIdx===1?"rgba(46,204,113,.25)":"rgba(255,107,53,.24)";
-      ctx.strokeStyle=playSceneIdx===1?"#2ecc71":"#ff6b35";ctx.lineWidth=2;
-      ctx.fillRect(70,130,100,48);ctx.strokeRect(70,130,100,48);
-      ctx.fillStyle="#fff";ctx.font="bold 13px system-ui";ctx.textAlign="center";
-      ctx.fillText(playSceneIdx===1?"+25 Çekiç Gücü":"Ateş Duvarı · Lv4",120,159);
-      ctx.fillStyle="rgba(214,169,58,.24)";ctx.strokeStyle="#d6a93a";
-      ctx.fillRect(190,130,100,48);ctx.strokeRect(190,130,100,48);
-      ctx.fillStyle="#ffd875";ctx.fillText("x2 Hız Kapısı",240,159);
-      // Player Hammer Avatar (moves with touch X)
-      const px=Math.max(65,Math.min(w-65,playTx)),py=325;
-      ctx.fillStyle="#ff8c3b";ctx.beginPath();ctx.arc(px,py,24,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle="#fff";ctx.lineWidth=3;ctx.stroke();
-      ctx.fillStyle="#fff";ctx.font="bold 16px system-ui";ctx.fillText("⚒️",px,py+6);
-      ctx.fillStyle="#a9b5cc";ctx.font="bold 12px system-ui";ctx.fillText("Forge Run · 60 FPS Mobil Dokunmatik",w/2,32);
-    }else if(gid==="charm-drop"){
-      const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,"#1f1137");g.addColorStop(1,"#0e081c");
-      ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
-      const cols=["#f39c12","#9b59b6","#2ecc71","#3498db","#e74c3c"];
-      const icons=["💎","🌙","🍀","⚡","🌸"];
-      const startX=44,startY=82,cell=54;
-      for(let r=0;r<5;r++){
-        for(let c=0;c<5;c++){
-          const cx=startX+c*cell,cy=startY+r*cell;
-          const idx=(r*3+c+playSceneIdx)%5;
-          const dist=Math.hypot(cx+22-playTx,cy+22-playTy);
-          ctx.fillStyle=dist<42?"rgba(255,255,255,.28)":"rgba(255,255,255,.07)";
-          ctx.strokeStyle=dist<42?"#ffd875":cols[idx];ctx.lineWidth=dist<42?3:1.5;
-          ctx.beginPath();ctx.roundRect(cx,cy,44,44,10);ctx.fill();ctx.stroke();
-          ctx.font="19px system-ui";ctx.textAlign="center";ctx.fillText(icons[idx],cx+22,cy+29);
-        }
+  // ---------- 🎮 Gerçek Oyun Linki / APK Test Sistemi (#linkModal) ----------
+  function getGameLinks(gid){
+    const id=gid||current||"koza";
+    const sp=metaOfGame(id);
+    let saved={};
+    try{const raw=localStorage.getItem("oryvona.gameLinks."+id);if(raw)saved=JSON.parse(raw)||{};}catch{}
+    const sg=(store.games||[]).find(g=>g.id===id);
+    const metaLinks=sg?.meta?.testLinks||{};
+    return {
+      webUrl:String(saved.webUrl??metaLinks.webUrl??sp.defaultWebUrl??"").trim(),
+      apkUrl:String(saved.apkUrl??metaLinks.apkUrl??"").trim(),
+      playUrl:String(saved.playUrl??metaLinks.playUrl??"").trim()
+    };
+  }
+  function saveGameLinks(gid,links){
+    const id=gid||current||"koza";
+    const clean={
+      webUrl:String(links.webUrl||"").trim(),
+      apkUrl:String(links.apkUrl||"").trim(),
+      playUrl:String(links.playUrl||"").trim()
+    };
+    try{localStorage.setItem("oryvona.gameLinks."+id,JSON.stringify(clean));}catch{}
+    const sg=(store.games||[]).find(g=>g.id===id);
+    if(sg){
+      sg.meta={...(sg.meta||{}),testLinks:clean};
+      if(sb&&!demo){
+        sb.from("store_games").update({meta:sg.meta,updated_at:new Date().toISOString()}).eq("id",id).then(()=>{},()=>{});
       }
-      ctx.fillStyle="#ffd875";ctx.font="bold 13px system-ui";ctx.textAlign="center";
-      ctx.fillText(playSceneIdx===2?"🏆 Bölüm 14 Tamamlandı · 3 Yıldız":"Charm Drop · Tılsıma Dokun & Eşleştir",w/2,38);
+    }
+    updatePlayButtonUI(id);
+  }
+  function resolveGameTargetUrl(gid){
+    const id=gid||current||"koza";
+    const sp=metaOfGame(id);
+    const ln=getGameLinks(id);
+    if(sp.platform==="web"){
+      const u=ln.webUrl||sp.defaultWebUrl||ln.apkUrl||ln.playUrl||"";
+      return {kind:u?"web":"missing",url:u};
+    }
+    if(ln.apkUrl)return {kind:"apk",url:ln.apkUrl};
+    if(ln.playUrl)return {kind:"play",url:ln.playUrl};
+    if(ln.webUrl)return {kind:"web",url:ln.webUrl};
+    return {kind:"missing",url:""};
+  }
+  function updatePlayButtonUI(gid){
+    const id=gid||current||"koza";
+    const sp=metaOfGame(id);
+    const rdy=getReadiness(id);
+    const res=resolveGameTargetUrl(id);
+    const P=S().play;
+    if($("playNowBtnLbl")){
+      $("playNowBtnLbl").textContent=P.btn;
+    }
+    if($("playVerSub")){
+      const labelVer=`${sp.name} ${rdy.ver}`;
+      $("playVerSub").textContent=res.kind==="web"?P.subWeb(labelVer):(res.kind==="apk"||res.kind==="play")?P.subApk(labelVer):P.subMissing(sp.name);
+    }
+  }
+  function openLinkModal(gid){
+    const id=gid||current||"koza";
+    const sp=metaOfGame(id);
+    const ln=getGameLinks(id);
+    if($("linkModalTitle")){
+      $("linkModalTitle").textContent=lang==="tr"?`${sp.name} · Test Linki / APK Adresi`:`${sp.name} · Test Link / APK URL`;
+    }
+    if($("linkModalSub")){
+      $("linkModalSub").textContent=sp.platform==="web"
+        ?(lang==="tr"?"Web tabanlı oyun için canlı test internet adresini veya varsa APK/Play test bağlantısını aşağıya girebilirsin.":"Enter the live web test URL or optional APK/Play test link for this web-based game.")
+        :(lang==="tr"?`${sp.name} (${sp.locTr}) için son üretilen gerçek APK indirme linkini veya Google Play test adresini ekle.`:`Add the latest real APK download link or Google Play test URL for ${sp.name}.`);
+    }
+    if($("inpWebUrl"))$("inpWebUrl").value=ln.webUrl;
+    if($("inpApkUrl"))$("inpApkUrl").value=ln.apkUrl;
+    if($("inpPlayUrl"))$("inpPlayUrl").value=ln.playUrl;
+    if($("linkModalMsg"))$("linkModalMsg").textContent="";
+    if($("linkModal"))$("linkModal").hidden=false;
+  }
+  function closeLinkModal(){
+    if($("linkModal"))$("linkModal").hidden=true;
+  }
+  $("playNowBtn")?.addEventListener("click",()=>{
+    const id=current||"koza";
+    const res=resolveGameTargetUrl(id);
+    if(res.url){
+      window.open(res.url,"_blank","noopener");
     }else{
-      // KOZA · Ayışığı Bahçesi
-      const g=ctx.createRadialGradient(w/2,h*0.42,20,w/2,h/2,240);
-      g.addColorStop(0,"#1b2e4b");g.addColorStop(0.6,"#0f1b2e");g.addColorStop(1,"#09101d");
-      ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
-      // Moonlight ring & Koru core
-      ctx.strokeStyle="rgba(126,214,223,.25)";ctx.lineWidth=2;
-      ctx.beginPath();ctx.arc(w/2,195,88,0,Math.PI*2);ctx.stroke();
-      ctx.fillStyle="rgba(46,204,113,.22)";ctx.beginPath();ctx.arc(w/2,195,34,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle="#6ee7b7";ctx.lineWidth=2.5;ctx.stroke();
-      ctx.fillStyle="#eafff5";ctx.font="bold 12px system-ui";ctx.textAlign="center";
-      ctx.fillText("KORU ÖZÜ",w/2,199);
-      if(playSceneIdx===1){
-        // Card pick overlay
-        const cards=[["🌿 Koru Kalkanı","+30% Koruma"],["✨ Lumi Işığı","+2 Işık Küresi"],["🌙 Ay Dalgası","Alan Temizliği"]];
-        cards.forEach((c,i)=>{
-          const cx=24+i*106,cy=255;
-          const sel=Math.abs(playTx-(cx+48))<52;
-          ctx.fillStyle=sel?"rgba(214,169,58,.32)":"rgba(255,255,255,.08)";
-          ctx.strokeStyle=sel?"#ffd875":"rgba(255,255,255,.24)";ctx.lineWidth=sel?2.5:1.5;
-          ctx.beginPath();ctx.roundRect(cx,cy,96,115,12);ctx.fill();ctx.stroke();
-          ctx.fillStyle="#fff";ctx.font="bold 11px system-ui";ctx.fillText(c[0],cx+48,cy+46);
-          ctx.fillStyle="#9af0bb";ctx.font="10px system-ui";ctx.fillText(c[1],cx+48,cy+72);
-        });
-      }else{
-        // Lumi companion orb following touch
-        const lx=Math.max(36,Math.min(w-36,playTx)),ly=Math.max(64,Math.min(h-55,playTy));
-        ctx.fillStyle="rgba(255,216,117,.26)";ctx.beginPath();ctx.arc(lx,ly,24,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle="#ffd875";ctx.beginPath();ctx.arc(lx,ly,11,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle="#fff";ctx.font="bold 11px system-ui";ctx.fillText("Lumi",lx,ly-18);
-        // Virtual joystick indicator
-        ctx.strokeStyle="rgba(255,255,255,.28)";ctx.lineWidth=2;
-        ctx.beginPath();ctx.arc(w/2,350,36,0,Math.PI*2);ctx.stroke();
-        ctx.fillStyle="rgba(255,255,255,.45)";ctx.beginPath();ctx.arc(w/2+(lx-w/2)*0.18,350+(ly-195)*0.18,14,0,Math.PI*2);ctx.fill();
-      }
-      ctx.fillStyle="#b8d0eb";ctx.font="bold 12px system-ui";ctx.textAlign="center";
-      ctx.fillText("KOZA · Ayışığı Bahçesi (Sessiz Mobil Test)",w/2,30);
-    }
-    if(playRipple>0){
-      ctx.strokeStyle="rgba(255,216,117,.85)";ctx.lineWidth=2.5;
-      ctx.beginPath();ctx.arc(playTx,playTy,18+(4-playRipple)*6,0,Math.PI*2);ctx.stroke();
-    }
-  }
-  function openPlayModal(){
-    const gid=current||"koza";const p=projects.find(x=>x.id===gid)||STUDIO_PROJECTS[0];
-    const rdy=getReadiness(gid);
-    playSceneIdx=0;playTaps=0;playTx=179;playTy=210;
-    if($("playModalTitle"))$("playModalTitle").textContent=`${p.name} · ${rdy.ver} Test Önizlemesi`;
-    if($("playModalSub"))$("playModalSub").textContent=S().play.sub(p.name);
-    if($("playModalMsg"))$("playModalMsg").textContent="";
-    const sc=(PLAY_SCENES[gid]||PLAY_SCENES.koza)[lang]||PLAY_SCENES.koza.tr;
-    if($("playScenes")){
-      $("playScenes").innerHTML=sc.map((lbl,i)=>`<button type="button" data-pscene="${i}" aria-pressed="${i===0}">${esc(lbl)}</button>`).join("");
-    }
-    if($("playTouchInfo"))$("playTouchInfo").textContent=lang==="tr"?"Dokunuş: 0 · Ekrana dokunarak test et":"Touches: 0 · Tap canvas to test";
-    $("playModal").hidden=false;
-    drawPlayCanvas();
-  }
-  function closePlayModal(){$("playModal").hidden=true;}
-  $("playNowBtn")?.addEventListener("click",openPlayModal);
-  $("playCloseBtn")?.addEventListener("click",closePlayModal);
-  $("playModal")?.addEventListener("click",e=>{
-    if(e.target.id==="playModal"){closePlayModal();return;}
-    const sbBtn=e.target.closest("button[data-pscene]");
-    if(sbBtn){
-      playSceneIdx=Number(sbBtn.dataset.pscene)||0;
-      $("playScenes").querySelectorAll("button").forEach((b,i)=>b.setAttribute("aria-pressed",String(i===playSceneIdx)));
-      drawPlayCanvas();
+      openLinkModal(id);
     }
   });
-  (function initPlayCanvas(){
-    const cv=$("playCanvas");if(!cv)return;
-    let dragging=false;
-    const updatePt=e=>{
-      const r=cv.getBoundingClientRect();
-      const cx=e.touches?e.touches[0].clientX:e.clientX;
-      const cy=e.touches?e.touches[0].clientY:e.clientY;
-      playTx=Math.round((cx-r.left)*(cv.width/Math.max(1,r.width)));
-      playTy=Math.round((cy-r.top)*(cv.height/Math.max(1,r.height)));
-      playTaps++;playRipple=4;
-      if($("playTouchInfo"))$("playTouchInfo").textContent=lang==="tr"?`Dokunuş: ${playTaps} · Konum (${playTx}, ${playTy}) ✓`:`Touches: ${playTaps} · Pos (${playTx}, ${playTy}) ✓`;
-      drawPlayCanvas();
-    };
-    cv.addEventListener("pointerdown",e=>{e.preventDefault();dragging=true;updatePt(e);});
-    cv.addEventListener("pointermove",e=>{if(!dragging)return;e.preventDefault();updatePt(e);});
-    window.addEventListener("pointerup",()=>{dragging=false;});
-  })();
-  $("playSnapBtn")?.addEventListener("click",()=>{
-    const cv=$("playCanvas");if(!cv)return;
-    const p=projects.find(x=>x.id===current)||STUDIO_PROJECTS[0];
-    const dataUrl=cv.toDataURL("image/jpeg",0.86);
-    closePlayModal();
-    loadAttachmentFromDataUrl(dataUrl,`${p.id}-onizleme-sahne-${playSceneIdx+1}.jpg`);
-    if($("cmdBox")&&!$("cmdBox").hidden){
-      $("cmdMsg").textContent=S().play.snapAdded;
-      $("cmdBox").scrollIntoView({behavior:"smooth",block:"center"});
+  $("editLinkBtn")?.addEventListener("click",()=>openLinkModal(current||"koza"));
+  $("linkModalClose")?.addEventListener("click",closeLinkModal);
+  $("linkModalCancel")?.addEventListener("click",closeLinkModal);
+  $("linkModal")?.addEventListener("click",e=>{if(e.target.id==="linkModal")closeLinkModal();});
+  $("linkModalForm")?.addEventListener("submit",e=>{
+    e.preventDefault();
+    const id=current||"koza";
+    saveGameLinks(id,{
+      webUrl:$("inpWebUrl")?.value||"",
+      apkUrl:$("inpApkUrl")?.value||"",
+      playUrl:$("inpPlayUrl")?.value||""
+    });
+    if($("linkModalMsg"))$("linkModalMsg").textContent=S().play.saved;
+    setTimeout(closeLinkModal,250);
+  });
+  $("linkModalOpenNow")?.addEventListener("click",()=>{
+    const id=current||"koza";
+    saveGameLinks(id,{
+      webUrl:$("inpWebUrl")?.value||"",
+      apkUrl:$("inpApkUrl")?.value||"",
+      playUrl:$("inpPlayUrl")?.value||""
+    });
+    const res=resolveGameTargetUrl(id);
+    if(!res.url){
+      if($("linkModalMsg"))$("linkModalMsg").textContent=lang==="tr"?"Önce geçerli bir Web veya APK/Play adresi girin.":"Please enter a valid Web or APK/Play URL first.";
+      return;
     }
+    closeLinkModal();
+    window.open(res.url,"_blank","noopener");
   });
 
-  async function handleQuickPlay(kind){
-    const P=S().play,C=S().cmd;
-    const p=projects.find(x=>x.id===current)||STUDIO_PROJECTS[0];
-    if(kind==="approve"){
-      const text=`[${p.name}] Son sürümü telefonumda açıp denedim; kontroller ve görünüm uygun, onaylıyorum.`;
-      if($("playModalMsg"))$("playModalMsg").textContent=P.approvedMsg;
-      if($("cmdMsg"))$("cmdMsg").textContent=P.approvedMsg;
-      const newCmd={id:"ca"+Date.now(),project_id:"koza",action:"approve",text,status:demo?"done":"queued",created_at:new Date().toISOString(),runner:demo?"Deniz (Mobil)":null,result:{note_tr:"Deniz mobil önizleme üzerinden onay verdi.",target_game:current}};
-      if(demo||!sb){
-        commands=[newCmd,...(commands||[])];renderCmd();
-      }else{
-        await sb.from("commands").insert({project_id:"koza",action:"approve",text,created_by:(session?.user?.email||"").toLowerCase(),status:"queued",result:{target_game:current,note_tr:"Deniz mobil önizleme üzerinden onay verdi."}});
-        loadExtras(current);
-      }
-      setTimeout(()=>{if(!$("playModal").hidden)closePlayModal();},650);
-    }else if(kind==="fix"){
-      if(!$("playModal").hidden&&$("playCanvas")){
-        const dataUrl=$("playCanvas").toDataURL("image/jpeg",0.85);
-        loadAttachmentFromDataUrl(dataUrl,`${p.id}-duzeltme-notu.jpg`);
-      }
-      closePlayModal();
-      if($("cmdBox"))isOwner=true,$("cmdBox").hidden=false;
-      if($("cmdText")){
-        $("cmdText").value=P.fixPre(p.name);
-        $("cmdBox")?.scrollIntoView({behavior:"smooth",block:"center"});
-        setTimeout(()=>$("cmdText").focus(),150);
-      }
-      if($("cmdMsg"))$("cmdMsg").textContent=C.presetReady;
+  // ---------- Komut Kutusu: Hedef Seçici ([🤖 Claude Yapsın] / [🔍 Gemini İncelesin]) + Tek [Gönder ➤] ----------
+  let cmdTarget="claude_do";
+  function setCmdTarget(t){
+    cmdTarget=t==="gemini_review"?"gemini_review":"claude_do";
+    document.querySelectorAll("#cmdTargetSeg button[data-target]").forEach(b=>{
+      b.setAttribute("aria-pressed",String(b.dataset.target===cmdTarget));
+    });
+    const C=S().cmd;
+    if($("cmdMsg")){
+      $("cmdMsg").textContent=cmdTarget==="gemini_review"?C.targetPickedGemini:C.targetPickedClaude;
     }
+  }
+  async function dispatchContextualCmd(action,btnEl){
+    const C=S().cmd;
+    if(action==="stop"&&!confirm(C.confirmStop))return;
+    const projObj=projects.find(x=>x.id===current)||metaOfGame(current);
+    const defaultTxt=action==="approve"
+      ?`[${projObj.name}] Son sürümü ve durumu kontrol ettim; onaylıyorum.`
+      :`[${projObj.name}] Çalışan görevi ve sıradaki işlemleri durdur.`;
+    const resultPayload={target_game:current||"koza",note_tr:action==="approve"?"Deniz kart üzerinden onay verdi.":"Deniz kart üzerinden durdurma komutu verdi."};
+    if(demo||!sb){
+      if(action==="stop"){
+        commands=(commands||[]).map(c=>(c.status==="running"||c.status==="queued")?{...c,status:"cancelled"}:c);
+      }
+      commands=[{id:"ctx"+Date.now(),project_id:"koza",action,text:defaultTxt,status:action==="approve"?"done":"queued",created_at:new Date().toISOString(),runner:null,result:resultPayload},...(commands||[])];
+      renderCmd();
+      if($("cmdMsg"))$("cmdMsg").textContent=action==="approve"?C.approvedSent:C.stoppedSent;
+      return;
+    }
+    if(btnEl)btnEl.disabled=true;
+    const {error}=await sb.from("commands").insert({project_id:"koza",action,text:defaultTxt,created_by:(session?.user?.email||"").toLowerCase(),status:"queued",result:resultPayload});
+    if(btnEl)btnEl.disabled=false;
+    if(error){if($("cmdMsg"))$("cmdMsg").textContent=C.fail+error.message;return;}
+    if($("cmdMsg"))$("cmdMsg").textContent=action==="approve"?C.approvedSent:C.stoppedSent;
+    loadExtras(current);
   }
   document.addEventListener("click",e=>{
-    const qb=e.target.closest("button[data-quick-play]");
-    if(qb)handleQuickPlay(qb.dataset.quickPlay);
+    const ctxBtn=e.target.closest("button[data-ctx-cmd]");
+    if(ctxBtn){
+      dispatchContextualCmd(ctxBtn.dataset.ctxCmd,ctxBtn);
+    }
   });
 
-  $("cmdBox").addEventListener("click",async e=>{const C=S().cmd;const p=e.target.closest("button[data-preset]");
-    if(p){const txt=(C.presets&&C.presets[p.dataset.preset])||p.textContent;$("cmdText").value=txt;$("cmdText").focus();$("cmdMsg").textContent=C.presetReady||"";return;}
-    const b=e.target.closest("button[data-cmd]");if(!b)return;const action=b.dataset.cmd;let text=$("cmdText").value.trim();const msg=$("cmdMsg");
+  $("cmdBox").addEventListener("click",async e=>{
+    const C=S().cmd;
+    const p=e.target.closest("button[data-preset]");
+    if(p){
+      const txt=(C.presets&&C.presets[p.dataset.preset])||p.textContent;
+      $("cmdText").value=txt;$("cmdText").focus();
+      $("cmdMsg").textContent=C.presetReady||"";
+      return;
+    }
+    const tb=e.target.closest("button[data-target]");
+    if(tb){
+      setCmdTarget(tb.dataset.target);
+      return;
+    }
+    const sendBtn=e.target.closest("#cmdSendBtn");
+    if(!sendBtn)return;
+    const action=cmdTarget||"claude_do";
+    let text=$("cmdText").value.trim();
+    const msg=$("cmdMsg");
     const hasImg=cmdBaseImg&&$("cmdImgPreviewBox")&&!$("cmdImgPreviewBox").hidden;
-    if(action!=="stop"&&!text&&!hasImg){msg.textContent=C.needText;return;}
-    if(action==="stop"&&!confirm(C.confirmStop))return;
+    if(!text&&!hasImg){
+      if(action==="gemini_review"){
+        text="Son teslim edilen çalışmayı kanıtlarıyla incele ve Türkçe yönetici özeti çıkar.";
+      }else{
+        msg.textContent=C.needText;
+        return;
+      }
+    }
     let attachment=null;
     if(hasImg&&$("cmdAnnotCanvas")){
       const dataUrl=$("cmdAnnotCanvas").toDataURL("image/jpeg",0.82);
@@ -1637,23 +1722,24 @@ textarea{width:100%;min-height:80px;resize:vertical}
       const tag=cmdAnnotCount>0?`[📸 Görsel kanıt eklendi · kırmızı işaretli: ${attachment.name}]`:`[📸 Görsel kanıt eklendi: ${attachment.name}]`;
       text=text?`${text} ${tag}`:tag;
     }
-    const projObj=projects.find(x=>x.id===current);
+    const projObj=projects.find(x=>x.id===current)||metaOfGame(current);
     const sendText=(current&&current!=="koza"&&projObj&&!text.startsWith("["))?`[${projObj.name}] ${text}`:text;
     const resultPayload=attachment?{attachment,target_game:current}:{target_game:current};
     if(demo||!sb){
       commands=[{id:"cd"+Date.now(),project_id:"koza",action,text:sendText,status:"queued",created_at:new Date().toISOString(),runner:null,result:resultPayload},...(commands||[])];
-      renderCmd();msg.textContent=C.sent;if(action!=="stop"){$("cmdText").value="";clearAttachment();}return;
+      renderCmd();msg.textContent=C.sent;$("cmdText").value="";clearAttachment();return;
     }
-    b.disabled=true;
+    sendBtn.disabled=true;
     const {error}=await sb.from("commands").insert({project_id:"koza",action,text:sendText,created_by:(session?.user?.email||"").toLowerCase(),status:"queued",result:resultPayload});
-    b.disabled=false;
+    sendBtn.disabled=false;
     if(error){msg.textContent=C.fail+error.message;return;}
-    msg.textContent=C.sent;if(action!=="stop"){$("cmdText").value="";clearAttachment();}loadExtras(current);});
+    msg.textContent=C.sent;$("cmdText").value="";clearAttachment();loadExtras(current);
+  });
 
   // ---------- data ----------
   const CFG=window.ORYVONA||{};const asDoc=row=>({id:row.id,data:()=>row});
   function remember(id){try{localStorage.setItem("oryvona.project",id);}catch{}} function recall(){try{return localStorage.getItem("oryvona.project");}catch{return null;}}
-  function applyStatus(row){status=row&&row.data?row.data:null;freshness();if(status)renderHome(status);else{renderNowCard(null);$("heroV").textContent=session||demo?T("home.noRecord"):T("home.waitingData");$("heroS").textContent=session||demo?T("home.noRecordSub"):T("home.waitingSub");const p=projects.find(x=>x.id===current);$("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=T("ui.studio");}refreshOpen();}
+  function applyStatus(row){status=row&&row.data?row.data:null;freshness();renderGameBar();updatePlayButtonUI(current);if(status)renderHome(status);else{renderNowCard(null);$("heroV").textContent=session||demo?T("home.noRecord"):T("home.waitingData");$("heroS").textContent=session||demo?T("home.noRecordSub"):T("home.waitingSub");const p=projects.find(x=>x.id===current);$("topTitle").textContent=p?p.name:"Oryvona Games";$("topSub").textContent=T("ui.studio");}refreshOpen();}
   async function loadAll(id){
     const presets=buildStudioPresets();
     if(demo){
@@ -1668,7 +1754,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const stRow=st.data?.data?st.data:{data:presets.status[id]||allStatus[id]||null};
     feedDocs=evRows.map(r=>asDoc(r));runsDocs=rnRows.map(r=>asDoc(r));
     renderTimeline("tl",24);applyStatus(stRow);loadExtras(id);}
-  function select(id){if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];if(!demo){shadow=null;commands=[];}freshness();renderGemini();renderCmd();
+  function select(id){if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];if(!demo){shadow=null;commands=[];}freshness();renderGameBar();updatePlayButtonUI(id);renderGemini();renderCmd();
     if(demo||!sb){const presets=buildStudioPresets();feedDocs=(presets.feed[id]||[]).map(r=>asDoc(r));runsDocs=(presets.runs[id]||[]).map(r=>asDoc(r));applyStatus({data:allStatus[id]||presets.status[id]||null});renderTimeline("tl",24);return;}
     if(channel){sb.removeChannel(channel);channel=null;}loadAll(id);
     channel=sb.channel("panel-"+id).on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"shadow_reviews",filter:"project_id=eq."+id},()=>loadExtras(id)).on("postgres_changes",{event:"*",schema:"public",table:"commands",filter:"project_id=eq.koza"},()=>loadExtras(id)).subscribe();}
@@ -1688,7 +1774,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function startDemo(){demo=true;$("gate").hidden=true;$("banner").hidden=false;$("banner").textContent=T("gate.demoBanner");
     const now=Date.now();const iso=ms=>new Date(now-ms).toISOString();
     projects=[...STUDIO_PROJECTS];current="koza";
-    status={updatedAt:iso(3*60000),source:"github-webhook",repo:{name:"oryvona/koza",url:"https://github.com",branch:"koza-work",pr:2},lineSubTr:"Ayışığı Bahçesi kabul aşamaları",handoff:{status:"WORK_WORKING",task_id:"C02-RETRY-CARD",turn:2,lease:{actor:"work",claimed_at:iso(9*60000)}},lastQa:{run_id:"38869107902",code_passed:99,code_total:99,browser_passed:45,browser_total:45,natural_passed:33,natural_total:33,lumi_checks_passed:18,koru_checks_passed:22,touch_partial_ui_checks_passed:10,lifecycle_status:"BLOCKED",limitsTr:"Kod 99/99, tarayıcı 45/45, gerçek oynanış 33/33. Sekme/çıkış testi altyapı engelinde, oyun hatası değil.",source_commit:"39d672b4"},head:{commit:"e4c1913770a8",at:iso(12*60000),subject:"Kart testi için gerçek kart seçimi"},automation:{liveFeed:{at:iso(3*60000)},workWebhook:{enabled:true,lastSeenAt:iso(9*60000)},claudeTask:null},phaseTr:"Gerçek oyun akışı",summaryTr:"8 aşamadan 2 tanesi geçti. Gerçek oynanış testleri geçiyor; sekme testi tarayıcı engelinde (oyun hatası değil).",taskTitleTr:"Kart alıp tekrar oynama testi",taskTextTr:"Claude çıkıştan önce gerçek bir kart seçilmesini sağlayacak; böylece tekrar sonrası temizlik kontrolü boş kalmayacak.",workNote:{at:iso(9*60000),titleTr:"İnceleme başladı",textTr:"Son koşunun ham kanıtını inceliyorum; sonucu 10 dakikaya yazarım."},
+    status={updatedAt:iso(3*60000),source:"github-webhook",repo:{name:"oryvona/koza",url:"https://github.com",branch:"koza-work",pr:2},lineSubTr:"Ayışığı Bahçesi kabul aşamaları",handoff:{status:"WORK_WORKING",task_id:"C02-RETRY-CARD",turn:2,lease:{actor:"work",claimed_at:iso(9*60000)}},lastQa:{run_id:"38869107902",code_passed:99,code_total:99,browser_passed:45,browser_total:45,natural_passed:33,natural_total:33,lumi_checks_passed:18,koru_checks_passed:22,touch_partial_ui_checks_passed:10,lifecycle_status:"BLOCKED",limitsTr:"Kod 99/99, tarayıcı 45/45, gerçek oynanış 33/33. Sekme/çıkış testi altyapı engelinde, oyun hatası değil.",source_commit:"39d672b4"},head:{commit:"e4c1913770a8",at:iso(12*60000),subject:"Kart testi için gerçek kart seçimi"},automation:{liveFeed:{at:iso(3*60000)},workWebhook:{enabled:true,lastSeenAt:iso(9*60000)},claudeTask:null},phaseTr:"DJ-KABIN · Aktif · Gerçek oyun akışı",summaryTr:"8 aşamadan 2 tanesi geçti. Gerçek oynanış testleri geçiyor; sekme testi tarayıcı engelinde (oyun hatası değil).",taskTitleTr:"Kart alıp tekrar oynama testi",taskTextTr:"Claude çıkıştan önce gerçek bir kart seçilmesini sağlayacak; böylece tekrar sonrası temizlik kontrolü boş kalmayacak.",workNote:{at:iso(9*60000),titleTr:"İnceleme başladı",textTr:"Son koşunun ham kanıtını inceliyorum; sonucu 10 dakikaya yazarım."},
       stages:[{id:"C00",title:"Kaynak aktarımı",status:"PASS",statusTr:"Geçti",note:"205 dosya"},{id:"C01",title:"Temel kabul",status:"PASS",statusTr:"Geçti",note:"99 kod / 45 tarayıcı"},{id:"C02",title:"Gerçek oyun akışı",status:"PARTIAL",statusTr:"Kısmi",note:"6 dalga geçti; sekme testi engelde"},{id:"C03",title:"Oynanış ve denge",status:"PENDING",statusTr:"Sırada"},{id:"C04",title:"Yeniden doğrulama",status:"PENDING",statusTr:"Sırada"},{id:"UT",title:"Deniz son testi",status:"PENDING",statusTr:"Sırada"}]};
     allStatus.koza=status;
     const ev=[[9,"work","claim","WORK_WORKING","Turn claimed"],[14,"claude","release","READY_WORK","100 ms beklemeyi atlayıp hemen ilk örneklemi alan Koru testi düzeltildi; yalnız test dosyası değişti ve buluta gönderildi."],[52,"claude","claim","CLAUDE_WORKING","Turn claimed"],[75,"work","release","READY_CLAUDE","39008291712 tamamlandı: aynı kaynak/merge/manifest99/45/33/23 ve Lumi 18/18 geçti; sırada Koru zamanlama kontrolü var."],[80,"work","note","Kalite Kontrol Notu","Kartsız temizlik kontrolü anlamlı değil; gerçek kart seçimiyle tekrar doğrulanmalı."],[110,"work","claim","WORK_WORKING","Turn claimed"],[140,"claude","release","READY_WORK","Dokunmatik kontrol testinin bulut çalışma ayarları güncellendi ve sırayı kontrole bıraktı."]];
@@ -1704,7 +1790,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       mail:[{id:"m1",game_id:"forge-run",from_addr:"googleplay-noreply@google.com",from_name:"Google Play Console",subject:"Forge Run: Kapalı test sürümünüz incelendi",snippet:"0.4.2 (6) sürümü kapalı test kanalında yayına alındı.",received_at:iso(40*60000),kind:"console",link:"https://mail.google.com/",read:false},{id:"m2",game_id:"koza",from_addr:"tester@example.com",from_name:"Ali Testçi",subject:"KOZA kapalı test geri bildirimi",snippet:"Dördüncü dalgada dostların biri takılı kalıyor gibi…",received_at:iso(3*3600e3),kind:"tester",link:"https://mail.google.com/",read:false}],
       notes:[{id:1,game_id:"koza",author_email:"sahip@oryvona.games",text:"Açık test yüzdesini %100'e çıkarmadan önce ses kontrolünü doğrula.",at:iso(2*3600e3)}],
       events:[{id:"e1",game_id:"koza",at:iso(20*60000),kind:"track_change",title_tr:"Mağaza durumu değişti",text_tr:"Kapalı test: 0.9.4 (14) aşamalı yayında · İç test: 0.9.5 (15) tamamlandı"}],
-      status:{gmail:{connected:true,account:"oryvonagames@gmail.com",lastRun:iso(12*60000),lastNew:1},play:{connected:true,account:"panel-sync@oryvona.iam.gserviceaccount.com",lastRun:iso(20*60000),games:3}}};
+      status:{gmail:{connected:true,account:"oryvonagames@gmail.com",lastRun:iso(12*60000),lastNew:1},play:{connected:true,account:"panel-sync@oryvona.iam.gserviceaccount.com",lastRun:iso(20*60000),games:4}}};
     ensureStudioCatalog();
     renderTimeline("tl",24);applyStatus({data:status});renderStoreBadge();renderGemini();renderCmd();requestAnimationFrame(()=>scrollTo(0,0));
     window.__oryvonaInject=d=>{if(d.status){status=d.status;allStatus[current]=d.status;}if(d.events)feedDocs=d.events.map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));if(d.runs)runsDocs=d.runs.map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));if(d.store)store={...store,...d.store};ensureStudioCatalog();renderTimeline("tl",24);applyStatus({data:status});renderStoreBadge();};}
