@@ -23,7 +23,7 @@
   --brand:#4f3fd6; --brand-soft:#ebe8fb; --brand-ink:#2d2490;
   --cyan:#19b8e5; --gold:#f2b632; --violet:#a04fe0;
   --good:#1f8a4c; --good-soft:#e2f5e9; --warn:#b4650a; --warn-soft:#fdeed3; --bad:#c43c3c; --bad-soft:#fbe3e3; --info:#2d6fd6; --info-soft:#e4edfc;
-  --claude:#b57a12; --claude-soft:#fdf0d2; --claude-bar:#e3a324; --work:#2d6fd6; --work-soft:#e4edfc; --deniz:#8a3fd6; --deniz-soft:#f0e5fc;
+  --claude:#b57a12; --claude-soft:#fdf0d2; --claude-bar:#e3a324; --work:#2d6fd6; --work-soft:#e4edfc; --deniz:#8a3fd6; --deniz-soft:#f0e5fc; --gemini:#0f8f7a; --gemini-soft:#d9f3ec;
   --hatch-a:#eeedf6; --hatch-b:#d9d7ea;
   --sans:"Nunito",ui-rounded,"Segoe UI",system-ui,Roboto,Arial,sans-serif; --r:20px; --r-s:14px;
   --shadow:0 1px 2px rgba(23,22,47,.04),0 10px 30px -12px rgba(23,22,47,.12);
@@ -35,7 +35,7 @@
   --ink:#121128; --ink-2:#1f1c4a; --on-ink-2:#cfcbea;
   --brand:#9d93ff; --brand-soft:#2f2c5e; --brand-ink:#dcd8ff;
   --good:#5fd48c; --good-soft:#1b3b2a; --warn:#f2b632; --warn-soft:#3f2f10; --bad:#ff8f8f; --bad-soft:#4c2222; --info:#7fb0ff; --info-soft:#1f2d52;
-  --claude:#f2b632; --claude-soft:#3f2f10; --claude-bar:#f2b632; --work:#7fb0ff; --work-soft:#1f2d52; --deniz:#c89bff; --deniz-soft:#34224f;
+  --claude:#f2b632; --claude-soft:#3f2f10; --claude-bar:#f2b632; --work:#7fb0ff; --work-soft:#1f2d52; --deniz:#c89bff; --deniz-soft:#34224f; --gemini:#5fd6c0; --gemini-soft:#163d36;
   --hatch-a:#2a2952; --hatch-b:#353466; --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 30px -12px rgba(0,0,0,.5); color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -106,7 +106,8 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .tile.flat{cursor:default} .tile.flat::after{display:none}
 .tile .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand)}
 .tile .ic svg{width:21px;height:21px}
-.tile .ic.claude{background:var(--claude-soft);color:var(--claude)} .tile .ic.work{background:var(--work-soft);color:var(--work)} .tile .ic.deniz{background:var(--deniz-soft);color:var(--deniz)} .tile .ic.good{background:var(--good-soft);color:var(--good)} .tile .ic.warn{background:var(--warn-soft);color:var(--warn)} .tile .ic.bad{background:var(--bad-soft);color:var(--bad)} .tile .ic.info{background:var(--info-soft);color:var(--info)}
+.tile .ic.claude{background:var(--claude-soft);color:var(--claude)} .tile .ic.work{background:var(--work-soft);color:var(--work)} .tile .ic.deniz{background:var(--deniz-soft);color:var(--deniz)} .tile .ic.good{background:var(--good-soft);color:var(--good)} .tile .ic.warn{background:var(--warn-soft);color:var(--warn)} .tile .ic.bad{background:var(--bad-soft);color:var(--bad)} .tile .ic.info{background:var(--info-soft);color:var(--info)} .tile .ic.gemini{background:var(--gemini-soft);color:var(--gemini)}
+.cmd-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px} .cmd-actions .btn{flex:1 1 45%;min-height:44px} .btn.danger{color:var(--bad);border-color:var(--bad)} .cmdrow{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 0;border-top:1px solid var(--line)} .cmdrow .tx{display:flex;flex-direction:column;gap:2px;min-width:0} .cmdrow .s{color:var(--fg-2);font-size:.9rem;overflow-wrap:anywhere}
 .tile .k{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-3);margin-top:2px}
 .tile .v{font-size:1.08rem;font-weight:900;line-height:1.2;overflow-wrap:anywhere;color:var(--fg)}
 .tile .s{font-size:.85rem;color:var(--fg-2);line-height:1.35}
@@ -122,7 +123,7 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .who{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .person{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--surface-2);font-weight:800;color:var(--fg-2);font-size:.92rem}
 .person .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.85rem}
-.av.claude{background:var(--claude-soft);color:var(--claude)} .av.work{background:var(--work-soft);color:var(--work)} .av.deniz{background:var(--deniz-soft);color:var(--deniz)} .av.ci{background:var(--surface-2);color:var(--fg-2)} .av.team{background:var(--brand-soft);color:var(--brand-ink)}
+.av.claude{background:var(--claude-soft);color:var(--claude)} .av.work{background:var(--work-soft);color:var(--work)} .av.deniz{background:var(--deniz-soft);color:var(--deniz)} .av.ci{background:var(--surface-2);color:var(--fg-2)} .av.team{background:var(--brand-soft);color:var(--brand-ink)} .av.gemini{background:var(--gemini-soft);color:var(--gemini)}
 .person.active{background:var(--brand-soft);color:var(--brand-ink);outline:2px solid var(--brand)}
 .arrow{color:var(--fg-3);font-weight:900}
 .path{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
@@ -138,7 +139,7 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .strip .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap} .strip .hd b{font-weight:900} .strip .hd span{font-size:.84rem;color:var(--fg-3)}
 .tl{width:100%;height:auto;display:block} .tl .tick{stroke:var(--line-2);stroke-width:1.5} .tl .lab{font-family:var(--sans);font-size:20px;fill:var(--fg-2);font-weight:800}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--fg-2);font-weight:700} .legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:6px}
-.legend i.claude{background:var(--claude-bar)} .legend i.work{background:var(--work)} .legend i.wait{background:repeating-linear-gradient(135deg,var(--hatch-b) 0 3px,var(--hatch-a) 3px 6px)}
+.legend i.claude{background:var(--claude-bar)} .legend i.work{background:var(--work)} .legend i.gemini{background:var(--gemini)} .legend i.wait{background:repeating-linear-gradient(135deg,var(--hatch-b) 0 3px,var(--hatch-a) 3px 6px)}
 .hist{overflow-x:auto} .hist table{border-collapse:separate;border-spacing:6px;font-size:.84rem;min-width:100%}
 .hist th{font-weight:800;color:var(--fg-2);text-align:left;white-space:nowrap;padding:0 4px} .hist thead th{font-size:.72rem;color:var(--fg-3);text-align:center;vertical-align:bottom;line-height:1.15}
 .hist td{text-align:center;padding:0} .cell{display:inline-grid;place-items:center;width:34px;height:30px;border-radius:9px;font-weight:900;font-size:.9rem;background:var(--surface-2);color:var(--fg-3)}
@@ -258,6 +259,20 @@ textarea{width:100%;min-height:80px;resize:vertical}
       <button class="tile" data-detail="auto"><span class="ic" id="icAuto"></span><span class="k" data-i18n="home.auto">Otomasyon</span><span class="v" id="cAuto">—</span><span class="s" id="cAutoS"></span></button>
     </div>
     <button class="tile wide quote-tile" id="cardWork" data-detail="worknote" hidden><span class="ic work" id="icWork"></span><span class="tx"><span class="k"><span data-i18n="home.workNote">OpenAI'dan son not</span> <span class="tag yorum" data-i18n="ui.comment">Yorum</span></span><span class="v" id="cWork">—</span><span class="s quote" id="cWorkS" style="font-size:.98rem"></span></span></button>
+    <button class="tile wide" id="cardGemini" data-detail="gemini" hidden><span class="ic gemini" id="icGemini">G</span><span class="tx"><span class="k"><span data-i18n="gemini.title">Gemini (gölge)</span> <span class="tag yorum" data-i18n="ui.comment">Yorum</span></span><span class="v" id="cGemini">—</span><span class="s" id="cGeminiS"></span></span></button>
+    <div class="card" id="cmdBox" hidden>
+      <div class="hd"><b data-i18n="cmd.title">Komut Kutusu</b><span data-i18n="cmd.sub">Telefondan görev yaz; DJ-KABIN'deki çalıştırıcı alır</span></div>
+      <textarea id="cmdText" rows="3" maxlength="2000" data-i18n-ph="cmd.ph" placeholder="Görevi yaz…"></textarea>
+      <div class="cmd-actions">
+        <button type="button" class="btn gold" data-cmd="claude_do" data-i18n="cmd.claude">Claude'a Yaptır</button>
+        <button type="button" class="btn ghost" data-cmd="gemini_review" data-i18n="cmd.gemini">Gemini'ye İncelet</button>
+        <button type="button" class="btn ghost" data-cmd="approve" data-i18n="cmd.approve">Onayla</button>
+        <button type="button" class="btn ghost danger" data-cmd="stop" data-i18n="cmd.stop">Durdur</button>
+      </div>
+      <div class="s" id="cmdMsg" style="min-height:1.2em;margin-top:6px"></div>
+      <div class="secthead" data-i18n="cmd.recent">Son komutlar</div>
+      <div id="cmdList"></div>
+    </div>
   </section>
 
   <section class="view" id="view-feed" hidden>
@@ -269,7 +284,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       <div class="legend"><span><i class="claude"></i>Claude</span><span><i class="work"></i>OpenAI</span><span><i class="run"></i><span data-i18n="ui.cloudTest">Bulut testi</span></span></div>
     </div>
     <div class="secthead" data-i18n="feed.records">Kayıtlar</div>
-    <div class="filters" id="feedFilters"><button aria-pressed="true" data-f="all" data-i18n="ui.all">Hepsi</button><button data-f="work">OpenAI</button><button data-f="claude">Claude</button><button data-f="note" data-i18n="feed.notes">Notlar</button></div>
+    <div class="filters" id="feedFilters"><button aria-pressed="true" data-f="all" data-i18n="ui.all">Hepsi</button><button data-f="work">OpenAI</button><button data-f="claude">Claude</button><button data-f="gemini">Gemini</button><button data-f="note" data-i18n="feed.notes">Notlar</button></div>
     <div class="card"><div class="feed" id="feedList"><div class="empty">Henüz akış kaydı yok.</div></div></div>
   </section>
 
@@ -405,11 +420,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
     ago:{now:"az önce",m:v=>v+" dk önce",h:v=>v+" sa önce",d:v=>v+" gün önce"},
     feed:{title:"Ekip akışı",week:"Bu hafta",records:"Kayıtlar",notes:"Notlar",empty:"Henüz akış kaydı yok.",emptyFilter:"Bu süzgeçte kayıt yok.",last7:"son 7 gün",turns:"Tur",turnsSub:"sıra el değiştirdi",runsSub:n=>`${n} tanesi sorunsuz`,noRuns:"koşu yok",workTime:"çalışma süresi",reviewTime:"inceleme süresi",today:"Bugün",hm:(h,m)=>`${h} sa ${m} dk`,min:m=>`${m} dk`,hr:h=>`${h} sa`,worked:v=>v+" çalıştı",waitFor:v=>"Bekleme: "+v,nowLabel:"şimdi"},
     tests:{title:"Testler",code:"Kod testleri",browser:"Tarayıcı testleri",natural:"Gerçek oynanış",lifecycle:"Sekme / Turu bitir",allPassed:"Hepsi geçti",missing:"Eksik var",waiting:"Bekleniyor",pass:"Geçti",blocked:"Engel",fail:"Hata",blockedSub:"Altyapı sınırı, oyun hatası değil",failSub:"Gerçek bir sorun bulundu",notRun:"Henüz koşmadı",runLog:"Koşu kaydı: ",noRun:"Henüz bulut koşusu yok.",source:v=>` · kaynak ${v}`,history:"Koşu geçmişi",noHistory:"Koşu geçmişi yok.",rowCode:"Kod",rowBrowser:"Tarayıcı",rowNatural:"Oynanış",rowLife:"Sekme / çıkış",cellPass:"geçti",cellBlocked:"engel",cellFail:"hata",cellNone:"koşmadı",lastRun:"Son koşu: "},
-    det:{turn:"Sıra kimde",stage:"Oyun nerede",qa:"Son bulut testi",auto:"Otomasyon",worknote:"OpenAI'dan son not",terms:"Terimler ve roller",noTask:"Görev yok",taskCode:(id,t)=>`Görev kodu ${id} · tur ${t}`,lock:(who,at)=>` · kilit: ${who}, ${at}`,lockFree:" · kilit boş",
+    gemini:{title:"Gemini (gölge)",sub:"Gölge inceleme · sırayı etkilemez, karşılaştırma içindir",pass:"Geçti",fail:"Kaldı",unverified:"Doğrulanamadı",blocked:"Bloke",matchYes:"Work ile uyumlu",matchNo:"Work ile farklı",matchUnknown:"Work kararı bekleniyor",quota:"kota: bilinmiyor",none:"Henüz gölge inceleme yok.",err:v=>"hata sınıfı: "+v,dur:v=>v+" sn",geminiSaid:v=>`Gemini'nin kendi kararı: ${v}`,source:{gemini:"Gemini kararı",'runner-override':"runner düşürdü: kanıt tutmuyor",'runner-fallback':"runner: şema/hata"},report:"Rapor: ",task:"Görev: ",sha:"Sürüm: "},
+    cmd:{title:"Komut Kutusu",sub:"Telefondan görev yaz; DJ-KABIN'deki çalıştırıcı alır",ph:"Görevi yaz… (ör. dokunma testini bulut listesinden çıkar; sadece workflow dosyası değişsin)",claude:"Claude'a Yaptır",gemini:"Gemini'ye İncelet",approve:"Onayla",stop:"Durdur",sent:"Gönderildi · çalıştırıcı sıradakini alınca durum değişir",fail:"Gönderilemedi: ",needText:"Önce görevi yaz.",confirmStop:"Çalışan iş kesilsin ve sıradaki komutlar iptal edilsin mi?",recent:"Son komutlar",none:"Henüz komut yok.",notTable:"Komut tablosu henüz kurulmadı (Faz 1 veritabanı güncellemesi bekliyor).",demo:"Örnek görünümde komut gönderilmez.",st:{queued:"sırada",running:"çalışıyor",done:"bitti",failed:"hata",cancelled:"iptal"},act:{claude_do:"Claude'a Yaptır",gemini_review:"Gemini'ye İncelet",approve:"Onay",stop:"Durdur"}},
+    det:{turn:"Sıra kimde",stage:"Oyun nerede",qa:"Son bulut testi",auto:"Otomasyon",worknote:"OpenAI'dan son not",gemini:"Gemini (gölge)",terms:"Terimler ve roller",noTask:"Görev yok",taskCode:(id,t)=>`Görev kodu ${id} · tur ${t}`,lock:(who,at)=>` · kilit: ${who}, ${at}`,lockFree:" · kilit boş",
       pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`GitHub'daki her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI uyandırma",on:"etkin",off:"kapalı",wakeSub:v=>`Claude GitHub'a gönderince OpenAI kendiliğinden uyanır. Son OpenAI hareketi: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Zamanlanmış görev şu an kapalı; Claude elle başlatılıyor.",repo:"Depo: ",lastPush:v=>` · son gönderim ${v}`,last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
       workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar",run:v=>` · koşu ${v}`},
-    terms:[["Claude","Kaynak mühendisi. Testleri ve yamaları yazar, GitHub'a gönderir."],["OpenAI","Bağımsız kalite kontrol (ChatGPT). Bulut testinin ham kanıtını inceler, sonraki görevi yazar."],["Deniz","Stüdyo sahibi. Zorunlu testler bitince son oyuncu testini yapar; yayın ve APK kararı onda."],["Sıra","Aynı anda tek kişi çalışır; sıra kimdeyse diğerleri bekler, dosyalar çakışmaz."],["Engel","Oyun hatası değil; altyapı ya da erişim sınırı. Kanıtıyla kaydedilir."],["Testler","Kod testleri · sabit senaryolu tarayıcı testi · gerçek tuşlarla oynanış · sekme değiştirme, çıkış ve tekrar oyna."],["Mağaza","Play Store yolundaki oyunlar: test aşaması, yorumlar, gelen e-postalar ve ekip notları tek sayfada."]],
-    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 2.1 · Veri: Supabase (canlı) · Kaynak: GitHub",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Claude, OpenAI, sıra, engel ne demek?",
+    terms:[["Claude","Kaynak mühendisi. Testleri ve yamaları yazar, GitHub'a gönderir."],["OpenAI","Bağımsız kalite kontrol (ChatGPT). Bulut testinin ham kanıtını inceler, sonraki görevi yazar."],["Deniz","Stüdyo sahibi. Zorunlu testler bitince son oyuncu testini yapar; yayın ve APK kararı onda."],["Sıra","Aynı anda tek kişi çalışır; sıra kimdeyse diğerleri bekler, dosyalar çakışmaz."],["Engel","Oyun hatası değil; altyapı ya da erişim sınırı. Kanıtıyla kaydedilir."],["Testler","Kod testleri · sabit senaryolu tarayıcı testi · gerçek tuşlarla oynanış · sekme değiştirme, çıkış ve tekrar oyna."],["Mağaza","Play Store yolundaki oyunlar: test aşaması, yorumlar, gelen e-postalar ve ekip notları tek sayfada."],["Gemini","Gölge incelemeci (Antigravity). Aynı kanıtı OpenAI'dan bağımsız değerlendirir; sonucu sırayı değiştirmez, karşılaştırma içindir."],["Komut Kutusu","Deniz'in telefondan görev yazdığı kutu. DJ-KABIN'deki çalıştırıcı sıradaki komutu alır; oyun, tarayıcı veya ses asla başlatmaz."]],
+    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 2.2 · Veri: Supabase (canlı) · Kaynak: GitHub",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Claude, OpenAI, sıra, engel ne demek?",
       demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · kaynak: ${src}`,ghSignal:"GitHub sinyali",noDataYet:"Henüz veri yok",
       pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
     pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
@@ -447,11 +464,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
     ago:{now:"just now",m:v=>v+" min ago",h:v=>v+" h ago",d:v=>v+" d ago"},
     feed:{title:"Team activity",week:"This week",records:"Records",notes:"Notes",empty:"No activity yet.",emptyFilter:"No records for this filter.",last7:"last 7 days",turns:"Turns",turnsSub:"hand-overs",runsSub:n=>`${n} clean`,noRuns:"no runs",workTime:"working time",reviewTime:"review time",today:"Today",hm:(h,m)=>`${h} h ${m} min`,min:m=>`${m} min`,hr:h=>`${h} h`,worked:v=>v+" worked",waitFor:v=>"Waiting: "+v,nowLabel:"now"},
     tests:{title:"Tests",code:"Code tests",browser:"Browser tests",natural:"Real gameplay",lifecycle:"Tab switch / finish run",allPassed:"All passed",missing:"Some missing",waiting:"Waiting",pass:"Passed",blocked:"Blocked",fail:"Failed",blockedSub:"Infrastructure limit, not a game bug",failSub:"A real problem was found",notRun:"Not run yet",runLog:"Run log: ",noRun:"No cloud run yet.",source:v=>` · source ${v}`,history:"Run history",noHistory:"No run history.",rowCode:"Code",rowBrowser:"Browser",rowNatural:"Gameplay",rowLife:"Tab / quit",cellPass:"passed",cellBlocked:"blocked",cellFail:"failed",cellNone:"not run",lastRun:"Last run: "},
-    det:{turn:"Whose turn",stage:"Where the game is",qa:"Last cloud test",auto:"Automation",worknote:"Latest note from OpenAI",terms:"Terms and roles",noTask:"No task",taskCode:(id,t)=>`Task ${id} · turn ${t}`,lock:(who,at)=>` · lock: ${who}, ${at}`,lockFree:" · lock free",
+    gemini:{title:"Gemini (shadow)",sub:"Shadow review · never changes the turn, for comparison only",pass:"Passed",fail:"Failed",unverified:"Unverified",blocked:"Blocked",matchYes:"Agrees with OpenAI",matchNo:"Differs from OpenAI",matchUnknown:"Waiting for OpenAI's verdict",quota:"quota: unknown",none:"No shadow review yet.",err:v=>"error class: "+v,dur:v=>v+" s",geminiSaid:v=>`Gemini's own verdict: ${v}`,source:{gemini:"Gemini's verdict",'runner-override':"runner downgraded: evidence does not hold",'runner-fallback':"runner: schema/error"},report:"Report: ",task:"Task: ",sha:"Version: "},
+    cmd:{title:"Command box",sub:"Write a task from your phone; the runner on DJ-KABIN picks it up",ph:"Write the task… (e.g. drop the touch test from the cloud list; only the workflow file may change)",claude:"Have Claude do it",gemini:"Have Gemini review",approve:"Approve",stop:"Stop",sent:"Sent · status changes when the runner picks it up",fail:"Could not send: ",needText:"Write the task first.",confirmStop:"Interrupt the running job and cancel queued commands?",recent:"Recent commands",none:"No commands yet.",notTable:"Command table not installed yet (Phase 1 database update pending).",demo:"Commands are not sent in the sample view.",st:{queued:"queued",running:"running",done:"done",failed:"failed",cancelled:"cancelled"},act:{claude_do:"Have Claude do it",gemini_review:"Have Gemini review",approve:"Approval",stop:"Stop"}},
+    det:{turn:"Whose turn",stage:"Where the game is",qa:"Last cloud test",auto:"Automation",worknote:"Latest note from OpenAI",gemini:"Gemini (shadow)",terms:"Terms and roles",noTask:"No task",taskCode:(id,t)=>`Task ${id} · turn ${t}`,lock:(who,at)=>` · lock: ${who}, ${at}`,lockFree:" · lock free",
       pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change on GitHub lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI wake-up",on:"enabled",off:"off",wakeSub:v=>`When Claude pushes to GitHub, OpenAI wakes up by itself. Last OpenAI activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"The scheduled task is off for now; Claude is started manually.",repo:"Repository: ",lastPush:v=>` · last push ${v}`,last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
       workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes",run:v=>` · run ${v}`},
-    terms:[["Claude","Source engineer. Writes tests and patches, pushes to GitHub."],["OpenAI","Independent quality control (ChatGPT). Reviews the raw cloud test evidence and writes the next task."],["Deniz","Studio owner. Does the final player test once mandatory tests pass; release and APK decisions are theirs."],["Turn","Only one person works at a time; whoever holds the turn works, the others wait, so files never clash."],["Blocker","Not a game bug; an infrastructure or access limit. Recorded with evidence."],["Tests","Code tests · fixed-scenario browser test · gameplay with real keys · tab switching, quitting and replaying."],["Store","Games on their way to the Play Store: test stage, reviews, incoming mail and team notes on one page."]],
-    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 2.1 · Data: Supabase (live) · Source: GitHub",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"What do Claude, OpenAI, turn and blocker mean?",
+    terms:[["Claude","Source engineer. Writes tests and patches, pushes to GitHub."],["OpenAI","Independent quality control (ChatGPT). Reviews the raw cloud test evidence and writes the next task."],["Deniz","Studio owner. Does the final player test once mandatory tests pass; release and APK decisions are theirs."],["Turn","Only one person works at a time; whoever holds the turn works, the others wait, so files never clash."],["Blocker","Not a game bug; an infrastructure or access limit. Recorded with evidence."],["Tests","Code tests · fixed-scenario browser test · gameplay with real keys · tab switching, quitting and replaying."],["Store","Games on their way to the Play Store: test stage, reviews, incoming mail and team notes on one page."],["Gemini","Shadow reviewer (Antigravity). Judges the same evidence independently of OpenAI; its verdict never changes the turn, it is for comparison."],["Command box","Where Deniz writes tasks from the phone. The runner on DJ-KABIN picks up the next command; it never launches a game, browser or sound."]],
+    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 2.2 · Data: Supabase (live) · Source: GitHub",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"What do Claude, OpenAI, turn and blocker mean?",
       demoView:"Sample view",notSignedIn:"Not signed in",ownerRole:"Studio owner",memberRole:"Team member",liveInfo:(t,src)=>`Last update ${t} · source: ${src}`,ghSignal:"GitHub signal",noDataYet:"No data yet",
       pushOn:"On",pushOff:"Turn on",pushDemo:"Off in the sample view",pushUnsup:"This browser does not support it",pushDenied:"Notification permission is off; enable it in the phone's app settings",pushActive:"This device receives notifications. If they arrive as \"Chrome\": open phone Settings → Apps → Oryvona → Notifications.",pushIdle:"Alerts you even when the app is closed",pushSaveErr:"Could not save: ",pushAsking:"Asking for permission…",pushClosed:"The permission box closed; tap Turn on again and choose Allow.",pushFail:"Could not enable: ",pushSending:"Sending…",pushSendFail:"Could not send: ",pushSent:n=>`Test sent · ${n} device(s). It arrives within seconds.`},
     pref:{mine:"When the turn comes to me (final test)",blocked:"When a blocker is recorded",turns:"On every hand-over (Claude ↔ OpenAI)",runs:"When a cloud test finishes",store:"Store: new review, mail, status change"},
@@ -479,15 +498,16 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function applyLang(){document.documentElement.lang=lang;
     document.querySelectorAll("[data-i18n]").forEach(el=>{const v=T(el.dataset.i18n);if(typeof v==="string")el.textContent=v;});
     document.querySelectorAll("[data-i18n-aria]").forEach(el=>{const v=T(el.dataset.i18nAria);if(typeof v==="string"){el.setAttribute("aria-label",v);el.title=v;}});
+    document.querySelectorAll("[data-i18n-ph]").forEach(el=>{const v=T(el.dataset.i18nPh);if(typeof v==="string")el.placeholder=v;});
     document.querySelectorAll("#langSeg button,#gate .langs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.l===lang)));
     $("inboxHead").textContent=T("store.inbox")+" · oryvonagames@gmail.com";}
   function setLang(l){if(!L[l])return;lang=l;try{localStorage.setItem("oryvona.lang",l);}catch{}applyLang();rerenderAll();}
   document.addEventListener("click",e=>{const b=e.target.closest("#langSeg button[data-l],#gate .langs button[data-l]");if(b)setLang(b.dataset.l);});
 
   // ---------- shared helpers ----------
-  const PEOPLE=[["claude","Claude","C"],["work","OpenAI","O"],["deniz","Deniz","D"]];
+  const PEOPLE=[["claude","Claude","C"],["work","OpenAI","O"],["deniz","Deniz","D"],["gemini","Gemini","G"]];
   const WHO={READY_CLAUDE:"claude",CLAUDE_WORKING:"claude",READY_WORK:"work",WORK_WORKING:"work",BLOCKED:"",USER_TEST_READY:"deniz"};
-  const NAME={claude:"Claude",work:"OpenAI",deniz:"Deniz",ci:"GitHub"};
+  const NAME={claude:"Claude",work:"OpenAI",deniz:"Deniz",ci:"GitHub",gemini:"Gemini"};
   const turnInfo=st=>{const t=S().turn[st];return t?{...t,who:WHO[st]||""}:{v:st||"—",s:"",text:"",who:""};};
   const turnLabel=t=>(t.who==="claude"||t.who==="work")?S().turnOf(t.v.split(" ")[0]):t.v;
   const kindTr=e=>{const to=(e.kindTr||"").split("→").pop().trim();return (S().verb[e.kind]||e.kindTr||e.kind||"")+(S().state[to]?" · "+S().state[to]:"");};
@@ -500,6 +520,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
   // ---------- state ----------
   let status=null,feedDocs=[],runsDocs=[],projects=[],current=null,session=null,team=[],isOwner=false,feedFilter="all",demo=false,allStatus={};
+  let shadow=null,commands=[]; // Faz 1: son Gemini gölge incelemesi + Komut Kutusu satırları (commands===null → tablo yok)
   let sb=null,channel=null,storeChannel=null;
   let store={games:[],reviews:[],mail:[],notes:[],events:[],status:{}},mailFilter="all",gameId=null;
 
@@ -531,7 +552,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   addEventListener("popstate",e=>{const s=e.state||{view:"home"};if(s.view==="detail"&&s.key)fillDetail(s.key);if(s.view==="game")gameId=s.game||gameId;showView(s.view||"home");});
   history.replaceState({view:"home"},"");
   function refreshOpen(){if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg();if(view==="feed"){renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();if(view==="store")renderStore();if(view==="game")renderGame();}
-  function rerenderAll(){freshness();if(status)renderHome(status);else applyStatus(null);renderTimeline("tl",24);refreshOpen();renderStoreBadge();}
+  function rerenderAll(){freshness();if(status)renderHome(status);else applyStatus(null);renderTimeline("tl",24);refreshOpen();renderStoreBadge();renderGemini();renderCmd();}
 
   // ---------- games list ----------
   function renderGames(){const Ls=$("gamesList");if(!projects.length){Ls.innerHTML=emptyMsg();return;}
@@ -627,7 +648,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function sheetWork(){const D=S().det;const wn=status?.workNote;const notes=feedDocs.map(d=>d.data()).filter(e=>e.actor==="work"&&e.kind==="note");
     let out=wn&&wn.textTr?`<div class="block quote-block"><span class="t">${esc(wn.titleTr||D.workNoteTitle)} <span class="tag yorum">${esc(T("ui.comment"))}</span></span><span class="quote">${esc(wn.textTr)}</span><span class="detail">${esc(fmt(wn.at))}${wn.run_id?esc(D.run(wn.run_id)):""}</span></div>`:`<div class="empty">${esc(D.noWorkNote)}</div>`;
     if(notes.length>1){out+=`<h2 style="margin-top:6px">${esc(D.prevNotes)}</h2><div class="feed">`;for(const e of notes.slice(1))out+=`<div class="msg work"><div class="av work">O</div><div class="bubble"><div class="h"><b>OpenAI</b><time>${esc(fmt(e.at))}</time></div><div class="m">${esc(e.textTr||e.text||"")}</div></div></div>`;out+='</div>';}return out;}
-  const DETAILS={turn:()=>status?sheetTurn(status):emptyMsg(),stage:()=>status?sheetStage(status):emptyMsg(),qa:()=>status?sheetQa(status):emptyMsg(),auto:()=>status?sheetAuto(status):emptyMsg(),worknote:sheetWork,terms:termsHtml};
+  const DETAILS={turn:()=>status?sheetTurn(status):emptyMsg(),stage:()=>status?sheetStage(status):emptyMsg(),qa:()=>status?sheetQa(status):emptyMsg(),auto:()=>status?sheetAuto(status):emptyMsg(),worknote:sheetWork,gemini:()=>shadow?sheetGemini():emptyMsg(),terms:termsHtml};
 
   // ---------- feed ----------
   function renderFeedList(){const f=$("feedList");const docs=feedDocs.map(d=>d.data()).filter(e=>feedFilter==="all"||(feedFilter==="note"?e.kind==="note":e.actor===feedFilter));
@@ -767,6 +788,36 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(e.target.id==="inviteCopy"){const v=$("inviteLink").value;try{await navigator.clipboard.writeText(v);$("inviteMsg").textContent=Tm.copied;}catch{$("inviteLink").select();$("inviteMsg").textContent=Tm.copyManual;}}});
   const gateMsg=(t,bad)=>{const m=$("gateMsg");m.textContent=t;m.style.color=bad?"#ff9c9c":"#8fe3ad";};
 
+  // ---------- Faz 1: Gemini (gölge) kartı + Komut Kutusu ----------
+  // Veri: shadow_reviews (komut-runner yazar) ve commands (sahip yazar, runner günceller). Tablo yoksa kart gizli / kutu "kurulmadı" der.
+  async function loadExtras(id){if(demo||!sb||!id)return;
+    try{const {data,error}=await sb.from("shadow_reviews").select("*").eq("project_id",id).order("at",{ascending:false}).limit(1);shadow=error?null:((data||[])[0]||null);}catch{shadow=null;}
+    try{const {data,error}=await sb.from("commands").select("*").eq("project_id",id).order("created_at",{ascending:false}).limit(8);commands=error?null:(data||[]);}catch{commands=null;}
+    renderGemini();renderCmd();if(view==="detail"&&detailKey==="gemini")fillDetail("gemini");}
+  const gLabel=v=>({PASS:S().gemini.pass,FAIL:S().gemini.fail,UNVERIFIED:S().gemini.unverified,BLOCKED:S().gemini.blocked}[v]||v||"—");
+  function renderGemini(){const G=S().gemini;const c=$("cardGemini");if(!shadow){c.hidden=true;return;}c.hidden=false;
+    $("cGemini").textContent=gLabel(shadow.verdict)+(shadow.task_id?" · "+shadow.task_id:"");
+    const m=shadow.work_match===true?G.matchYes:shadow.work_match===false?G.matchNo:G.matchUnknown;
+    $("cGeminiS").textContent=[m,shadow.error_class?G.err(shadow.error_class):null,shadow.duration_s!=null?G.dur(shadow.duration_s):null,G.quota,ago(shadow.at)].filter(Boolean).join(" · ");}
+  function sheetGemini(){const G=S().gemini;const s=shadow;const src=G.source[s.verdict_source]||s.verdict_source||"";
+    return `<div class="block"><div class="t">${esc(gLabel(s.verdict))}${src?` <span class="muted">· ${esc(src)}</span>`:""}</div><div class="d">${esc(G.sub)}</div></div>
+      <div class="block"><div class="t">${esc(G.task)}${esc(s.task_id||"—")}</div><div class="d">${esc(G.sha)}${esc((s.head_sha||"").slice(0,7))} · ${esc(ago(s.at))}${s.duration_s!=null?" · "+esc(G.dur(s.duration_s)):""}</div></div>
+      ${s.gemini_verdict&&s.gemini_verdict!==s.verdict?`<div class="block"><div class="d">${esc(G.geminiSaid(gLabel(s.gemini_verdict)))}</div></div>`:""}
+      ${s.error_class?`<div class="block"><div class="d">${esc(G.err(s.error_class))}</div></div>`:""}
+      <div class="block"><div class="t">${esc(T("home.note"))}</div><div class="d" style="white-space:pre-wrap">${esc(s.note_tr||G.none)}</div></div>
+      <div class="block"><div class="d">${esc(s.work_match===true?G.matchYes:s.work_match===false?G.matchNo:G.matchUnknown)} · ${esc(G.quota)}${s.report_ref?`<br>${esc(G.report)}<code>${esc(s.report_ref)}</code>`:""}</div></div>`;}
+  function renderCmd(){const C=S().cmd;const box=$("cmdBox");box.hidden=!isOwner;if(!isOwner)return;const list=$("cmdList");
+    if(commands===null){list.innerHTML=`<div class="empty">${esc(C.notTable)}</div>`;return;}
+    if(!commands.length){list.innerHTML=`<div class="empty">${esc(C.none)}</div>`;return;}
+    list.innerHTML=commands.map(c=>{const cls=c.status==="done"?"good":c.status==="failed"?"bad":c.status==="running"?"info":c.status==="cancelled"?"":"warn";const note=c.result&&c.result.note_tr?String(c.result.note_tr).slice(0,200):"";
+      return `<div class="cmdrow"><div class="tx"><b>${esc(C.act[c.action]||c.action)}</b>${c.text?`<span class="s">${esc(String(c.text).slice(0,160))}</span>`:""}<span class="s">${esc(ago(c.created_at))}${c.runner?" · "+esc(String(c.runner).split(":")[0]):""}${note?" · "+esc(note):""}</span></div><span class="chip sm ${cls}">${esc(C.st[c.status]||c.status)}</span></div>`;}).join("");}
+  $("cmdBox").addEventListener("click",async e=>{const b=e.target.closest("button[data-cmd]");if(!b)return;const C=S().cmd;const action=b.dataset.cmd;const text=$("cmdText").value.trim();const msg=$("cmdMsg");
+    if(action!=="stop"&&!text){msg.textContent=C.needText;return;}
+    if(action==="stop"&&!confirm(C.confirmStop))return;
+    if(demo||!sb){msg.textContent=C.demo;return;}
+    b.disabled=true;const {error}=await sb.from("commands").insert({project_id:current,action,text,created_by:(session?.user?.email||"").toLowerCase(),status:"queued"});b.disabled=false;
+    if(error){msg.textContent=C.fail+error.message;return;}msg.textContent=C.sent;if(action!=="stop")$("cmdText").value="";loadExtras(current);});
+
   // ---------- data ----------
   const CFG=window.ORYVONA||{};const asDoc=row=>({id:row.id,data:()=>row});
   function remember(id){try{localStorage.setItem("oryvona.project",id);}catch{}} function recall(){try{return localStorage.getItem("oryvona.project");}catch{return null;}}
@@ -775,12 +826,12 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const [st,ev,rn]=await Promise.all([sb.from("project_status").select("data,updated_at").eq("project_id",id).maybeSingle(),sb.from("events").select("*").eq("project_id",id).order("at",{ascending:false}).limit(80),sb.from("runs").select("run_id,data,started_at").eq("project_id",id).order("started_at",{ascending:true,nullsFirst:true}).limit(60)]);
     if(st.error||ev.error||rn.error){console.error(st.error||ev.error||rn.error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("ui.connErr");return;}
     feedDocs=(ev.data||[]).map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));runsDocs=(rn.data||[]).map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));
-    renderTimeline("tl",24);applyStatus(st.data);}
-  function select(id){if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];freshness();
+    renderTimeline("tl",24);applyStatus(st.data);loadExtras(id);}
+  function select(id){if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];shadow=null;commands=[];freshness();renderGemini();renderCmd();
     if(demo||!sb){applyStatus({data:allStatus[id]||null});renderTimeline("tl",24);return;}
     if(channel){sb.removeChannel(channel);channel=null;}loadAll(id);
-    channel=sb.channel("panel-"+id).on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id)).subscribe();}
-  async function loadTeam(){const {data,error}=await sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(error){console.warn(error);return;}team=data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>m.email===me&&m.role==="owner");if(view==="settings")renderSettings();if(view==="store")renderStore();if(view==="game")renderGame();}
+    channel=sb.channel("panel-"+id).on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"shadow_reviews",filter:"project_id=eq."+id},()=>loadExtras(id)).on("postgres_changes",{event:"*",schema:"public",table:"commands",filter:"project_id=eq."+id},()=>loadExtras(id)).subscribe();}
+  async function loadTeam(){const {data,error}=await sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(error){console.warn(error);return;}team=data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>m.email===me&&m.role==="owner");renderCmd();if(view==="settings")renderSettings();if(view==="store")renderStore();if(view==="game")renderGame();}
   function pendingInvite(){const m=location.hash.match(/davet=([a-f0-9]+)/);if(m){try{localStorage.setItem("oryvona.invite",m[1]);}catch{}history.replaceState({view:"home"},"",location.pathname);}try{return localStorage.getItem("oryvona.invite");}catch{return null;}}
   async function redeemIfPending(){const t=pendingInvite();if(!t||!session)return;const {error}=await sb.rpc("redeem_invite",{invite_token:t});try{localStorage.removeItem("oryvona.invite");}catch{}
     if(error){$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("gate.inviteBad");$("banner").hidden=false;$("banner").textContent=S().gate.inviteFail(error.message);return false;}return true;}
@@ -790,7 +841,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     $("banner").hidden=true;const want=recall();const known=projects.some(p=>p.id===want);select(known?want:projects[0].id);loadTeam();loadGames();initPush();loadStore();watchStore();
     if(location.hash==="#magaza"){history.replaceState({view:"store"},"",location.pathname);showView("store");}
     else if(projects.length>1&&!known){history.replaceState({view:"games"},"");showView("games");}}
-  function stop(){if(channel&&sb){sb.removeChannel(channel);channel=null;}if(storeChannel&&sb){sb.removeChannel(storeChannel);storeChannel=null;}current=null;status=null;feedDocs=[];runsDocs=[];projects=[];team=[];isOwner=false;store={games:[],reviews:[],mail:[],notes:[],events:[],status:{}};freshness();renderStoreBadge();}
+  function stop(){if(channel&&sb){sb.removeChannel(channel);channel=null;}if(storeChannel&&sb){sb.removeChannel(storeChannel);storeChannel=null;}current=null;status=null;feedDocs=[];runsDocs=[];projects=[];team=[];isOwner=false;shadow=null;commands=[];store={games:[],reviews:[],mail:[],notes:[],events:[],status:{}};freshness();renderStoreBadge();renderGemini();renderCmd();}
 
   // ---------- demo (design preview without sign-in; clearly marked as sample data) ----------
   function startDemo(){demo=true;$("gate").hidden=true;$("banner").hidden=false;$("banner").textContent=T("gate.demoBanner");
@@ -803,6 +854,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     feedDocs=ev.map(([m,a,k,to,t],i)=>asDoc({id:"d"+i,at:iso(m*60000),actor:a,kind:k,kindTr:k+" → "+to,text:t,textTr:t}));
     runsDocs=[["C01",75*3600e3,{baseline:{status:"PASS"}},null],["Doğal",50*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"}},null],["Shell",6*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Tam",4*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},null],["Xvfb",2*3600e3,{baseline:{status:"PASS"},natural:{status:"PASS"},lifecycle:{status:"BLOCKED"}},"Turu bitir ve tekrar geçti; odak engelde."]].map(([l,ms,s,n],i)=>asDoc({run_id:"r"+i,label:l,startedAt:iso(ms),code:99,suites:s,note:n}));
     team=[{email:"sahip@oryvona.games",name:"Deniz",role:"owner",last_seen_at:iso(60000),login_count:12},{email:"uye@ornek.com",name:"Ekip üyesi",role:"member",last_seen_at:iso(3*3600e3),login_count:3}];isOwner=true;session={user:{email:"sahip@oryvona.games"}};
+    shadow={id:"demo",project_id:"koza",task_id:"C02-TOUCH-CONTROL-EVIDENCE",head_sha:"a56f1810000",verdict:"UNVERIFIED",gemini_verdict:"PASS",verdict_source:"runner-override",error_class:null,note_tr:"Koru düzeltmesinin kanıtı sürümle eşleşiyor; dokunma adımı için kanıt paketi yok, bu yüzden geçti diyemem.",report_ref:"handoff/reports/gemini-review-C02-TOUCH-CONTROL-EVIDENCE-a56f181.json",duration_s:184,work_match:null,at:iso(40*60000)};
+    commands=[{id:"c1",action:"gemini_review",text:"",status:"done",created_at:iso(45*60000),runner:"DJ-KABIN:1",result:{note_tr:"Gemini gölge inceleme: Doğrulanamadı."}},{id:"c2",action:"claude_do",text:"Dokunma testini bulut listesinden çıkar; sadece workflow dosyası değişsin.",status:"queued",created_at:iso(2*60000),runner:null,result:null}];
     store={games:[{id:"com-oryvonagames-balon",name:"Balon Avı",package_id:"com.oryvonagames.balon",stage:"closed_testing",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.balon",console_url:"https://play.google.com/console/",keywords:["balon"],project_id:null,meta:{tracks:[{track:"alpha",trackTr:"Kapalı test",releases:[{name:"1.0 (3)",status:"completed",statusTr:"tamamlandı",versionCodes:["3"]}]}],tracksAt:iso(20*60000)}},
         {id:"com-oryvonagames-koza",name:"KOZA",package_id:"com.oryvonagames.koza",stage:"open_testing",store_url:"https://play.google.com/store/apps/details?id=com.oryvonagames.koza",keywords:["koza","ayışığı"],project_id:"koza",meta:{tracks:[{track:"beta",trackTr:"Açık test",releases:[{name:"0.9 (12)",status:"inProgress",statusTr:"aşamalı yayında",versionCodes:["12"],userFraction:0.5}]},{track:"alpha",trackTr:"Kapalı test",releases:[{name:"0.8 (9)",status:"completed",statusTr:"tamamlandı",versionCodes:["9"]}]}],tracksAt:iso(20*60000),reviewCount:3,recentAverage:4.3}}],
       reviews:[{id:"rv1",game_id:"com-oryvonagames-koza",author:"Ayşe K.",rating:5,text:"Çok güzel bir oyun, altıncı dalga zor ama eğlenceli!",lang:"tr",device:"Pixel 7",app_version:"0.9",created_at:iso(5*3600e3),updated_at:iso(5*3600e3),seen:false},{id:"rv2",game_id:"com-oryvonagames-koza",author:"Mehmet",rating:2,text:"Sekme değiştirince ses gidiyor.",lang:"tr",device:"Galaxy A54",app_version:"0.9",created_at:iso(28*3600e3),updated_at:iso(28*3600e3),seen:true,reply_text:"Teşekkürler, sıradaki sürümde düzeltiyoruz.",reply_at:iso(20*3600e3)},{id:"rv3",game_id:"com-oryvonagames-koza",author:"John",rating:4,text:"Nice art style. Needs more levels.",lang:"en",device:"Pixel 6a",app_version:"0.9",created_at:iso(50*3600e3),updated_at:iso(50*3600e3),seen:true}],
@@ -810,7 +863,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       notes:[{id:1,game_id:"com-oryvonagames-koza",author_email:"sahip@oryvona.games",text:"Açık test yüzdesini %100'e çıkarmadan önce Mehmet'in ses sorununu doğrula.",at:iso(2*3600e3)}],
       events:[{id:"e1",game_id:"com-oryvonagames-koza",at:iso(20*60000),kind:"track_change",title_tr:"Mağaza durumu değişti",text_tr:"Açık test: 0.9 (12) aşamalı yayında · Kapalı test: 0.8 (9) tamamlandı"}],
       status:{gmail:{connected:true,account:"oryvonagames@gmail.com",lastRun:iso(12*60000),lastNew:1},play:{connected:true,account:"panel-sync@oryvona.iam.gserviceaccount.com",lastRun:iso(20*60000),games:2}}};
-    renderTimeline("tl",24);applyStatus({data:status});renderStoreBadge();requestAnimationFrame(()=>scrollTo(0,0));
+    renderTimeline("tl",24);applyStatus({data:status});renderStoreBadge();renderGemini();renderCmd();requestAnimationFrame(()=>scrollTo(0,0));
     window.__oryvonaInject=d=>{if(d.status){status=d.status;allStatus[current]=d.status;}if(d.events)feedDocs=d.events.map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));if(d.runs)runsDocs=d.runs.map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));if(d.store)store={...store,...d.store};renderTimeline("tl",24);applyStatus({data:status});renderStoreBadge();};}
 
   applyLang();
