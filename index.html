@@ -17,7 +17,7 @@
 <script src="command-outbox.js"></script>
 <script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{}));}</script>
 <style>
-/* Oryvona Games Paneli v3.3 (v23) — Doğrulanmış Teslim & Jarvis Stüdyo Merkezi, dark navy app shell, real game links, honest data, TR/EN. */
+/* Oryvona Games Paneli v3.4 (v24) — Doğrulanmış Teslim & Jarvis Stüdyo Merkezi, dark navy app shell, real game links, honest data, TR/EN. */
 :root{
   --bg:#f2f3f9; --surface:#ffffff; --surface-2:#edeef7; --line:rgba(24,22,58,.08); --line-2:rgba(24,22,58,.15);
   --fg:#13122b; --fg-2:#565475; --fg-3:#8886a6;
@@ -109,7 +109,7 @@ a{color:var(--brand);font-weight:800}
 .chip.good{background:var(--good-soft);color:var(--good)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.info{background:var(--info-soft);color:var(--info)} .chip.brand{background:var(--brand-soft);color:var(--brand-ink)}
 .chip.onnavy{background:rgba(255,255,255,.12);color:#ece9ff} .chip.onnavy.good{background:rgba(95,212,140,.22);color:#9af0bb} .chip.onnavy.warn{background:rgba(242,182,50,.22);color:#ffd77a} .chip.onnavy.bad{background:rgba(255,120,120,.22);color:#ffb0b0}
 .chip.sm{padding:3px 9px;font-size:.72rem}
-main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(var(--tabbar) + 30px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(var(--bottom-nav-h,var(--tabbar)) + 24px) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
 .view{display:flex;flex-direction:column;gap:14px}
 .pagehead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 2px 2px;scroll-margin-top:calc(var(--topbar-h,112px) + 10px);flex-wrap:wrap}
 .pagehead h1{font-size:1.45rem;font-weight:900;letter-spacing:-.02em;flex:1;min-width:120px}
@@ -361,10 +361,12 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .j-dec-card .js{font-size:.76rem;font-weight:700;line-height:1.3;color:var(--fg-2)}
 @media (prefers-reduced-motion:no-preference){.chip.good.dot::before{animation:beat 2.6s ease-in-out infinite}@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}}
 @media (min-width:720px){.grid2{grid-template-columns:repeat(4,minmax(0,1fr))}}
+/* Keep short game names readable beside the three compact header actions. */
+@media (max-width:420px){.app-head #topLocChip{display:none}}
 </style>
 <link rel="stylesheet" href="native-shell.css">
-<link rel="stylesheet" href="jarvis-world.css?v=23">
-<link rel="stylesheet" href="jarvis-v23-shell.css?v=23">
+<link rel="stylesheet" href="jarvis-world.css?v=24">
+<link rel="stylesheet" href="jarvis-v23-shell.css?v=24">
 </head>
 <body>
 <header class="app-shell-top" id="topbar">
@@ -433,7 +435,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       </div>
     </div>
     <div class="card" id="v22StudioSummaryCard">
-      <div class="hd"><b id="v22StudioSummaryTitle">🎯 Doğrulanmış Teslim & 4 Boyutlu Kabul</b><span id="v22StudioSummarySub">Sürüm 3.3 (v23)</span></div>
+      <div class="hd"><b id="v22StudioSummaryTitle">🎯 Doğrulanmış Teslim & 4 Boyutlu Kabul</b><span id="v22StudioSummarySub">Sürüm 3.4 (v24)</span></div>
       <div id="v22StudioSummaryBody"></div>
     </div>
     <div class="card" id="readinessCard">
@@ -614,7 +616,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     </div>
     <div class="secthead" data-i18n="set.app">Uygulama</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.3 (v23) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi</span></div></div>
+      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.4 (v24) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi</span></div></div>
       <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b data-i18n="set.apk">Android kurulum dosyası</b><span data-i18n="set.apkSub">Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/latest/download/oryvona-panel.apk" download rel="noopener" data-i18n="ui.download">İndir</a></div>
       <div class="item"><span class="ic" id="icHelp"></span><div class="tx"><b data-i18n="ui.terms">Terimler ve roller</b><span data-i18n="set.termsSub">Claude, OpenAI, Gemini ve süreç adımları</span></div><button class="act" type="button" data-detail="terms" data-i18n="ui.open">Aç</button></div>
     </div>
@@ -782,7 +784,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`Yapılan her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI otomatik geçişi",on:"etkin",off:"kapalı",wakeSub:v=>`Claude çalışmasını bitirince OpenAI kendiliğinden devreye girer. Son hareket: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Claude görev geldiğinde otomatik veya Komut Kutusu ile çalışır.",repo:"Proje bağlantısı: ",openRepo:"Proje sayfasını aç ›",lastPush:v=>` · son güncelleme ${v}`,openCommit:"Son değişikliği gör ›",last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
       workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar"},
     terms:[["Jarvis","Tek beyin komuta asistanı. Doğrudan seninle konuşur, durum kartını okur ve arka plan işlerini kredi yakmadan yönetir."],["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Doğrudan Jarvis'e sesle, yazıyla veya ekran görüntüsüyle emir vermeni sağlayan alan."]],
-    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.3 (v23) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Jarvis, Claude, OpenAI ve süreç adımları",
+    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.4 (v24) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Jarvis, Claude, OpenAI ve süreç adımları",
       demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · ${src}`,ghSignal:"Canlı senkronizasyon aktif",noDataYet:"Henüz veri yok",
       pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
     pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
@@ -887,7 +889,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI auto-handoff",on:"enabled",off:"off",wakeSub:v=>`When Claude finishes, OpenAI steps in automatically. Last activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"Claude runs automatically on new tasks or via the Command Box.",repo:"Project link: ",openRepo:"Open project page ›",lastPush:v=>` · last update ${v}`,openCommit:"View latest change ›",last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
       workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes"},
     terms:[["Jarvis","Single-brain command assistant. Talks directly with you, reads the status card, and orchestrates background tasks without wasting credits."],["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Send voice, text, or annotated screenshot commands directly to Jarvis."]],
-    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.3 (v23) · Verified Delivery & Jarvis Studio Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Jarvis, Claude, OpenAI and workflow steps",
+    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.4 (v24) · Verified Delivery & Jarvis Studio Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Jarvis, Claude, OpenAI and workflow steps",
       demoView:"Sample view",notSignedIn:"Not signed in",ownerRole:"Studio owner",memberRole:"Team member",liveInfo:(t,src)=>`Last update ${t} · ${src}`,ghSignal:"Live sync active",noDataYet:"No data yet",
       pushOn:"On",pushOff:"Turn on",pushDemo:"Off in the sample view",pushUnsup:"This browser does not support it",pushDenied:"Notification permission is off; enable it in the phone's app settings",pushActive:"This device receives notifications. If they arrive as \"Chrome\": open phone Settings → Apps → Oryvona → Notifications.",pushIdle:"Alerts you even when the app is closed",pushSaveErr:"Could not save: ",pushAsking:"Asking for permission…",pushClosed:"The permission box closed; tap Turn on again and choose Allow.",pushFail:"Could not enable: ",pushSending:"Sending…",pushSendFail:"Could not send: ",pushSent:n=>`Test sent · ${n} device(s). It arrives within seconds.`},
     pref:{mine:"When the turn comes to me (final test)",blocked:"When a blocker is recorded",turns:"On every hand-over (Claude ↔ OpenAI)",runs:"When a cloud test finishes",store:"Store: new review, mail, status change"},
@@ -2151,14 +2153,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
     window.__oryvonaInject=d=>{if(d.status){status=d.status;allStatus[current]=d.status;}if(d.events)feedDocs=d.events.map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));if(d.runs)runsDocs=d.runs.map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));if(d.store)store={...store,...d.store};ensureStudioCatalog();renderTimeline("tl",24);applyStatus({data:status});renderStoreBadge();renderJarvis();};}
 
 
-  // v23 trusted facade: private sb is never exported. Every request rechecks owner.
+  // v24 private port retains capability/heartbeat caching; every operation still rechecks owner.
+  let studioHostClient=null,studioHostPort=null;
   function announceStudioContext(){document.dispatchEvent(new CustomEvent("oryvona:studio-context-change"));}
   window.OryvonaStudioHost=Object.freeze({
     context:()=>({...commandIdentity(),view,locale:lang}),
     async request(operation,payload){
-      if(!sb||!window.OryvonaStudioHostPort)throw Object.assign(new Error("v23 bağlantı bileşeni hazır değil."),{code:"UNAVAILABLE"});
-      const port=window.OryvonaStudioHostPort.create({client:sb,getContext:()=>({...commandIdentity(),view,locale:lang})});
-      return port.request(operation,payload);
+      if(!sb||!window.OryvonaStudioHostPort)throw Object.assign(new Error("Canlı bağlantı bileşeni hazır değil."),{code:"UNAVAILABLE"});
+      if(studioHostClient!==sb||!studioHostPort){studioHostClient=sb;studioHostPort=window.OryvonaStudioHostPort.create({client:sb,getContext:()=>({...commandIdentity(),view,locale:lang})});}
+      return studioHostPort.request(operation,payload);
     }
   });
 
@@ -2178,7 +2181,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
   // Measure the real header height so scroll-padding / scroll-margin always match it (no hard-coded 138px).
   function watchTopbar(){const tb=$("topbar");if(!tb)return;const set=()=>document.documentElement.style.setProperty("--topbar-h",Math.round(tb.getBoundingClientRect().height)+"px");set();if("ResizeObserver" in window)new ResizeObserver(set).observe(tb);else addEventListener("resize",set);}
-  initCommandOutbox();applyLang();watchTopbar();
+  // Measured full bar height includes its safe-area padding exactly once.
+  function watchBottomNav(){const nav=document.querySelector('.tabs');if(!nav)return;const set=()=>document.documentElement.style.setProperty('--bottom-nav-h',Math.ceil(nav.getBoundingClientRect().height)+'px');set();if('ResizeObserver' in window)new ResizeObserver(set).observe(nav);addEventListener('resize',set);window.visualViewport?.addEventListener('resize',set);document.fonts?.ready.then(set);}
+  initCommandOutbox();applyLang();watchTopbar();watchBottomNav();
   (async()=>{
     if(location.hash==="#demo"){startDemo();return;}
     if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("gate.noConfig");return;}
@@ -2196,10 +2201,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
 </script>
 <script src="native-shell.js"></script>
 <script src="game-lab.js"></script>
-<script src="jarvis-energy.js?v=23"></script>
-<script src="jarvis-bridge.js?v=23"></script>
-<script src="supabase-host-port.js?v=23"></script>
-<script src="jarvis-world.js?v=23"></script>
-<script src="jarvis-v23-bootstrap.js?v=23"></script>
+<script src="jarvis-energy.js?v=24"></script>
+<script src="jarvis-bridge.js?v=24"></script>
+<script src="supabase-host-port.js?v=24"></script>
+<script src="jarvis-world.js?v=24"></script>
+<script src="jarvis-v23-bootstrap.js?v=24"></script>
 </body>
 </html>

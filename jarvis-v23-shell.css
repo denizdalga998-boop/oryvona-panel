@@ -8,4 +8,9 @@ body.oryvona-jarvis-world #view-jarvis:not([hidden]){display:block;margin:0;padd
 #jarvisLegacySurface[hidden],#jarvisV23BootMessage[hidden]{display:none!important}
 #jarvisV23BootMessage{padding:24px;font:14px/1.6 system-ui;color:#9fb6bb}
 #jarvisWorld{width:100%;min-width:0}
-.jw-root .jw-message-body,.jw-root .jw-source{user-select:text;-webkit-user-select:text}
+.jw-root .jw-message-body,.jw-root .jw-source{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+
+/* v24: the world owns the available viewport above the measured navigation. */
+body.oryvona-jarvis-world main.wrap{padding-top:0;min-height:0;gap:0;overflow:hidden}
+body.oryvona-jarvis-world #view-jarvis:not([hidden]){height:var(--jw-shell-height,calc(100dvh - var(--topbar-h,68px) - var(--bottom-nav-h,80px)));min-height:0;max-height:calc(100dvh - var(--topbar-h,68px));overflow:hidden}
+#jarvisWorld{min-height:0;max-width:100%}

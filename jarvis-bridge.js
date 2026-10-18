@@ -1,4 +1,4 @@
-/* ORYVONA v23: owner-bound durable UI transport. No model SDK, bearer token or legacy commands. */
+/* ORYVONA v24: owner-bound durable UI transport; isolated commands lane, no model SDK. */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.OryvonaJarvisBridge = factory();
@@ -61,7 +61,7 @@
     };
   }
   function createHostPort(callbacks) {
-    const map = { submitIntent: callbacks.submitIntent, listIntents: callbacks.listIntents, cancelIntent: callbacks.cancelIntent, uploadEvidence: callbacks.uploadEvidence };
+    const map = { getConnection: callbacks.getConnection, submitIntent: callbacks.submitIntent, listIntents: callbacks.listIntents, cancelIntent: callbacks.cancelIntent, uploadEvidence: callbacks.uploadEvidence };
     return Object.freeze({
       context: callbacks.getContext,
       request: async (operation, payload) => {
@@ -87,7 +87,7 @@
     const listeners = new Set();
     let ownerId = null, generation = 0, disposed = false, revision = 0, refreshSequence = 0, rows = [], serverRows = [], authPaused = false, refreshBlocked = false, refreshError = '', inflight = null;
     let online = options.online || (() => typeof navigator === 'undefined' || navigator.onLine !== false);
-    let energy = null;
+    let energy = null, connectionInfo = null;
     const Speech = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
     function contextOwner() { return owner(host.context()); }
     function getAccountKey() { const current = contextOwner(); return current ? current + ':' + (current === ownerId ? generation : generation + 1) : null; }
@@ -96,7 +96,7 @@
     function emit() { revision++; for (const fn of listeners) { try { fn(getSnapshot()); } catch (_) {} } }
     async function syncAccount() {
       const next = contextOwner();
-      if (next !== ownerId) { ownerId = next; generation++; rows = []; serverRows = []; authPaused = false; refreshBlocked = false; refreshError = ''; energy = null; if (recognition) recognition.abort(); emit(); }
+      if (next !== ownerId) { ownerId = next; generation++; rows = []; serverRows = []; authPaused = false; refreshBlocked = false; refreshError = ''; energy = null; connectionInfo = null; if (recognition) recognition.abort(); emit(); }
       return ownerId;
     }
     async function loadRows() {
@@ -124,14 +124,16 @@
     function getSnapshot() {
       const id = contextOwner(), active = id && id === ownerId;
       let connection = { status: 'unknown', label: 'Sahip hesabıyla giriş gerekli', submitAvailable: false };
-      if (active) connection = !online() ? { status: 'offline', label: 'Çevrimdışı · istekler cihazda saklanır', submitAvailable: !!store } : authPaused ? { status: 'unknown', label: 'Oturumu yenile · kuyruk güvenle bekliyor', submitAvailable: false } : { status: 'connected', label: 'Panel hesabı bağlı · model/ajan bağlantısı doğrulanmadı', submitAvailable: !!store };
-      if (refreshError && active) connection.label = refreshError;
+      if (active) connection = !online() ? { status: 'offline', label: 'Çevrimdışı · istekler cihazda saklanır', submitAvailable: !!store } : authPaused ? { status: 'unknown', label: 'Oturumu yenile · kuyruk güvenle bekliyor', submitAvailable: false } : Object.assign({ status: 'waiting', label: 'DJ-KABIN bağlantısı doğrulanıyor', submitAvailable: !!store }, connectionInfo || {});
+      if (refreshError && active) connection = { ...connection, status: 'waiting', label: refreshError };
       const messages = [], jobs = [];
       for (const row of allVisible()) {
         const remote = row.remote || (row.request_id ? row : null), id = row.requestId || row.request_id, projectId = row.projectId || row.requested_project;
         let status = 'queued', statusText = 'Cihazda kaydedildi · sunucuya iletilmedi';
         if (remote) { const s = remote.status; status = ({ recorded: 'queued', claimed: 'queued', running: 'running', waiting_review: 'waiting_review', completed: 'completed', failed: 'failed', cancelled: 'cancelled' })[s] || 'blocked'; statusText = ({ recorded: 'İstek sunucuda kayıtlı · ajan başlamadı', claimed: 'İzole işçi teslim aldı · çalışma kanıtı bekleniyor', running: 'İşçi çalışma bildirimi alındı', waiting_review: 'İnceleme bekliyor', completed: 'İşçi tamamlanma kaydı alındı · test kanıtlarını incele', failed: 'İşçi hata kaydı alındı', cancelled: 'İstek iptal edildi' })[s] || 'Bilinmeyen sunucu durumu'; }
         const terminalRemote = remote && ['completed','failed','cancelled'].includes(remote.status);
+        if (remote?.receipt?.status === 'DURABLY_QUEUED' && !terminalRemote) statusText = 'DJ-KABIN izole kalıcı kuyruğa aldı · ajan başlatılmadı';
+        if (remote?.receipt?.status === 'NEEDS_CLARIFICATION' && !terminalRemote) { status = 'blocked'; statusText = 'DJ-KABIN kaydetti · işlem netleştirme bekliyor'; }
         if (!terminalRemote) {
           if (row.status === 'retry') statusText = 'Bağlantı kesildi · güvenli tekrar bekleniyor';
           if (row.status === 'auth_paused') { status = 'paused'; statusText = 'Hesabı yenile · metin cihazda güvende'; }
@@ -143,7 +145,7 @@
         messages.push({ id: 'intent-' + id, role: 'user', body: row.text || '', projectId, createdAt: row.createdAt || row.created_at, commandId: id, origin: { kind: 'local' } });
         jobs.push({ id, projectId, title: (row.text || '').slice(0, 90), status, statusText, canCancel: !['completed', 'failed', 'cancelled'].includes(status), ...(remote && remote.worker_id ? { expert: remote.worker_id } : {}), ...(remote && remote.workspace_label ? { workspaceLabel: remote.workspace_label } : {}) });
       }
-      return { revision, accountKey: getAccountKey(), connection, messages, jobs, energyState: energy || (!online() ? 'offline' : authPaused ? 'blocked' : 'idle'), capabilities: { attachments: !!store && !!active && typeof createImageBitmap === 'function', speech: !!Speech, maxAttachments: MAX_FILES }, projects: PROJECTS.slice() };
+      return { revision, accountKey: getAccountKey(), connection, messages, jobs, energyState: energy || (!online() ? 'offline' : authPaused ? 'blocked' : 'idle'), capabilities: { attachments: !!store && !!active && connectionInfo?.attachmentsAvailable === true && typeof createImageBitmap === 'function', speech: !!Speech, maxAttachments: MAX_FILES }, projects: PROJECTS.slice() };
     }
     async function refsFor(input, id) {
       if (!Array.isArray(input) || input.length > MAX_FILES) throw error('ATTACHMENTS_INVALID', 'En fazla üç görsel ekleyebilirsin.');
@@ -208,7 +210,7 @@
           const kind = classifyFailure(e); authPaused = kind === 'auth';
           const attempts = row.attempts + 1;
           const latest = await store.get('outbox', row.key);
-          const stopped = kind === 'permanent' || attempts >= 8;
+          const stopped = kind === 'permanent'; // Transient outages never discard a durable intent.
           await store.put('outbox', Object.assign({}, latest || row, { status: kind === 'auth' ? 'auth_paused' : stopped ? 'failed' : cancelling || latest && latest.status === 'cancel_pending' ? 'cancel_pending' : 'retry', attempts, updatedAt: now(), nextAttemptAt: now() + BACKOFF[Math.min(attempts - 1, BACKOFF.length - 1)], lastError: stopped ? 'İletim durdu: ' + (e.message || 'Bağlantıyı kontrol edip elle tekrar dene.') : null }));
           if (kind === 'auth') break;
         }
@@ -224,8 +226,8 @@
       await syncAccount(); const id = ownerId;
       if (!id || !online() || !visible() || disposed || authPaused || refreshBlocked) return;
       const sequence = ++refreshSequence, epoch = generation;
-      try { const result = await request('listIntents', { limit: 50 }, id); if (sequence !== refreshSequence || epoch !== generation) return; const incoming = Array.isArray(result) ? result : result && result.rows || []; serverRows = incoming.map(row => newerRemote(serverRows.find(old => (old.request_id || old.requestId) === (row.request_id || row.requestId)), row)); refreshError = ''; emit(); }
-      catch (e) { if (sequence === refreshSequence && epoch === generation && contextOwner() === id) { const kind = classifyFailure(e); if (kind === 'auth') authPaused = true; if (kind === 'permanent') refreshBlocked = true; refreshError = kind === 'permanent' ? 'v23 sunucu bağlantısı yapılandırılmalı · istekler cihazda korunuyor' : 'Sunucu durumu alınamadı · cihazdaki kayıt korunuyor'; emit(); } }
+      try { const [result, connection] = await Promise.all([request('listIntents', { limit: 50 }, id), request('getConnection', {}, id)]); if (sequence !== refreshSequence || epoch !== generation) return; connectionInfo = connection; const incoming = Array.isArray(result) ? result : result && result.rows || []; serverRows = incoming.map(row => newerRemote(serverRows.find(old => (old.request_id || old.requestId) === (row.request_id || row.requestId)), row)); refreshError = ''; emit(); }
+      catch (e) { if (sequence === refreshSequence && epoch === generation && contextOwner() === id) { const kind = classifyFailure(e); if (kind === 'auth') authPaused = true; if (kind === 'permanent') refreshBlocked = true; refreshError = kind === 'permanent' ? 'Sunucu kuyruğu doğrulanamadı · istekler cihazda korunuyor' : 'Sunucu durumu alınamadı · cihazdaki kayıt korunuyor'; emit(); } }
     }
     async function resume() {
       await syncAccount(); const id = requireOwner(); authPaused = false; refreshBlocked = false;
@@ -247,8 +249,9 @@
       await loadRows(); void flush(); return { accepted: true, commandId: requestId };
     }
     function resolveIntent(payload) {
-      const scope = payload.scope, text = String(payload.text || '').toLowerCase();
-      const aliases = { koza: /\bkoza\b/, 'charm-drop': /\bcharm[ -]?drop\b/, 'forge-run': /\bforge[ -]?run\b/, aeryo: /\baeryo\b/, tupsper: /\btupsper\b/, 'oryvona-panel': /\b(?:oryvona[ -]?panel|panel(?:i|de|den|in)?|jarvis)\b/ };
+      const scope = payload.scope, text = String(payload.text || '').normalize('NFKC').toLocaleLowerCase('tr-TR');
+      const boundary = value => new RegExp('(?<![\\p{L}\\p{N}])(?:' + value + ')(?![\\p{L}\\p{N}])', 'u');
+      const aliases = { koza: boundary('koza'), 'charm-drop': boundary('charm[ -]?drop'), 'forge-run': boundary('forge[ -]?run'), aeryo: boundary('aeryo'), tupsper: boundary('tupsper'), 'oryvona-panel': boundary('oryvona[ -]?panel|panel|paneli|panelde|panelden|panelin|panelinde|jarvis|uygulama|uygulamayı|uygulamayi|uygulamada|uygulamaya') };
       const mentioned = PROJECTS.filter(p => aliases[p].test(text));
       if (scope && !PROJECTS.includes(scope)) return { status: 'rejected', message: 'Geçersiz proje kapsamı.' };
       if (mentioned.length > 1 || (scope && mentioned.length === 1 && mentioned[0] !== scope)) return { status: 'clarify', question: 'Bu isteği hangi tek projeye göndereyim?', candidates: mentioned.length ? mentioned : PROJECTS.slice() };
@@ -315,7 +318,7 @@
     const onlineHandler = () => { void resume().catch(() => {}); };
     if (typeof globalThis.addEventListener === 'function') { globalThis.addEventListener('online', onlineHandler); globalThis.addEventListener('offline', emit); }
     const timer = options.noTimers ? null : setInterval(() => { void loadRows().then(flush).catch(() => {}); }, 2000);
-    const poll = options.noTimers ? null : setInterval(() => { void refresh(); }, 15000);
+    const poll = options.noTimers ? null : setInterval(() => { if (!host.context().view || host.context().view === 'jarvis') void refresh(); }, 2000);
     const ready = loadRows().then(() => Promise.all([flush(), refresh()]));
     return { getSnapshot, getAccountKey, subscribe: fn => { listeners.add(fn); fn(getSnapshot()); return () => listeners.delete(fn); }, submitIntent, cancelJob, resolveIntent, drafts, attachments, speech, refresh, resume, ready, flush, dispose: () => { disposed = true; generation++; if (timer) clearInterval(timer); if (poll) clearInterval(poll); if (recognition) recognition.abort(); listeners.clear(); rows = []; serverRows = []; if (typeof globalThis.removeEventListener === 'function') { globalThis.removeEventListener('online', onlineHandler); globalThis.removeEventListener('offline', emit); } } };
   }

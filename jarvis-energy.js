@@ -107,6 +107,8 @@
     var oldAriaHidden = canvas.getAttribute('aria-hidden');
     var oldState = canvas.getAttribute('data-energy-state');
     canvas.setAttribute('aria-hidden', 'true');
+    // Keep the decorative canvas transparent even inside dark Android WebViews.
+    if (canvas.style) canvas.style.background = 'transparent';
     canvas.setAttribute('data-energy-state', state);
 
     function reducedMotion() { return forcedReducedMotion || prefersReducedMotion; }
@@ -168,7 +170,9 @@
       context.save();
       context.scale(pulse + response, pulse + response);
       context.fillStyle = gradient;
-      context.fillRect(-18, -18, 36, 36);
+      context.beginPath();
+      context.arc(0, 0, 18, 0, TAU);
+      context.fill();
       ellipse(12, 1, 0, 0, TAU, palette[0], .85);
       ellipse(6.6, 1, 0, 0, TAU, palette[1], 1.1);
       context.beginPath();
