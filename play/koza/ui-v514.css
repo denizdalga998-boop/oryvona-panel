@@ -1,0 +1,256 @@
+/* KOZA v5.14 UI pass: calmer home, lighter icons, responsive OYNA, settings overview.
+   Loaded last so it only refines earlier sheets; gameplay HUD rules are untouched. */
+:root{--ui-radius:16px;--ui-radius-small:12px;--ui-line:#d9fff01f;--ui-glass:#07202a59;--ui-glass-strong:#07202a99}
+
+/* Calm home background. The approved menu painting stays the source until the
+   dedicated calm home painting (asset slot) is available; the fallback softens it,
+   darkens the edges and opens clear space behind Lumi so the UI reads on top. */
+body:not(.game-screen)[data-home-art=fallback]{background:#071e28}
+body:not(.game-screen)[data-home-art=fallback]::before{content:'';position:fixed;inset:-24px;z-index:0;pointer-events:none;background:var(--home-background,url('menu-garden-v57.png')) center 40%/cover no-repeat;filter:blur(5px) saturate(.78) brightness(.62)}
+body:not(.game-screen)[data-home-art=fallback]::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 58% 34% at 50% 50%,#6fd8c21f 0,#6fd8c20a 45%,transparent 70%),radial-gradient(ellipse 120% 80% at 50% 45%,transparent 45%,#030f15cc 100%),linear-gradient(180deg,#071e28cc 0,#071e2833 26%,#071e2826 60%,#071e28e6 88%)}
+body:not(.game-screen)[data-home-art=calm]{background:linear-gradient(180deg,#071e2899 0,#071e2800 30%,#071e2800 62%,#071e28cc 90%),var(--home-background) center/cover fixed no-repeat #071e28}
+body.map-open::before,body.map-open::after,body.loading-world::before,body.loading-world::after{display:none}
+
+/* Top bar: small glyphs in near-transparent circles, 44px touch targets kept. */
+#app:not(.playing)>header .icon{width:44px;height:44px;padding:0;border:1px solid var(--ui-line);background:#06202a33;box-shadow:none;font-size:20px;color:#d8f5ea;backdrop-filter:blur(2px)}
+#app:not(.playing)>header .icon:hover{background:#0b2f3a66}
+#app:not(.playing) .resource-chip{min-height:40px;min-width:0;padding:3px 12px 3px 6px;border:1px solid var(--ui-line);border-radius:999px;background:var(--ui-glass)}
+#app:not(.playing) .essence-chip{border-color:#d9c8ff1f;background:#1a1f3a4d}
+#app:not(.playing) .wallet .feature-icon{width:30px;height:30px}
+#app:not(.playing) .resource-copy>b{font-size:16px}
+
+/* Side actions: smaller painted icons pinned near the edges, labels under them. */
+#app:not(.playing) .scene-actions{inset:9% -6px auto}
+#app:not(.playing) .scene-actions button{width:68px;min-height:72px;gap:3px;font-size:12px;font-weight:600}
+#app:not(.playing) .scene-actions .feature-icon{width:52px;height:50px}
+
+/* Region + stats: one glass surface language, consistent radius, no heavy boxes. */
+#app:not(.playing) .region-picker{min-height:50px;border-color:var(--ui-line);border-radius:var(--ui-radius);background:var(--ui-glass-strong);backdrop-filter:blur(3px)}
+#app:not(.playing) .stats>div+div{border-left-color:#ffffff14}
+#app:not(.playing) .challenge-button{border:1px solid #ffffff10;border-radius:var(--ui-radius-small);background:#07202a40}
+
+/* OYNA: fluid type and padding; stage/time wraps to two short lines instead of
+   overflowing on 320-360px phones; no absolute positioning for text. */
+#app:not(.playing) .play-dock #play{grid-template-columns:auto minmax(0,1fr) auto;gap:clamp(6px,2vw,10px);padding:10px clamp(30px,8.6vw,38px) 10px clamp(22px,6.4vw,28px)}
+#app:not(.playing) #playLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(19px,6.3vw,26px);text-align:center}
+#app:not(.playing) #playDuration{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;column-gap:4px;max-width:44vw;padding:4px 0 4px clamp(8px,2.6vw,12px);font-size:clamp(11px,3.2vw,12.5px);line-height:1.2;white-space:normal;text-align:right}
+#app:not(.playing) #playDuration>span{white-space:nowrap}
+@media(max-width:400px){#app:not(.playing) #playDuration{flex-direction:column;align-items:flex-end}#app:not(.playing) #playDuration .play-sep{display:none}}
+@media(max-width:340px){#app:not(.playing) .play-symbol{display:none}#app:not(.playing) .play-dock #play{grid-template-columns:minmax(0,1fr) auto}}
+
+/* Settings: category overview first, one page per category. */
+.settings-overview{display:grid;gap:8px;margin:4px 0 14px}
+.settings-category{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:60px;padding:10px 14px;border:1px solid #54736c40;border-radius:var(--ui-radius);background:#04191d33;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.settings-category:hover,.settings-category:focus-visible{background:#0a2a2f66;border-color:#9fdcc366}
+.settings-category .settings-art,.settings-category>.feature-icon{width:36px;height:36px;margin:0;border-radius:10px}
+.settings-category-copy{display:grid;gap:3px;min-width:0}
+.settings-category-copy b{font-size:16px;font-weight:600}
+.settings-category-copy small{font-size:12px;color:#a9c3bc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.settings-chevron{font-size:22px;color:#9fd7c4;line-height:1}
+.settings-page{padding:0 2px}
+.settings-page[hidden]{display:none}
+.settings-back{display:inline-flex;align-items:center;min-height:44px;margin:0 0 4px;padding:6px 12px 6px 4px;border:0;background:none;color:#a8e8d2;font-size:14px;font-weight:600;cursor:pointer}
+.settings-page-title{display:flex;align-items:center;gap:10px;margin:2px 0 10px;padding-bottom:10px;border-bottom:1px solid #ffffff12;font-size:18px;font-weight:600}
+.settings-page-title .settings-art,.settings-page-title>.feature-icon{margin:0}
+#settingsBody[data-view=overview] .settings-reset{display:block}
+
+/* ==== KOZA q1 UI layer (menu / HUD / choice / result). Appended here, after the v5.14 rules, so no new file name
+   is needed on a running local server. ==== */
+/* KOZA Map 1 quality pass (q1) - one UI language for home, HUD and dialogs. Loaded last; refines earlier sheets.
+   Tokens: glass surfaces, 16/12 px radii, 8 px spacing steps, Georgia titles, system sans UI text, 44 px minimum touch. */
+:root{--q-glass:#07202ab8;--q-glass-2:#0a2a35d9;--q-line:#d9fff021;--q-line-2:#d9fff03a;--q-text:#eef8f1;--q-muted:#a9c6bf;
+ --q-gold:#f2d98f;--q-mint:#a8ecd0;--q-danger:#ffb49a;--q-r:16px;--q-r-s:12px;--q-sans:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--q-serif:Georgia,'Times New Roman',serif}
+.sr-only{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ------------------------------------------------------------------ HOME */
+#app:not(.playing){grid-template-rows:auto minmax(170px,1fr) auto auto auto auto auto;row-gap:0;padding-top:max(12px,env(safe-area-inset-top))}
+#app:not(.playing)>header{grid-row:1;grid-template-columns:minmax(0,1fr) 44px 44px;gap:8px;align-items:center}
+#app:not(.playing)>header .brand{display:none}
+#app:not(.playing) .wallet{grid-column:1;grid-row:1;gap:6px;min-width:0}
+#app:not(.playing) .resource-chip{min-height:38px;padding:3px 11px 3px 5px;border-color:var(--q-line);background:var(--q-glass)}
+#app:not(.playing) .wallet .feature-icon{width:28px;height:28px}
+#app:not(.playing) .resource-copy>b{font:700 15.5px/1.2 var(--q-sans);white-space:nowrap;overflow-wrap:normal}
+#app:not(.playing) .resource-chip{max-width:none;flex:0 1 auto}
+#app:not(.playing) .resource-copy>span{font-size:11.5px}
+#app:not(.playing) #arena{grid-row:2}
+#app:not(.playing) .stage-note{display:none}
+/* hero card: name + form, evolution progress, the two hero actions */
+#app:not(.playing) .identity{grid-row:3;flex-direction:column;gap:2px;min-height:0;margin:4px 0 0}
+#app:not(.playing) .hero-name-row{display:flex;align-items:center;justify-content:center;gap:10px;max-width:100%}
+#app:not(.playing) .name{font:500 27px/1.15 var(--q-serif);min-height:44px}
+#app:not(.playing) .form-chip{display:inline-block;padding:4px 9px;border:1px solid #efd99a55;border-radius:999px;background:#4a452240;font:700 12.5px/1.1 var(--q-sans);color:var(--q-gold);letter-spacing:.02em;white-space:nowrap}
+#app:not(.playing) .hero-sub{display:flex;align-items:center;justify-content:center;gap:8px;font:500 12.5px/1.3 var(--q-sans);color:var(--q-muted)}
+#app:not(.playing) .form-stars{color:var(--q-gold);letter-spacing:2px;font-size:13px}
+#app:not(.playing) .growth{grid-row:4;width:min(100%,330px);margin:10px auto 0}
+#app:not(.playing) .growth>div:first-child{font:500 12px/1.3 var(--q-sans);color:#cfe3dc}
+#app:not(.playing) .growth .track{height:6px;margin-top:6px;background:#a6d3c42a}
+#app:not(.playing) #xpBar{background:linear-gradient(90deg,#9fe6c8,#e9d692)}
+#app:not(.playing) .hero-actions{grid-row:5;position:static;inset:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;width:min(100%,330px);margin:12px auto 0;pointer-events:auto}
+#app:not(.playing) .hero-actions button{display:flex;flex-direction:row;justify-content:center;align-items:center;gap:8px;width:auto;min-height:46px;padding:6px 12px;border:1px solid var(--q-line);border-radius:var(--q-r-s);background:var(--q-glass);color:var(--q-text);font:600 14px/1.1 var(--q-sans);text-shadow:none}
+#app:not(.playing) .hero-actions .feature-icon{width:26px;height:26px;filter:none}
+#app:not(.playing) .hero-actions button:hover{background:var(--q-glass-2);border-color:var(--q-line-2)}
+/* chapter card: region / map entry + the selected stage and its goal */
+#app:not(.playing) #home{grid-row:6;margin:12px 0 0;padding:4px 4px 10px;border:1px solid var(--q-line);border-radius:var(--q-r);background:var(--q-glass-2)}
+#app:not(.playing) .stats{display:none}
+#app:not(.playing) .region-picker{border:0;background:none;min-height:48px;padding:6px 10px;backdrop-filter:none}
+#app:not(.playing) .region-picker>span:last-child{color:var(--q-mint);font:600 12px var(--q-sans)}
+#app:not(.playing) .mission-preview{display:grid;gap:3px;margin:0;padding:0 12px;text-align:left}
+#app:not(.playing) .mission-preview>span{font:700 13.5px/1.3 var(--q-sans);color:#f3ecd0}
+#app:not(.playing) .mission-preview small{display:block;font:500 12px/1.4 var(--q-sans);color:var(--q-muted)}
+#app:not(.playing) .play-dock{grid-row:7;margin-top:12px}
+#app:not(.playing) .challenge-button:disabled{display:none}
+#app:not(.playing) .challenge-button{margin:0 0 8px}
+#app:not(.playing) #play{height:62px;min-height:62px}
+@media(max-height:720px){#app:not(.playing) .name{font-size:23px;min-height:38px}#app:not(.playing) .hero-actions{margin-top:8px}#app:not(.playing) .hero-actions button{min-height:44px}#app:not(.playing) #home{margin-top:8px}#app:not(.playing) .mission-preview small{display:none}}
+@media(min-width:600px){#app:not(.playing){width:min(100%,560px)}}
+
+/* ------------------------------------------------------------------ IN-GAME HUD */
+#app.playing #hud{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;top:max(8px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));text-shadow:0 1px 3px #00161d}
+#app.playing #hud[hidden]{display:none}
+#app.playing .hearts{position:static;top:auto;display:flex;gap:4px;padding:6px 9px;border:1px solid var(--q-line);border-radius:999px;background:var(--q-glass)}
+#app.playing .life-heart{width:18px;height:18px}
+#app.playing .hud-pill{justify-self:center;display:flex;align-items:center;gap:14px;padding:5px 14px;border:1px solid var(--q-line);border-radius:999px;background:var(--q-glass);pointer-events:none}
+#app.playing .hud-pill>div{display:flex;align-items:baseline;gap:5px}
+#app.playing .hud-ic{font:600 13px/1 var(--q-sans);color:var(--q-muted)}
+#app.playing .hud-light{color:var(--q-mint)}
+#app.playing #hud b{font:700 20px/1.1 var(--q-sans);padding:0;color:var(--q-text);font-variant-numeric:tabular-nums}
+#app.playing #scoreGoal{font:600 13px/1 var(--q-sans);color:var(--q-muted)}
+#app.playing #hud[data-run=boss] .score{display:none}
+#app.playing #timer[data-urgent=true]{color:#ffb784}
+#app.playing #hud .icon{width:44px;height:44px;font-size:17px;border-color:var(--q-line);background:var(--q-glass)}
+#app.playing #combo{top:52px}
+/* slim objective line (normal stages) - only when it adds something the pill cannot show */
+#app.playing #missionHud:not(.boss-health-hud){top:calc(max(8px,env(safe-area-inset-top)) + 52px);padding:4px 11px;border:1px solid var(--q-line);border-radius:999px;background:var(--q-glass);font:600 12px/1.3 var(--q-sans);color:#f2e7bf}
+#app.playing #missionHud.is-empty:not(.boss-health-hud){display:none}
+#app.playing #missionHud.goal-complete:not(.boss-health-hud){color:#c9ffd2;border-color:#bbfbc855;background:#123d36d9}
+/* guardian: name + seals in a slim dedicated bar under the top HUD; a cue only when it asks for an action */
+#app.playing #missionHud.boss-health-hud{top:calc(max(8px,env(safe-area-inset-top)) + 54px);left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));width:auto;max-width:520px;margin:0 auto;padding:7px 11px 8px;border:1px solid var(--q-line);border-radius:var(--q-r-s);background:var(--q-glass);transform:none}
+#app.playing .boss-health-heading{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font:600 12.5px/1.2 var(--q-sans);color:var(--q-text)}
+#app.playing .boss-health-heading strong{font:500 14px/1.2 var(--q-serif);letter-spacing:.01em}
+#app.playing .boss-seal-count{color:var(--q-gold);font-size:12px;white-space:nowrap}
+#app.playing .boss-seals{display:grid;grid-template-columns:repeat(var(--seals,4),1fr);gap:3px;height:6px;margin-top:6px;background:none;border:0;border-radius:0;overflow:visible}
+#app.playing .boss-seals .seal{display:block;height:6px;border-radius:3px;background:#ffffff1f}
+#app.playing .boss-seals .seal.on{background:linear-gradient(90deg,#f4dc93,#e7b95e);box-shadow:0 0 6px #f2cf7a44}
+#app.playing .boss-cue{display:block;width:max-content;max-width:100%;min-height:0;margin:6px auto 0;padding:3px 10px;border-radius:999px;font:700 12px/1.3 var(--q-sans)}
+/* message queue box: under the top HUD (below the guardian bar in boss stages), never over the counters */
+#app.playing .toast{top:calc(max(8px,env(safe-area-inset-top)) + 58px);max-width:min(320px,calc(100% - 32px))}
+#app.playing[data-run=boss] .toast{top:calc(max(8px,env(safe-area-inset-top)) + 132px)}
+#app.playing .toast[data-edge=lower]{top:auto;bottom:calc(104px + env(safe-area-inset-bottom))}
+/* ability: one round thumb button (bottom right) with a cooldown ring and seconds; short caption under it */
+#app.playing #abilityDock{left:auto;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));width:auto;max-width:none;display:flex;flex-direction:column;align-items:center;gap:3px;transform:none;background:none;border:0;padding:0}
+#app.playing #ability{position:relative;display:grid;place-items:center;width:66px;height:66px;min-width:0;min-height:0;padding:0;border:1px solid var(--q-line-2);border-radius:50%;background:radial-gradient(circle at 50% 38%,#1f5a58,#0b2d38 72%);overflow:visible;box-shadow:0 4px 14px #00182a88}
+#app.playing #ability::before{content:'';position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(var(--q-ring,#a8ecd0) calc(var(--cd,1)*1turn),#ffffff1c 0);-webkit-mask:radial-gradient(circle,transparent 62%,#000 64%);mask:radial-gradient(circle,transparent 62%,#000 64%);pointer-events:none}
+#app.playing #ability[data-phase=active]{--q-ring:#f4de95}
+#app.playing #ability .feature-icon{width:36px;height:36px}
+#app.playing #ability .ability-copy{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:5px;display:block;white-space:nowrap;text-align:center;pointer-events:none}
+#app.playing #ability #abilityLabel{display:block;font:700 10.5px/1.1 var(--q-sans)!important;color:#dcefe8;text-shadow:0 1px 3px #00161d}
+#app.playing #ability #abilityStatus{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+#app.playing #ability .ability-track{display:none}
+#app.playing #ability[data-count]:not([data-count=''])::after{content:attr(data-count);position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;background:#031a24a8;font:800 20px/1 var(--q-sans);color:#eef8f1}
+#app.playing #ability[data-phase=active][data-count]:not([data-count=''])::after{background:#1f3f2e66;color:var(--q-gold)}
+#app.playing #abilityDock{padding-bottom:14px}
+#app.playing #runPowerBadge{left:max(12px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom));border:1px solid var(--q-line);background:var(--q-glass);border-radius:999px}
+#app.playing #hint{bottom:calc(112px + env(safe-area-inset-bottom))}
+/* QA / build labels: out of the HUD (collapsed chip at the left edge, tiny build line at the very bottom) */
+#qaPanel{left:max(4px,env(safe-area-inset-left))!important;top:40%;bottom:auto!important}
+#qaPanel .qa-chip{padding:4px 7px!important;font-size:10px!important;opacity:.78}
+#v2Build{top:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 1px)!important;font-size:7px!important;opacity:.6}
+
+/* ------------------------------------------------------------------ SKILL CHOICE / RESULTS / PAUSE */
+#powerChoice::backdrop{background:#020d14b8}
+#powerChoice .power-options button{text-align:left}
+#powerChoice .power-effect{display:block;margin-top:4px;font:700 12px/1.3 var(--q-sans);font-style:normal;color:var(--q-gold)}
+#powerChoice .power-role{letter-spacing:.08em}
+#result .result-run{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:6px 0 10px}
+#result .result-run>span{padding:4px 10px;border:1px solid var(--q-line);border-radius:999px;background:#ffffff0d;font:600 12.5px/1.2 var(--q-sans);color:var(--q-text)}
+#result .result-caption{display:block;margin:2px 0 6px;font:700 11px/1.2 var(--q-sans);letter-spacing:.08em;color:var(--q-muted);text-align:center}
+#result .result-totals{margin:6px 0 10px;font:500 12px/1.3 var(--q-sans);color:var(--q-muted);text-align:center}
+
+/* ==== KOZA Q2 layer: one-hand play (automatic hero ability readout), hearts + shield mark, frozen/blurred card choice,
+   compact logo, boss intro inside its own seal bar. Same tokens as q1. ==== */
+/* compact KOZA logo back on the home screen (the existing art, smaller, in the empty band above the hero) */
+#app:not(.playing)>header{position:relative}
+#app:not(.playing)>header .brand{display:block;position:absolute;left:50%;top:calc(100% + 6px);transform:translateX(-50%);width:112px;min-height:0;z-index:2;pointer-events:auto}
+@media(max-height:720px){#app:not(.playing)>header .brand{width:92px;top:calc(100% + 2px)}}
+/* hearts: real lives; one short reaction on the heart that changed; a shield is a separate mark, never a heart */
+#app.playing .life-heart{width:19px;height:19px;overflow:visible}
+#app.playing .life-heart path{stroke-width:1.6;stroke-linejoin:round;transition:fill .18s,stroke .18s}
+#app.playing .life-heart.full path{fill:#ff8fa3;stroke:#ffd2da}
+#app.playing .life-heart.empty path{fill:#ffffff10;stroke:#ffffff45}
+#app.playing .life-heart.just-lost{animation:q2HeartLost .42s ease-out}
+#app.playing .life-heart.just-healed{animation:q2HeartHeal .5s ease-out}
+#app.playing .life-heart.critical.full{animation:q2HeartLow 1s ease-in-out 2}
+#app.playing .heart-shield{width:17px;height:17px;margin-left:3px;overflow:visible}
+#app.playing .heart-shield path{stroke-width:1.6;stroke-linejoin:round}
+#app.playing .heart-shield.ready path{fill:#bfefff55;stroke:#e6fbff}
+#app.playing .heart-shield.active path{fill:#d6f6ff99;stroke:#ffffff}
+#app.playing .heart-shield.recharge path{fill:none;stroke:#bfe6ff66;stroke-dasharray:3 2}
+@keyframes q2HeartLost{0%{transform:scale(1.25)}35%{transform:scale(.8) rotate(-8deg)}100%{transform:none}}
+@keyframes q2HeartHeal{0%{transform:scale(.6)}60%{transform:scale(1.2)}100%{transform:none}}
+@keyframes q2HeartLow{50%{transform:scale(1.14)}}
+/* goal met: the pill itself says so; the timer stays visible */
+#app.playing #hud[data-goal=done] .hud-pill{border-color:#bbfbc866;background:#123d36e0}
+#app.playing #hud[data-goal=done] .score b{color:#c9ffd2}
+#app.playing #hud[data-goal=done] #scoreGoal::after{content:' ✓';color:#c9ffd2}
+/* boss: intro text sits in the guardian's own bar (no toast over the boss); a broken seal flashes once */
+#app.playing #missionHud.boss-health-hud.boss-intro{box-shadow:0 0 0 1px #d8f6ff44,0 6px 20px #00111866}
+#app.playing .boss-cue[data-kind=intro]{background:#12303ad0;color:#d8f6ff;border:1px solid #d8f6ff33}
+#app.playing .boss-seals .seal.just-broken{animation:q2Seal .5s ease-out}
+@keyframes q2Seal{0%{background:#fff4c8;transform:scaleY(2.2)}100%{background:#ffffff1f;transform:none}}
+/* automatic hero ability: a small PASSIVE ring (no tap, no pointer capture; the thumb area stays the joystick) */
+#app.playing #abilityDock.auto{pointer-events:none!important;padding-bottom:12px}
+#app.playing #abilityDock.auto #ability{width:50px;height:50px;pointer-events:none;cursor:default;border-color:var(--q-line)}
+#app.playing #abilityDock.auto #ability .feature-icon{width:28px;height:28px}
+#app.playing #abilityDock.auto #ability[data-count]:not([data-count=''])::after{font-size:15px}
+#app.playing #abilityDock.auto #ability #abilityLabel{font-size:9.5px!important;opacity:.85}
+#app.playing #abilityDock.auto #ability::after{pointer-events:none}
+#app.playing #abilityDock.auto #ability .ability-copy::after{content:'OTO';display:block;margin-top:1px;font:800 8px/1 var(--q-sans);letter-spacing:.14em;color:#a8ecd0;opacity:.8}
+#app.playing #abilityDock.auto #ability.auto-intro .ability-copy::after{content:'Otomatik';font-size:9.5px;letter-spacing:.04em;opacity:1}
+#app.playing #abilityDock.auto #ability[data-phase=ready]{box-shadow:0 0 0 1px #a8ecd055,0 0 14px #a8ecd033}
+#app.playing #abilityDock.auto #ability[data-phase=active]{box-shadow:0 0 0 2px #f4de9577,0 0 16px #f4de9540}
+#app.playing #abilityDock.auto #ability[data-hold=input] .ability-copy::after{content:'Hareketle';color:#f2d98f;letter-spacing:.04em;font-size:9px}
+#app.playing #abilityDock.auto #ability[data-hold=blocked] .ability-copy::after{content:'Yol kapalı';color:#f2d98f;letter-spacing:.04em;font-size:9px}
+#app.playing #abilityDock.auto #abilityHint{display:none}
+/* power choice: ONE frozen copy of the scene, blurred once; a translucent panel; opaque, sharp cards */
+#choiceSnap{position:fixed;z-index:95;pointer-events:none;filter:blur(6px) brightness(.8) saturate(.95);transform:scale(1.02);transform-origin:center}
+#choiceSnap.no-blur{filter:brightness(.55)}
+#choiceSnap[hidden]{display:none}
+#powerChoice::backdrop{background:#020d1426;backdrop-filter:none;-webkit-backdrop-filter:none}
+#powerChoice{background:#06212b6e;border-color:#d9fff033;box-shadow:0 24px 70px #000a;width:min(430px,calc(100% - 24px))}
+#powerChoice .power-options button{background:#0c2e39f2;border-color:#a8dec040;animation:q2CardIn .24s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*60ms);transition:transform .12s,border-color .12s,opacity .15s}
+#powerChoice .power-options button:active{transform:scale(.985)}
+#powerChoice .power-options.committed button:not(.picked){opacity:.35}
+#powerChoice .power-options button.picked{transform:scale(1.025);border-color:#f2d98f;box-shadow:0 0 0 1px #f2d98f66,0 10px 26px #0008}
+@keyframes q2CardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* reduced motion: no scale/transform reactions, information stays */
+.reduce-motion #app.playing .life-heart,.reduce-motion #app.playing .boss-seals .seal,.reduce-motion #powerChoice .power-options button{animation:none!important}
+.reduce-motion #choiceSnap{transform:none}
+/* Q2 notice queue: a top toast owns the strip under the timer; the slim goal line and combo meter step back instead of peeking out behind it */
+#missionHud,#combo{transition:opacity .16s ease}
+body:has(#toast.visible:not([data-edge=lower])) :is(#missionHud,#combo){opacity:0}
+/* Q2: the card title takes focus only so screen readers start there (no card pre-selected); it is not a control, so no focus box */
+#powerTitle:focus{outline:none}
+/* Q2 touch targets (07: >= 44 px): the pause and result text buttons and the result details toggle were 32-42 px tall */
+#paused .text-button,#result .text-button,#resultMap,#backHome,#pauseSettings,#endRun{min-height:44px}
+#resultBreakdown>summary{min-height:44px;box-sizing:border-box;padding-top:12px;padding-bottom:12px}
+
+/* ===== KOZA 516.5 Q3 ===== */
+/* Skill choice: the world is frozen; the arena stays recognisable behind a light blur + calm dim; cards are crisp and opaque. */
+#choiceSnap{filter:blur(2.4px) brightness(.72) saturate(1.02);transform:scale(1.01)}
+#choiceSnap.no-blur{filter:brightness(.6) saturate(.98)}
+#powerChoice::backdrop{background:radial-gradient(ellipse at 50% 55%,#020d1400 35%,#020d1470 100%)}
+#powerChoice{background:linear-gradient(180deg,#082934d9,#061f29cc);border-color:#d9fff04d;box-shadow:0 24px 70px #0009,0 0 34px #9fffd812}
+#powerChoice .power-options button{background:linear-gradient(135deg,#123744,#0a2935);border-color:#a8dec05c;box-shadow:inset 0 1px 0 #ffffff12,0 7px 18px #00161f66}
+/* Guardian bar: survival progress (encounter clock) + phase; no HP / seals. */
+#app.playing .boss-health-track.boss-survive{position:relative;overflow:visible}
+#app.playing .boss-health-track.boss-survive i.boss-survive-fill{background:linear-gradient(90deg,#b98a45,#f1cf84 70%,#fff2c9);box-shadow:0 0 9px #f2c76a55;transition:width 1s linear}
+#app.playing .boss-survive .phase-tick{position:absolute;top:-2px;width:2px;height:11px;margin-left:-1px;background:#fff2cf99;border-radius:1px}
+.boss-health-heading .boss-phase{font-size:12px;color:#ffe7a8;white-space:nowrap}
+.boss-health-heading .boss-phase[data-phase="1"]{color:#ffd28a}
+.boss-health-heading .boss-phase[data-phase="2"]{color:#ffb48a}
+.boss-health-heading .boss-phase[data-phase="done"]{color:#d8ffe8}
+#app.playing .boss-cue[data-kind=done]{border-color:#bff5d6aa;color:#e7fff0;background:#16433cf0}
+.reduce-motion #app.playing .boss-health-track.boss-survive i{transition:none}
+
+/* ===== KOZA 516.6-q31 ===== */
+#app.playing .boss-cue[data-kind=idle]{visibility:hidden}

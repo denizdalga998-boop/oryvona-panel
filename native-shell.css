@@ -1,0 +1,27 @@
+/* Native interaction layer; the measured v17 header and game pills remain intact. */
+html,body{max-width:100%;overflow-x:clip;overscroll-behavior-y:none;-webkit-text-size-adjust:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable="true"],[data-selectable]{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
+button,a,[role="button"],summary{touch-action:manipulation}
+button,a,[role="button"]{-webkit-user-drag:none}
+button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+.app-head button:focus-visible{outline-color:#fff}
+button.is-pressed,a.is-pressed,[role="button"].is-pressed{transform:scale(.975);filter:brightness(.94)}
+button:disabled,a[aria-disabled="true"]{filter:none}
+main,.view,.card,.app-top-inner{min-width:0}
+.app-head .eyebrow{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.app-head .eyebrow>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.app-head .eyebrow img{flex:none}
+.cmdrow{flex-wrap:wrap}
+.cmdrow .tx{flex-basis:160px}
+.block .d,.block .t,.detail,.play-tx{overflow-wrap:anywhere}
+#cmdAnnotCanvas{width:auto;height:auto;max-width:100%;max-height:210px;align-self:center;object-fit:contain}
+#linkModal{top:var(--native-vv-top,0px);bottom:auto;height:var(--native-vh,100dvh);padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));overflow:hidden;overscroll-behavior:contain}
+.lm-card{max-height:100%;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-padding:12px}
+.lm-head,.lm-foot{flex:none}
+.lm-fields{flex:none}
+.drawer-close{align-self:flex-end;margin:0 2px 2px;min-width:44px;min-height:44px}
+.dpanel{overscroll-behavior:contain;padding-bottom:max(20px,env(safe-area-inset-bottom,0px))}
+.lm-close,.img-prev-ops button,.ctx-btn{min-height:44px}
+.tabs button{min-height:50px}
+@media(max-width:360px){.form{grid-template-columns:minmax(0,1fr)}.lm-card{padding:16px;gap:12px}.cmd-target-seg{flex-basis:100%}.now-card .tx{min-width:0;flex-basis:150px}.now-card .ctx-actions{width:100%;margin-left:0}.hero .ring{width:76px;height:76px}.hero .v{font-size:1.4rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}

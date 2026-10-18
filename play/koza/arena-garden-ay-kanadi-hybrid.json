@@ -1,0 +1,782 @@
+{
+ "format": "koza-arena",
+ "version": 3,
+ "id": "arena-garden-ay-kanadi-hybrid",
+ "title": "Ay Kanadı · Boss 15 · hybrid pass 2 (frozen)",
+ "region": "garden",
+ "kind": "boss",
+ "stage": 15,
+ "wide": true,
+ "hybrid": {
+  "project": "koza-boss15-hybrid-pass2",
+  "arena": "boss15-ay-kanadi-hybrid-pass2",
+  "status": "FROZEN - integrated as-is (Map 1 full integration)",
+  "footprintRadiusWu": 0.4,
+  "polygonInsetWu": 0.06,
+  "legacySpec": "arena-garden-ay-kanadi-wide-v516"
+ },
+ "camera": {
+  "projection": "orthographic",
+  "pitchDeg": 52,
+  "yawDeg": 0,
+  "viewWidth": 7.7,
+  "keepInView": [
+   2.26,
+   0.8,
+   8.98,
+   17.24
+  ],
+  "note": "KOZA's own 52 deg orthographic camera, visW 7.7, established bounded follow; keepInView = the frozen hybrid framing (the follow target is only narrowed, never widened; Lumi visibility keeps priority)"
+ },
+ "floor": [
+  11.0,
+  17.5
+ ],
+ "image": {
+  "w": 1283,
+  "h": 2536,
+  "floorRect": [
+   51,
+   440,
+   1180,
+   1479
+  ],
+  "plate": {
+   "file": "approved-art/ay-kanadi-approved.png",
+   "sha256": "bf79025dc76a873a0e67c4dbe05c02d4b8706fe261f722862076875c97ed9089",
+   "note": "approved master: hashed only (never modified); the runtime plate is the frozen hybrid gameplay plate"
+  }
+ },
+ "base": "arena-garden-ay-kanadi-hybrid-plate.webp",
+ "floorPolygon": [
+  [
+   3.176,
+   3.105
+  ],
+  [
+   3.607,
+   3.06
+  ],
+  [
+   4.105,
+   2.99
+  ],
+  [
+   4.801,
+   2.96
+  ],
+  [
+   5.598,
+   2.96
+  ],
+  [
+   6.337,
+   3.009
+  ],
+  [
+   6.716,
+   3.151
+  ],
+  [
+   7.016,
+   3.472
+  ],
+  [
+   7.528,
+   3.656
+  ],
+  [
+   7.85,
+   3.794
+  ],
+  [
+   7.99,
+   4.308
+  ],
+  [
+   7.99,
+   5.107
+  ],
+  [
+   8.143,
+   5.72
+  ],
+  [
+   8.395,
+   6.273
+  ],
+  [
+   8.562,
+   6.716
+  ],
+  [
+   8.66,
+   7.307
+  ],
+  [
+   8.72,
+   8.205
+  ],
+  [
+   8.82,
+   9.204
+  ],
+  [
+   8.86,
+   10.199
+  ],
+  [
+   8.821,
+   10.783
+  ],
+  [
+   8.505,
+   11.358
+  ],
+  [
+   8.062,
+   11.653
+  ],
+  [
+   7.747,
+   11.968
+  ],
+  [
+   7.557,
+   12.6
+  ],
+  [
+   7.743,
+   13.219
+  ],
+  [
+   7.988,
+   13.904
+  ],
+  [
+   7.844,
+   14.524
+  ],
+  [
+   7.398,
+   15.119
+  ],
+  [
+   7.145,
+   15.675
+  ],
+  [
+   6.901,
+   16.213
+  ],
+  [
+   6.567,
+   16.5
+  ],
+  [
+   6.184,
+   16.691
+  ],
+  [
+   5.402,
+   16.74
+  ],
+  [
+   4.724,
+   16.643
+  ],
+  [
+   4.348,
+   16.361
+  ],
+  [
+   4.104,
+   15.824
+  ],
+  [
+   3.85,
+   15.316
+  ],
+  [
+   3.503,
+   14.92
+  ],
+  [
+   3.358,
+   14.485
+  ],
+  [
+   3.258,
+   13.882
+  ],
+  [
+   3.008,
+   13.332
+  ],
+  [
+   2.908,
+   12.734
+  ],
+  [
+   2.658,
+   12.083
+  ],
+  [
+   2.509,
+   11.39
+  ],
+  [
+   2.41,
+   10.595
+  ],
+  [
+   2.38,
+   9.802
+  ],
+  [
+   2.46,
+   9.004
+  ],
+  [
+   2.48,
+   8.001
+  ],
+  [
+   2.51,
+   7.005
+  ],
+  [
+   2.609,
+   6.211
+  ],
+  [
+   2.758,
+   5.615
+  ],
+  [
+   2.908,
+   5.014
+  ],
+  [
+   3.039,
+   4.412
+  ],
+  [
+   3.16,
+   3.806
+  ],
+  [
+   3.16,
+   3.302
+  ]
+ ],
+ "bossArea": [
+  [
+   3.9,
+   3.85
+  ],
+  [
+   7.1,
+   3.85
+  ],
+  [
+   7.1,
+   12.05
+  ],
+  [
+   3.9,
+   12.05
+  ]
+ ],
+ "props": [],
+ "spawns": [
+  {
+   "u": 3.771,
+   "v": 3.037,
+   "dir": [
+    0.2,
+    1
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 7.503,
+   "v": 3.647,
+   "dir": [
+    -0.2,
+    1
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 2.473,
+   "v": 8.349,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 8.833,
+   "v": 9.535,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 5.751,
+   "v": 16.718,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "vegetation"
+  }
+ ],
+ "sentryAnchors": [
+  [
+   4.3,
+   5.75
+  ],
+  [
+   6.7,
+   5.75
+  ],
+  [
+   4.6,
+   11.25
+  ],
+  [
+   6.4,
+   11.25
+  ]
+ ],
+ "start": {
+  "player": [
+   5.5,
+   13.5
+  ],
+  "boss": [
+   5.5,
+   6.59
+  ]
+ },
+ "occlusion": {
+  "propTops": "none",
+  "foreground": null
+ },
+ "units": "world units: u across 0..w from the left floor edge, v from the far edge 0..depth",
+ "light": {
+  "key": "#e9f1ff",
+  "keyIntensity": 3.4,
+  "keyDir": [
+   -3.2,
+   6,
+   4.6
+  ],
+  "shadowSoftness": 2.5,
+  "sky": "#a4c4e6",
+  "ground": "#2a4c5a",
+  "hemi": 1.8,
+  "rim": "#b8f0e4",
+  "rimIntensity": 2.0,
+  "shadow": "5,18,24",
+  "shadowOpacity": 0.46,
+  "separation": "182,220,212",
+  "quietFloor": true,
+  "danger": "255,168,140",
+  "fill": "#091622",
+  "roles": {
+   "enemy": {
+    "exposure": 2.0,
+    "hemi": 4.2,
+    "rim": "#ffd8c8",
+    "rimIntensity": 4.4
+   },
+   "boss": {
+    "exposure": 1.05,
+    "rim": "#ffe2b8",
+    "rimIntensity": 2.8
+   }
+  }
+ },
+ "fx": {
+  "note": "restrained Canvas2D port of the frozen hybrid FX: masked, outside the walkable polygon, value/colour only",
+  "glow": {
+   "mask": "arena-garden-ay-kanadi-hybrid-glow.png",
+   "amp": 0.1,
+   "w": 0.33,
+   "source": "hybrid fx mask B (breath, value only)"
+  },
+  "pulse": {
+   "mask": "arena-garden-ay-kanadi-hybrid-pulse.png",
+   "rgb": [
+    0.045,
+    0.065,
+    0.07
+   ],
+   "w": 0.6,
+   "source": "hybrid fx mask G (additive colour pulse)"
+  },
+  "card": {
+   "at": [
+    5.48,
+    1.4
+   ],
+   "size": [
+    2.7,
+    2.0
+   ],
+   "opacity": 0.08,
+   "inner": "rgba(190,220,235,1)",
+   "mid": "rgba(150,190,210,0.35)",
+   "outer": "rgba(120,160,190,0)"
+  },
+  "motes": [
+   [
+    4.8,
+    1.2,
+    1.9
+   ],
+   [
+    6.2,
+    1.1,
+    2.0
+   ],
+   [
+    5.5,
+    1.6,
+    1.4
+   ],
+   [
+    2.5,
+    0.9,
+    2.6
+   ],
+   [
+    8.4,
+    0.9,
+    2.7
+   ],
+   [
+    1.4,
+    0.8,
+    7.5
+   ],
+   [
+    9.8,
+    0.8,
+    8.4
+   ],
+   [
+    2.1,
+    0.7,
+    14.7
+   ],
+   [
+    8.9,
+    0.7,
+    15.5
+   ]
+  ],
+  "notPorted": "R channel (canopy / mist value breathing, +-5..18 %): full-plate precomposite, left static in production"
+ },
+ "qa": {
+  "visibleWall": [
+   [
+    3.12,
+    3.05
+   ],
+   [
+    3.6,
+    3.0
+   ],
+   [
+    4.1,
+    2.93
+   ],
+   [
+    4.8,
+    2.9
+   ],
+   [
+    5.6,
+    2.9
+   ],
+   [
+    6.35,
+    2.95
+   ],
+   [
+    6.75,
+    3.1
+   ],
+   [
+    7.05,
+    3.42
+   ],
+   [
+    7.55,
+    3.6
+   ],
+   [
+    7.9,
+    3.75
+   ],
+   [
+    8.05,
+    4.3
+   ],
+   [
+    8.05,
+    5.1
+   ],
+   [
+    8.2,
+    5.7
+   ],
+   [
+    8.45,
+    6.25
+   ],
+   [
+    8.62,
+    6.7
+   ],
+   [
+    8.72,
+    7.3
+   ],
+   [
+    8.78,
+    8.2
+   ],
+   [
+    8.88,
+    9.2
+   ],
+   [
+    8.92,
+    10.2
+   ],
+   [
+    8.88,
+    10.8
+   ],
+   [
+    8.55,
+    11.4
+   ],
+   [
+    8.1,
+    11.7
+   ],
+   [
+    7.8,
+    12.0
+   ],
+   [
+    7.62,
+    12.6
+   ],
+   [
+    7.8,
+    13.2
+   ],
+   [
+    8.05,
+    13.9
+   ],
+   [
+    7.9,
+    14.55
+   ],
+   [
+    7.45,
+    15.15
+   ],
+   [
+    7.2,
+    15.7
+   ],
+   [
+    6.95,
+    16.25
+   ],
+   [
+    6.6,
+    16.55
+   ],
+   [
+    6.2,
+    16.75
+   ],
+   [
+    5.4,
+    16.8
+   ],
+   [
+    4.7,
+    16.7
+   ],
+   [
+    4.3,
+    16.4
+   ],
+   [
+    4.05,
+    15.85
+   ],
+   [
+    3.8,
+    15.35
+   ],
+   [
+    3.45,
+    14.95
+   ],
+   [
+    3.3,
+    14.5
+   ],
+   [
+    3.2,
+    13.9
+   ],
+   [
+    2.95,
+    13.35
+   ],
+   [
+    2.85,
+    12.75
+   ],
+   [
+    2.6,
+    12.1
+   ],
+   [
+    2.45,
+    11.4
+   ],
+   [
+    2.35,
+    10.6
+   ],
+   [
+    2.32,
+    9.8
+   ],
+   [
+    2.4,
+    9.0
+   ],
+   [
+    2.42,
+    8.0
+   ],
+   [
+    2.45,
+    7.0
+   ],
+   [
+    2.55,
+    6.2
+   ],
+   [
+    2.7,
+    5.6
+   ],
+   [
+    2.85,
+    5.0
+   ],
+   [
+    2.98,
+    4.4
+   ],
+   [
+    3.1,
+    3.8
+   ],
+   [
+    3.1,
+    3.3
+   ]
+  ],
+  "visibleWallNames": [
+   "plants below the left stump",
+   "plants",
+   "plants at the nest foot",
+   "nest foot",
+   "nest foot",
+   "plants at the nest foot",
+   "plants",
+   "plants left of the right stump",
+   "plants",
+   "root + plants",
+   "root plants",
+   "plants",
+   "bush foot",
+   "bush foot",
+   "bush / root",
+   "root plants",
+   "plants",
+   "root",
+   "root",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "bush",
+   "bush",
+   "bush",
+   "bush",
+   "flowers",
+   "plants",
+   "bottom root",
+   "bottom root",
+   "plants",
+   "plants",
+   "root",
+   "root",
+   "bush",
+   "bush",
+   "bush",
+   "bush",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "plants",
+   "root / plants",
+   "stump root",
+   "plants"
+  ],
+  "polygonStatus": "hybrid pass 1: HAND-AUTHORED on the visible walls of the moss clearing in the protected approved master, inset 0.06 wu; size / shape reference = v5.15 approved polygon (+2.00/+1.25). Never regenerated from pixels.",
+  "polygonAreas": {
+   "hybridPass1": 70.115,
+   "visibleWallLine": 72.217,
+   "approvedShifted": 67.669
+  },
+  "note": "qa block is test data only - the runtime never reads it"
+ },
+ "source": {
+  "hybridWorld": "koza-boss15-hybrid-pass2/preview/assets/world.json",
+  "hybridWorldSha256": "a84c804782224281182e88d646c4c1b5221bc7f5999551c4a264e5d9537b6a35",
+  "plateSha256": "cd084765d347f845a63f4c07e3b8196929a1854edd6f7becb61b2dbc75eb5dc2",
+  "handfit": "koza-boss15-hybrid-pass2/source-data/boss15-polygon-handfit.json",
+  "handfitSha256": "60678d55a918db931d0c0774fe8cc8d556ccc195b47d2ca04b7e8596d045b0c5"
+ }
+}

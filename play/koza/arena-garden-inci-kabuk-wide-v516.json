@@ -1,0 +1,493 @@
+{
+ "format": "koza-arena",
+ "version": 3,
+ "id": "arena-garden-inci-kabuk-wide-v516",
+ "title": "Ayışığı Bahçesi · İnci Kabuk · wide v5.16 (QA extension — art pending)",
+ "region": "garden",
+ "kind": "boss",
+ "stage": 10,
+ "wide": true,
+ "camera": {
+  "projection": "orthographic",
+  "pitchDeg": 52,
+  "yawDeg": 0,
+  "template": "11.0x16.5",
+  "viewWidth": 7.7,
+  "note": "v5.16 bounded soft-follow camera; cameraBounds derive from the painting extents at runtime (no void); viewWidth in wu across the phone"
+ },
+ "floor": [
+  11.0,
+  16.5
+ ],
+ "image": {
+  "w": 1415,
+  "h": 2292,
+  "floorRect": [
+   56,
+   426,
+   1301,
+   1538
+  ],
+  "plate": {
+   "file": "approved-art/inci-kabuk-approved.png",
+   "sha256": "867dda5b15b00344f3201a3d562272cfbe6410c761ab5f05492987c506c36377",
+   "rect": [
+    237,
+    310,
+    941,
+    1672
+   ],
+   "locked": true
+  }
+ },
+ "base": "arena-garden-inci-kabuk-wide-v516-base.png",
+ "floorPolygon": [
+  [
+   0.875,
+   0.9
+  ],
+  [
+   0.8,
+   15.525
+  ],
+  [
+   10.125,
+   15.6
+  ],
+  [
+   10.2,
+   0.975
+  ]
+ ],
+ "bossArea": [
+  [
+   2.9,
+   4.2
+  ],
+  [
+   8.1,
+   4.2
+  ],
+  [
+   8.1,
+   9.7
+  ],
+  [
+   2.9,
+   9.7
+  ]
+ ],
+ "props": [
+  {
+   "u": 5.4,
+   "v": 1.4,
+   "r": 0.575,
+   "qa": "water"
+  },
+  {
+   "u": 5.575,
+   "v": 15.1,
+   "r": 0.487,
+   "qa": "water"
+  },
+  {
+   "u": 8.05,
+   "v": 3.375,
+   "r": 0.408,
+   "qa": "water"
+  },
+  {
+   "u": 2.95,
+   "v": 2.7,
+   "r": 0.33,
+   "qa": "water"
+  },
+  {
+   "u": 3.0,
+   "v": 1.9,
+   "r": 0.32,
+   "qa": "water"
+  },
+  {
+   "u": 2.55,
+   "v": 3.5,
+   "r": 0.311,
+   "qa": "water"
+  },
+  {
+   "u": 8.625,
+   "v": 3.725,
+   "r": 0.3,
+   "qa": "water"
+  },
+  {
+   "u": 8.175,
+   "v": 13.775,
+   "r": 0.3,
+   "qa": "water"
+  },
+  {
+   "u": 2.75,
+   "v": 2.975,
+   "r": 0.297,
+   "qa": "water"
+  },
+  {
+   "u": 5.2,
+   "v": 14.725,
+   "r": 0.297,
+   "qa": "water"
+  },
+  {
+   "u": 3.125,
+   "v": 2.3,
+   "r": 0.296,
+   "qa": "water"
+  },
+  {
+   "u": 3.55,
+   "v": 2.475,
+   "r": 0.28,
+   "qa": "water"
+  },
+  {
+   "u": 3.025,
+   "v": 3.475,
+   "r": 0.274,
+   "qa": "water"
+  },
+  {
+   "u": 8.3,
+   "v": 3.775,
+   "r": 0.274,
+   "qa": "water"
+  },
+  {
+   "u": 8.825,
+   "v": 2.05,
+   "r": 0.265,
+   "qa": "water"
+  },
+  {
+   "u": 8.0,
+   "v": 2.45,
+   "r": 0.264,
+   "qa": "water"
+  },
+  {
+   "u": 7.45,
+   "v": 2.5,
+   "r": 0.262,
+   "qa": "water"
+  },
+  {
+   "u": 3.25,
+   "v": 2.85,
+   "r": 0.262,
+   "qa": "water"
+  },
+  {
+   "u": 5.925,
+   "v": 1.075,
+   "r": 0.25,
+   "qa": "water"
+  },
+  {
+   "u": 5.925,
+   "v": 1.725,
+   "r": 0.25,
+   "qa": "water"
+  },
+  {
+   "u": 4.95,
+   "v": 14.575,
+   "r": 0.25,
+   "qa": "water"
+  },
+  {
+   "u": 7.925,
+   "v": 2.2,
+   "r": 0.24,
+   "qa": "water"
+  },
+  {
+   "u": 2.1,
+   "v": 3.8,
+   "r": 0.24,
+   "qa": "water"
+  },
+  {
+   "u": 4.875,
+   "v": 1.7,
+   "r": 0.232,
+   "qa": "water"
+  },
+  {
+   "u": 3.1,
+   "v": 3.2,
+   "r": 0.232,
+   "qa": "water"
+  },
+  {
+   "u": 1.8,
+   "v": 2.6,
+   "r": 0.227,
+   "qa": "water"
+  },
+  {
+   "u": 7.175,
+   "v": 2.25,
+   "r": 0.225,
+   "qa": "water"
+  },
+  {
+   "u": 7.675,
+   "v": 2.85,
+   "r": 0.225,
+   "qa": "water"
+  },
+  {
+   "u": 7.15,
+   "v": 13.8,
+   "r": 0.225,
+   "qa": "water"
+  },
+  {
+   "u": 4.975,
+   "v": 15.225,
+   "r": 0.225,
+   "qa": "water"
+  },
+  {
+   "u": 5.175,
+   "v": 15.425,
+   "r": 0.225,
+   "qa": "water"
+  },
+  {
+   "u": 3.1,
+   "v": 1.45,
+   "r": 0.218,
+   "qa": "water"
+  },
+  {
+   "u": 2.25,
+   "v": 1.95,
+   "r": 0.21,
+   "qa": "water"
+  }
+ ],
+ "spawns": [
+  {
+   "u": 0.856,
+   "v": 4.586,
+   "dir": [
+    0.55,
+    1
+   ],
+   "via": "water"
+  },
+  {
+   "u": 10.181,
+   "v": 4.614,
+   "dir": [
+    -0.55,
+    1
+   ],
+   "via": "water"
+  },
+  {
+   "u": 0.83,
+   "v": 9.64,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "water"
+  },
+  {
+   "u": 10.155,
+   "v": 9.66,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "water"
+  },
+  {
+   "u": 5.491,
+   "v": 15.563,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "water"
+  },
+  {
+   "u": 0.839,
+   "v": 8.0,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "air"
+  },
+  {
+   "u": 10.164,
+   "v": 8.0,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "air"
+  },
+  {
+   "u": 0.813,
+   "v": 13.0,
+   "dir": [
+    1,
+    -0.3
+   ],
+   "via": "air"
+  },
+  {
+   "u": 10.138,
+   "v": 13.0,
+   "dir": [
+    -1,
+    -0.3
+   ],
+   "via": "air"
+  },
+  {
+   "u": 3.0,
+   "v": 15.543,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 8.0,
+   "v": 15.583,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "path"
+  }
+ ],
+ "sentryAnchors": [
+  [
+   4.3,
+   5.65
+  ],
+  [
+   6.7,
+   5.65
+  ],
+  [
+   4.4,
+   11.35
+  ],
+  [
+   6.6,
+   11.35
+  ],
+  [
+   1.9,
+   6.5
+  ],
+  [
+   9.1,
+   6.5
+  ],
+  [
+   1.9,
+   11.5
+  ],
+  [
+   9.1,
+   11.5
+  ]
+ ],
+ "start": {
+  "player": [
+   5.5,
+   12.3
+  ],
+  "boss": [
+   5.5,
+   5.96
+  ]
+ },
+ "occlusion": {
+  "propTops": "none",
+  "foreground": null
+ },
+ "units": "world units: u across 0..w from the left floor edge, v from the far edge 0..depth",
+ "light": {
+  "key": "#eaf2ff",
+  "keyIntensity": 3.4,
+  "keyDir": [
+   -3.2,
+   6,
+   4.6
+  ],
+  "shadowSoftness": 2.5,
+  "sky": "#a6c0ea",
+  "ground": "#24406a",
+  "hemi": 1.8,
+  "rim": "#c6d6ff",
+  "rimIntensity": 2.0,
+  "shadow": "3,10,26",
+  "shadowOpacity": 0.46,
+  "separation": "158,186,228",
+  "quietFloor": true,
+  "danger": "255,168,140",
+  "fill": "#1a3d6c",
+  "roles": {
+   "boss": {
+    "exposure": 1.02,
+    "rim": "#ffdcae",
+    "rimIntensity": 2.7
+   },
+   "enemy": {
+    "exposure": 2.0,
+    "hemi": 4.2,
+    "rim": "#ffd8c8",
+    "rimIntensity": 4.4
+   }
+  },
+  "keyDirNote": "v5.15.1: yön onaylı plakadaki boyalı gölgelere göre düzeltildi (ışık sol üstten, gölge sağ-aşağı)."
+ },
+ "derivedFrom": {
+  "spec": "arena-garden-inci-kabuk",
+  "oldFloor": [
+   7,
+   15
+  ],
+  "extensionWu": {
+   "left": 2.0,
+   "right": 2.0,
+   "top": 0.75,
+   "bottom": 0.75
+  },
+  "pxPerWu": 118.286,
+  "pxPerWuDepth": 93.2
+ },
+ "qa": {
+  "status": "ART EXTENSION REQUIRED",
+  "extension": "TEMPORARY QA-ONLY technical continuation (matte edge colour + hatch + label + 1 wu grid). Not finished art.",
+  "lockedMasterRect": [
+   237,
+   310,
+   941,
+   1672
+  ],
+  "geometry": "QA geometry: broad glade opened across the old plate borders; MUST be re-fit to the final painted extension (art first, gameplay fit second)."
+ },
+ "source": "APPROVED PLATE copied byte-identically into a 1415x2292 canvas at (237, 310); outside = QA extension. APPROVED PLATE displayed directly (no regeneration). Runtime copy = plate pixels + edge-extended padding of 240 px above and below for phone aspect.",
+ "water": "arena-garden-inci-kabuk-wide-v516-water.png"
+}

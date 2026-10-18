@@ -10,12 +10,13 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="game-lab.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Lora:ital,wght@1,500;1,600&display=swap">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="vendor/supabase-2.45.4.min.js"></script>
 <script src="config.js"></script>
-<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{}));}</script>
 <style>
-/* Oryvona Games Paneli v2.7 (v17) — dark navy app shell, real game links, honest data, TR/EN. */
+/* Oryvona Games Paneli v2.9 (v19) — dark navy app shell, real game links, honest data, TR/EN. */
 :root{
   --bg:#f2f3f9; --surface:#ffffff; --surface-2:#edeef7; --line:rgba(24,22,58,.08); --line-2:rgba(24,22,58,.15);
   --fg:#13122b; --fg-2:#565475; --fg-3:#8886a6;
@@ -339,6 +340,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 @media (prefers-reduced-motion:no-preference){.chip.good.dot::before{animation:beat 2.6s ease-in-out infinite}@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}}
 @media (min-width:720px){.grid2{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
+<link rel="stylesheet" href="native-shell.css">
 </head>
 <body>
 <header class="app-shell-top" id="topbar">
@@ -355,9 +357,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
   </div>
 </header>
 
-<div class="drawer" id="drawer" hidden>
+<div class="drawer" id="drawer" hidden role="dialog" aria-modal="true" aria-label="Menü" data-i18n-aria="ui.menu" tabindex="-1">
   <div class="scrim" id="drawerScrim"></div>
   <aside class="dpanel" aria-label="Menü">
+    <button type="button" class="lm-close drawer-close" id="drawerClose" aria-label="Kapat" data-i18n-aria="ui.close">✕</button>
     <div class="dhead"><img src="logo.png" alt=""><div><b>Oryvona Games</b><span id="drawerUser">Stüdyo paneli</span></div></div>
     <div class="secthead" data-i18n="ui.games">Oyunlar</div>
     <div class="dlist" id="drawerGames"></div>
@@ -545,7 +548,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   </section>
 </main>
 
-<div id="linkModal" hidden role="dialog" aria-modal="true" aria-labelledby="linkModalTitle">
+<div id="linkModal" hidden tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="linkModalTitle">
   <form class="lm-card" id="linkModalForm" novalidate>
     <div class="lm-head">
       <div><b id="linkModalTitle">Test bağlantıları</b><span id="linkModalSub"></span></div>
@@ -678,7 +681,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`Yapılan her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI otomatik geçişi",on:"etkin",off:"kapalı",wakeSub:v=>`Claude çalışmasını bitirince OpenAI kendiliğinden devreye girer. Son hareket: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Claude görev geldiğinde otomatik veya Komut Kutusu ile çalışır.",repo:"Proje bağlantısı: ",openRepo:"Proje sayfasını aç ›",lastPush:v=>` · son güncelleme ${v}`,openCommit:"Son değişikliği gör ›",last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
       workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar"},
     terms:[["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Gemini","Bağımsız denetçi. Teslim edilen işi ikinci bir göz olarak inceler ve yöneticiye özet sunar."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Hedef seçerek (Claude veya Gemini) sesle, yazıyla veya ekran görüntüsüyle görev vermeni sağlayan alan."]],
-    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 2.8 · Komuta Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Claude, OpenAI, Gemini ve süreç adımları",
+    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 2.9 · Mobil Komuta Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Claude, OpenAI, Gemini ve süreç adımları",
       demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · ${src}`,ghSignal:"Canlı senkronizasyon aktif",noDataYet:"Henüz veri yok",
       pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
     pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
@@ -761,7 +764,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI auto-handoff",on:"enabled",off:"off",wakeSub:v=>`When Claude finishes, OpenAI steps in automatically. Last activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"Claude runs automatically on new tasks or via the Command Box.",repo:"Project link: ",openRepo:"Open project page ›",lastPush:v=>` · last update ${v}`,openCommit:"View latest change ›",last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
       workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes"},
     terms:[["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Gemini","Independent auditor. Reviews deliveries as a second pair of eyes and summarizes for the manager."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Choose target (Claude or Gemini), write/dictate or attach screenshot, and tap Send."]],
-    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 2.8 · Command Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Claude, OpenAI, Gemini and workflow steps",
+    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 2.9 · Mobile Command Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Claude, OpenAI, Gemini and workflow steps",
       demoView:"Sample view",notSignedIn:"Not signed in",ownerRole:"Studio owner",memberRole:"Team member",liveInfo:(t,src)=>`Last update ${t} · ${src}`,ghSignal:"Live sync active",noDataYet:"No data yet",
       pushOn:"On",pushOff:"Turn on",pushDemo:"Off in the sample view",pushUnsup:"This browser does not support it",pushDenied:"Notification permission is off; enable it in the phone's app settings",pushActive:"This device receives notifications. If they arrive as \"Chrome\": open phone Settings → Apps → Oryvona → Notifications.",pushIdle:"Alerts you even when the app is closed",pushSaveErr:"Could not save: ",pushAsking:"Asking for permission…",pushClosed:"The permission box closed; tap Turn on again and choose Allow.",pushFail:"Could not enable: ",pushSending:"Sending…",pushSendFail:"Could not send: ",pushSent:n=>`Test sent · ${n} device(s). It arrives within seconds.`},
     pref:{mine:"When the turn comes to me (final test)",blocked:"When a blocker is recorded",turns:"On every hand-over (Claude ↔ OpenAI)",runs:"When a cloud test finishes",store:"Store: new review, mail, status change"},
@@ -900,8 +903,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
   // The catalog holds facts only: name, platform and where the source code lives. It never invents test numbers, versions or links;
   // those come from project_status / store_games / store_status. Sample data lives in demoPresets() and is used by #demo only.
   const STUDIO_PROJECTS=[
-    {id:"koza",name:"KOZA",code:"K01",sort_order:1,locState:"active",platform:"web",buildVer:"K01B · C02",localPath:"D:\\ORYVONA_MERKEZ\\KOZA",locTr:"DJ-KABIN · Aktif · K01B (C02)",locEn:"DJ-KABIN · Active · K01B (C02)",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
-    {id:"charm-drop",name:"Charm Drop",code:"CD1",sort_order:2,locState:"active",platform:"apk",buildVer:"C22 · 2026-10-17",localPath:"D:\\ORYVONA_MERKEZ\\Charm-Drop",locTr:"DJ-KABIN · Aktif · C22",locEn:"DJ-KABIN · Active · C22",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
+    {id:"koza",name:"KOZA",code:"K01",sort_order:1,locState:"active",platform:"web",buildVer:"K01 SIMPLE RUN · k01-2",localPath:"D:\\ORYVONA_MERKEZ\\KOZA",locTr:"DJ-KABIN · Aktif · K01 SIMPLE RUN",locEn:"DJ-KABIN · Active · K01 SIMPLE RUN",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
+    {id:"charm-drop",name:"Charm Drop",code:"CD1",sort_order:2,locState:"active",platform:"web",buildVer:"C21 · C22 hazırlık",localPath:"D:\\ORYVONA_MERKEZ\\Charm-Drop",locTr:"DJ-KABIN · Aktif · C21",locEn:"DJ-KABIN · Active · C21",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
     {id:"forge-run",name:"Forge Run",code:"FR1",sort_order:3,locState:"active",platform:"apk",buildVer:"0.9.43 · FR25J",localPath:"D:\\ORYVONA_MERKEZ\\Forge-Run",locTr:"DJ-KABIN · Aktif · 0.9.43 (FR25J)",locEn:"DJ-KABIN · Active · 0.9.43 (FR25J)",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
     {id:"aeryo",name:"AERYO",code:"AE1",sort_order:4,locState:"active",platform:"apk",buildVer:"v1.2.0 (10004 · 300levels)",localPath:"D:\\ORYVONA_MERKEZ\\AERYO",locTr:"DJ-KABIN · Aktif · v1.2.0 (10004)",locEn:"DJ-KABIN · Active · v1.2.0 (10004)",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"}
   ];
@@ -1019,10 +1022,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const id=gid||current||"koza";const st=(id===current&&status)?status:allStatus[id];const q=(st&&st.lastQa)||{};const R=S().rdy;
     const items=[];
     if(q.run_id!=null||q.code_passed!=null){
-      const parts=[[q.code_passed,q.code_total],[q.browser_passed,q.browser_total],[q.natural_passed,q.natural_total]].filter(([p])=>typeof p==="number").map(([p,t])=>t==null?p>0:p>=t);
-      items.push([R.tests,parts.length?parts.every(Boolean):null]);
+      const parts=[[q.code_passed,q.code_total],[q.browser_passed,q.browser_total],[q.natural_passed,q.natural_total]];
+      const valid=([p,t])=>Number.isFinite(p)&&Number.isFinite(t)&&t>0&&p<=t;
+      const failed=parts.some(part=>valid(part)&&part[0]<part[1])||["FAIL","BLOCKED"].includes(q.lifecycle_status);
+      const complete=parts.every(valid)&&["PASS","FAIL","BLOCKED"].includes(q.lifecycle_status);
+      items.push([R.tests,failed?false:complete?parts.every(([p,t])=>suiteOk(p,t))&&q.lifecycle_status==="PASS":null]);
     }
-    if(q.touch_status!==undefined||q.touch_play_pass!==undefined)items.push([R.touch,q.touch_status==="PASS"||q.touch_play_pass===true]);
+    if(q.touch_status!=null||typeof q.touch_play_pass==="boolean")items.push([R.touch,q.touch_status==="PASS"||q.touch_play_pass===true]);
     const L=getGameLinks(id);items.push([R.link,!!(L.webUrl||L.apkUrl||L.playUrl)]);
     const sg=(store.games||[]).find(g=>g.id===id);items.push([R.store,!!(sg&&sg.package_id)]);
     if(playConnected()){const tr=(sg&&sg.meta&&sg.meta.tracks)||[];items.push([R.play,tr.some(t=>(t.releases||[]).length>0)]);}
@@ -1093,33 +1099,34 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(chip){chip.hidden=!txt;chip.className="loc-chip"+(cm.locState==="transfer"?" transfer":"");if($("topLocTxt"))$("topLocTxt").textContent=txt;}
     const p=projects.find(x=>x.id===cur);if($("topTitle"))$("topTitle").textContent=p?p.name:cm.name;
   }
-  function showView(v){view=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===tabOf(v))));window.scrollTo({top:0});
+  function showView(v){if(!VIEWS.includes(v))v="home";view=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===tabOf(v))));window.scrollTo({top:0});
     renderGameBar();
-    if(v==="games")renderGames();if(v==="feed"){renderDigest();renderWeek();renderFeedList();}if(v==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg("tests.noPipe");if(v==="settings")renderSettings();if(v==="store")renderStore();if(v==="game")renderGame();}
+    if(v==="games")renderGames();if(v==="feed"){renderDigest();renderWeek();renderFeedList();}if(v==="tests")renderTestsBody();if(v==="settings")renderSettings();if(v==="store")renderStore();if(v==="game")renderGame();document.dispatchEvent(new CustomEvent("oryvona:view-change",{detail:{view:v,id:current}}));}
   function turnChip(s){const h=s?.handoff||{};const t=turnInfo(h.status);const cls=h.status==="BLOCKED"?"bad":h.status==="USER_TEST_READY"?"deniz":t.who||"";return {cls,text:s?.handoff?turnLabel(t):T("games.notLinked")};}
   function renderDrawer(){ensureStudioCatalog();$("drawerUser").textContent=session?.user?.email||T("ui.studio");
     $("drawerGames").innerHTML=projects.map(p=>{const sp=gameMeta(p.id);const s=allStatus[p.id];const c=turnChip(s);const sub=[locOf(sp),humanText(s?.phaseTr)].filter(Boolean).join(" · ");
       return `<button type="button" class="ditem" data-game="${esc(p.id)}" aria-current="${p.id===current}"><span class="ic">${esc(p.name.slice(0,2).toUpperCase())}</span><span class="tx"><b>${esc(p.name)}</b><span>${esc(sub||T("games.noStatus"))}</span></span><span class="chip sm ${sp.locState==="transfer"?"warn":c.cls==="bad"?"bad":"brand"}">${esc(sp.locState==="transfer"?(lang==="tr"?"Aktarılacak":"Transfer"):c.text)}</span></button>`;}).join("")
       +`<button type="button" class="ditem" data-go="games"><span class="ic">…</span>${esc(T("games.allGames"))}</button>`;}
-  function openDrawer(){renderDrawer();$("drawer").hidden=false;document.body.style.overflow="hidden";}
-  function closeDrawer(){$("drawer").hidden=true;document.body.style.overflow="";}
+  function openDrawer(){renderDrawer();if(window.OryvonaNativeShell)window.OryvonaNativeShell.open("drawer",{initialFocus:"#drawerClose"});else{$("drawer").hidden=false;document.body.style.overflow="hidden";}}
+  function closeDrawer(){if(window.OryvonaNativeShell)window.OryvonaNativeShell.close("drawer");else{$("drawer").hidden=true;document.body.style.overflow="";}}
+  $("drawerClose").addEventListener("click",closeDrawer);
   $("menuBtn").addEventListener("click",openDrawer);$("titleBtn").addEventListener("click",openDrawer);$("drawerScrim").addEventListener("click",closeDrawer);
-  $("drawer").addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){closeDrawer();history.pushState({view:g.dataset.go},"");showView(g.dataset.go);return;}if(e.target.closest("[data-game]")||e.target.closest("[data-detail]"))closeDrawer();});
+  $("drawer").addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){closeDrawer();const navigate=()=>{history.pushState({view:g.dataset.go},"");showView(g.dataset.go);};if(window.OryvonaNativeShell?.isClosing())window.OryvonaNativeShell.afterClose(navigate);else navigate();return;}if(e.target.closest("[data-game]")||e.target.closest("[data-detail]"))closeDrawer();});
   document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b){history.pushState({view:b.dataset.view},"");showView(b.dataset.view);}});
-  function fillDetail(key){detailKey=key;const d=DETAILS[key];if(!d)return;$("detailTitle").textContent=T("det."+key);$("detailBody").innerHTML=d();if(key==="auto")renderTimeline("tl3",72);}
-  function openDetail(key){fillDetail(key);history.pushState({view:"detail",key},"");showView("detail");}
+  function fillDetail(key){detailKey=key;const d=DETAILS[key];if(!d)return;$("detailTitle").textContent=T("det."+key);$("detailBody").innerHTML=d();if(key==="qa")notifyTestsRendered("detailBody");if(key==="auto")renderTimeline("tl3",72);}
+  function openDetail(key){fillDetail(key);const navigate=()=>{history.pushState({view:"detail",key},"");showView("detail");};if(window.OryvonaNativeShell?.isClosing())window.OryvonaNativeShell.afterClose(navigate);else navigate();}
   document.addEventListener("click",e=>{const b=e.target.closest("[data-detail]");if(b)openDetail(b.dataset.detail);});
   $("backBtn").addEventListener("click",()=>history.back());$("gameBack").addEventListener("click",()=>history.back());
-  addEventListener("popstate",e=>{const s=e.state||{view:"home"};if(s.view==="detail"&&s.key)fillDetail(s.key);if(s.view==="game")gameId=s.game||gameId;showView(s.view||"home");});
+  addEventListener("popstate",e=>{if(window.OryvonaNativeShell?.handlePopState(e))return;const s=e.state||{view:"home"};if(s.view==="detail"&&s.key)fillDetail(s.key);if(s.view==="game")gameId=s.game||gameId;showView(s.view||"home");});
   history.replaceState({view:"home"},"");
-  function refreshOpen(){if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="tests")$("testsBody").innerHTML=status?sheetQa(status):emptyMsg("tests.noPipe");if(view==="feed"){renderDigest();renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();if(view==="store")renderStore();if(view==="game")renderGame();}
+  function refreshOpen(){if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="tests")renderTestsBody();if(view==="feed"){renderDigest();renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();if(view==="store")renderStore();if(view==="game")renderGame();}
   function rerenderAll(){freshness();renderGameBar();renderDigest();if(status)renderHome(status);else applyStatus(null);renderTimeline("tl",24);refreshOpen();renderStoreBadge();renderGemini();renderCmd();renderReadiness();updatePlayButtonUI(current);renderRunner();}
 
   // ---------- games list ----------
   function renderGames(){ensureStudioCatalog();const Ls=$("gamesList");if(!projects.length){Ls.innerHTML=emptyMsg();return;}
     Ls.innerHTML=projects.map(p=>{const sp=gameMeta(p.id);const s=allStatus[p.id];const c=turnChip(s);
       return `<button class="tile wide" data-game="${esc(p.id)}"><span class="ic ${c.cls}">${esc(p.name.slice(0,2).toUpperCase())}</span><span class="tx"><span class="v">${esc(p.name)}</span><span class="s"><span class="chip sm ${sp.locState==="transfer"?"warn":"good"}">${esc(locOf(sp))}</span>${s&&s.phaseTr?` · ${esc(humanText(s.phaseTr))}`:""}</span><span class="s"><span class="chip sm ${c.cls==="bad"?"bad":c.cls?"brand":""}">${esc(c.text)}</span>${s?` · ${esc(ago(s.updatedAt))}`:""}</span>${renderReadinessHtml(p.id,true)}</span></button>`;}).join("");}
-  document.addEventListener("click",e=>{const g=e.target.closest("[data-game]");if(!g)return;const id=g.dataset.game;if(id!==current)select(id);if(view!=="home"){history.pushState({view:"home"},"");showView("home");}});
+  document.addEventListener("click",e=>{const g=e.target.closest("[data-game]");if(!g)return;const id=g.dataset.game;if(id!==current)select(id);if(view!=="home"){const navigate=()=>{history.pushState({view:"home"},"");showView("home");};if(window.OryvonaNativeShell?.isClosing())window.OryvonaNativeShell.afterClose(navigate);else navigate();}});
   async function loadGames(){if(demo)return;const {data}=await sb.from("project_status").select("project_id,data");for(const r of (data||[]))allStatus[r.project_id]=r.data;ensureStudioCatalog();renderGameBar();if(view==="games")renderGames();}
 
   // ---------- weekly summary ----------
@@ -1131,7 +1138,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     for(const r of runs){const k=dayKey(new Date(r.startedAt).getTime());if(per[k])per[k].runs++;}
     const turns=feedDocs.map(d=>d.data()).filter(e=>e.kind==="claim"&&Date.now()-new Date(e.at).getTime()<7*864e5).length;
     const cMin=Math.round(days.reduce((a,d)=>a+per[d].claude,0)),wMin=Math.round(days.reduce((a,d)=>a+per[d].work,0));
-    const passed=runs.filter(r=>!Object.values(r.suites||{}).some(s=>s?.status==="FAIL")&&codeOk(r)&&r.ci?.conclusion!=="failure").length;
+    const passed=runs.filter(runVerifiedPassed).length;
     const hm=m=>m>=60?F.hm(Math.floor(m/60),m%60):F.min(m);
     $("weekSub").textContent=F.last7;
     $("weekStats").innerHTML=`<div class="res"><span class="k">${esc(F.turns)}</span><span class="v num">${turns}</span><span class="e">${esc(F.turnsSub)}</span></div><div class="res"><span class="k">${esc(T("ui.cloudTest"))}</span><span class="v num">${runs.length}</span><span class="e">${runs.length?esc(F.runsSub(passed)):esc(F.noRuns)}</span></div><div class="res" style="border-top-color:var(--claude-bar)"><span class="k">Claude</span><span class="v num" style="font-size:1.15rem">${hm(cMin)}</span><span class="e">${esc(F.workTime)}</span></div><div class="res" style="border-top-color:var(--work)"><span class="k">OpenAI</span><span class="v num" style="font-size:1.15rem">${hm(wMin)}</span><span class="e">${esc(F.reviewTime)}</span></div>`;
@@ -1150,9 +1157,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(m<25){el.className="chip dot onnavy good";el.textContent=S().ui.live(ago(status.updatedAt));}else{el.className="chip dot onnavy";el.textContent=S().ui.lastMove(ago(status.updatedAt));}}
   const stageCls=g=>g.status==="PASS"?"pass":g.status==="PARTIAL"?"partial":g.status==="ACTIVE"?"active":g.status==="BLOCKED"?"blocked":"pending";
   function liveFeed(s){const lf=s?.automation?.liveFeed;const ct=s?.automation?.claudeTask;const t=lf?.at||ct?.lastRunAt;return t&&(Date.now()-new Date(t).getTime())<40*60000;}
-  const suiteOk=(passed,total)=>typeof passed==="number"&&(total==null?passed>0:passed>=total);
-  const frac=(passed,total)=>total==null?String(passed):`${passed}/${total}`;
-  const codeOk=r=>r.code==null||suiteOk(r.code,status?.lastQa?.code_total);
+  const suiteOk=(passed,total)=>Number.isFinite(passed)&&Number.isFinite(total)&&total>0&&passed===total;
+  const frac=(passed,total)=>Number.isFinite(total)?`${passed}/${total}`:`${passed}/?`;
+  function runCodeStatus(r){const explicit=r.suites?.code?.status||r.code?.status;if(["PASS","FAIL","BLOCKED"].includes(explicit))return explicit;const passed=r.code_passed??(typeof r.code==="number"?r.code:r.code?.passed);const total=r.code_total??r.code?.total;if(!Number.isFinite(passed)||!Number.isFinite(total)||total<=0||passed>total)return null;return suiteOk(passed,total)?"PASS":"FAIL";}
+  const codeOk=r=>runCodeStatus(r)==="PASS";
+  const runVerifiedPassed=r=>codeOk(r)&&["baseline","natural","lifecycle"].every(k=>r.suites?.[k]?.status==="PASS");
   function qaSummary(q){const ok=[suiteOk(q.code_passed,q.code_total),suiteOk(q.browser_passed,q.browser_total),suiteOk(q.natural_passed,q.natural_total),q.lifecycle_status==="PASS"].filter(Boolean).length;return {ok,total:4,blocked:q.lifecycle_status==="BLOCKED",fail:q.lifecycle_status==="FAIL"};}
   function renderRing(stages){const svg=$("ring");const n=stages.length;if(!n){svg.innerHTML="";return;}
     const C={PASS:"#5fd48c",PARTIAL:"#f2b632",ACTIVE:"#19b8e5",BLOCKED:"#ff8f8f",PENDING:"rgba(255,255,255,.16)"};const r=40,cx=50,cy=50,circ=2*Math.PI*r,seg=circ/n,gap=3;let out=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="11"/>`,off=0;
@@ -1192,7 +1201,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const touchPending=(q.touch_status!==undefined||q.touch_play_pass!==undefined)&&q.touch_status!=="PASS"&&q.touch_play_pass!==true;
     $("cQa").textContent=q.run_id?Hm.passed(qs.ok,qs.total):T("ui.none");
     $("cQaS").textContent=q.run_id?(qs.blocked?Hm.blockedOne:qs.ok===qs.total?(touchPending?Hm.touchPending:Hm.allPassed):Hm.pending):"";
-    $("icQa").className="ic "+(q.run_id?(qs.fail?"bad":(qs.blocked||touchPending)?"warn":"good"):"");
+    $("icQa").className="ic "+(q.run_id?(qs.fail?"bad":(qs.blocked||touchPending||qs.ok<qs.total)?"warn":"good"):"");
     const live=liveFeed(s);$("cAuto").textContent=live?Hm.running:Hm.idle;$("cAutoS").textContent=s.automation?.liveFeed?Hm.lastSignal(ago(s.automation.liveFeed.at)):(s.automation?.claudeTask?.lastRunAt?Hm.lastCheck(ago(s.automation.claudeTask.lastRunAt)):Hm.noSignal);$("icAuto").className="ic "+(live?"good":"warn");
     renderRing(s.stages||[]);
     const wn=latestTeamNote(s);$("cardWork").hidden=!wn;
@@ -1227,14 +1236,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
   // ---------- tests ----------
   function historyTable(){const Ts=S().tests;const allRuns=runsDocs.map(d=>d.data()).sort((a,b)=>(a.startedAt||"")<(b.startedAt||"")?-1:1);if(!allRuns.length)return `<div class="empty">${esc(Ts.noHistory)}</div>`;
     const runs=allRuns.slice(-8);
-    const ciSt=r=>r.ci?.conclusion==="success"?"PASS":r.ci?.conclusion==="failure"?"FAIL":null;
-    const rows=[[Ts.rowCode,r=>r.code!=null?(codeOk(r)?"PASS":"FAIL"):ciSt(r)],[Ts.rowBrowser,r=>r.suites?.baseline?.status||ciSt(r)],[Ts.rowNatural,r=>r.suites?.natural?.status||ciSt(r)],[Ts.rowLife,r=>r.suites?.lifecycle?.status||(r.ci?.conclusion==="failure"?"BLOCKED":null)]];const G={PASS:["✓","good",Ts.cellPass],BLOCKED:["!","warn",Ts.cellBlocked],FAIL:["×","bad",Ts.cellFail]};
+    const rows=[[Ts.rowCode,runCodeStatus],[Ts.rowBrowser,r=>r.suites?.baseline?.status],[Ts.rowNatural,r=>r.suites?.natural?.status],[Ts.rowLife,r=>r.suites?.lifecycle?.status]];const G={PASS:["✓","good",Ts.cellPass],BLOCKED:["!","warn",Ts.cellBlocked],FAIL:["×","bad",Ts.cellFail]};
     let t='<div class="hist"><table><thead><tr><th></th>'+runs.map((r,idx)=>`<th>${r.startedAt?esc(fmt(r.startedAt).replace(/ \d{2}:\d{2}$/,""))+"<br>"+esc(fmt(r.startedAt).slice(-5)):esc("Test #"+(idx+1))}</th>`).join("")+'</tr></thead><tbody>';
     for(const [name,get] of rows){t+=`<tr><th>${esc(name)}</th>`+runs.map(r=>{const s=get(r);const g=s?G[s]:null;return `<td><span class="cell ${g?g[1]:""}" title="${g?esc(g[2]):esc(Ts.cellNone)}">${g?g[0]:"–"}</span></td>`;}).join("")+'</tr>';}
     t+='</tbody></table></div>';const last=runs[runs.length-1];return t+(last?.note?`<p class="muted small">${esc(Ts.lastRun)}${esc(humanText(last.note))}</p>`:"");}
+  function notifyTestsRendered(containerId="testsBody"){document.dispatchEvent(new CustomEvent("oryvona:tests-rendered",{detail:{id:current,containerId,view}}));}
+  function renderTestsBody(){const box=$("testsBody");box.innerHTML=status?sheetQa(status):emptyMsg(projectLoading?"ui.connecting":"tests.noPipe");box.setAttribute("aria-busy",String(projectLoading));notifyTestsRendered();}
   function sheetQa(s){const Ts=S().tests;const q=s.lastQa||{},repoUrl=s.repo?.url||"";const res=(k,v,e,cls)=>`<div class="res ${cls}"><span class="k">${esc(k)}</span><span class="v num">${esc(v)}</span><span class="e">${esc(e)}</span></div>`;const lc=q.lifecycle_status;
-    const suite=(label,passed,total)=>{const ok=suiteOk(passed,total);return res(label,passed!=null?frac(passed,total):"—",ok?Ts.allPassed:passed!=null?Ts.missing:Ts.waiting,ok?"good":passed!=null?"warn":"");};
-    const extras=[q.lumi_checks_passed!=null?res(lang==="tr"?"Lumi Kontrolleri":"Lumi Checks",frac(q.lumi_checks_passed,q.lumi_checks_total||q.lumi_checks_passed),Ts.allPassed,"good"):"",q.koru_checks_passed!=null?res(lang==="tr"?"Koru Kontrolleri":"Koru Checks",frac(q.koru_checks_passed,q.koru_checks_total||q.koru_checks_passed),Ts.allPassed,"good"):"",q.touch_partial_ui_checks_passed!=null?res(lang==="tr"?"Dokunmatik Arayüz":"Touch UI",frac(q.touch_partial_ui_checks_passed,q.touch_partial_ui_checks_total||q.touch_partial_ui_checks_passed),lang==="tr"?"Arayüz doğrulandı":"UI verified","info"):""].filter(Boolean).join("");
+    const suite=(label,passed,total)=>{const known=Number.isFinite(passed)&&Number.isFinite(total)&&total>0&&passed<=total;const ok=suiteOk(passed,total);return res(label,Number.isFinite(passed)?frac(passed,total):"—",ok?Ts.allPassed:known?Ts.missing:Ts.waiting,ok?"good":known?"warn":"");};
+    const extras=[q.lumi_checks_passed!=null?suite(lang==="tr"?"Lumi Kontrolleri":"Lumi Checks",q.lumi_checks_passed,q.lumi_checks_total):"",q.koru_checks_passed!=null?suite(lang==="tr"?"Koru Kontrolleri":"Koru Checks",q.koru_checks_passed,q.koru_checks_total):"",q.touch_partial_ui_checks_passed!=null?suite(lang==="tr"?"Dokunmatik Arayüz":"Touch UI",q.touch_partial_ui_checks_passed,q.touch_partial_ui_checks_total):""].filter(Boolean).join("");
     return `<div class="results">${suite(Ts.code,q.code_passed,q.code_total)}${suite(Ts.browser,q.browser_passed,q.browser_total)}${suite(Ts.natural,q.natural_passed,q.natural_total)}${res(Ts.lifecycle,lc==="PASS"?Ts.pass:lc==="BLOCKED"?Ts.blocked:lc==="FAIL"?Ts.fail:"—",lc==="BLOCKED"?Ts.blockedSub:lc==="PASS"?Ts.allPassed:lc==="FAIL"?Ts.failSub:Ts.notRun,lc==="PASS"?"good":lc==="BLOCKED"?"warn":lc==="FAIL"?"bad":"")}${extras}</div>
       ${q.limitsTr?`<p class="muted">${esc(humanText(q.limitsTr))}</p>`:""}<div class="detail">${q.run_id&&repoUrl&&/^\d+$/.test(String(q.run_id))?`${esc(Ts.runLog)}<a href="${esc(repoUrl)}/actions/runs/${esc(q.run_id)}" target="_blank" rel="noopener">${esc(Ts.openReport)}</a>`:!q.run_id?esc(Ts.noRun):""}</div><h2 style="margin-top:6px">${esc(Ts.history)}</h2>${historyTable()}`;}
 
@@ -1441,22 +1451,20 @@ textarea{width:100%;min-height:80px;resize:vertical}
   // ---------- Gemini (gölge) kartı + Komut Kutusu ----------
   // Data: shadow_reviews (komut-runner writes) and commands (the owner writes, the runner updates).
   // The command list is a "lean" query: it never downloads attachment images, only a note, the target game and a tiny thumbnail.
-  const CMD_COLS="id,project_id,action,text,status,created_by,created_at,started_at,finished_at,runner,note:result->>note_tr,target:result->>target_game,att_name:result->attachment->>name,att_thumb:result->attachment->>thumb";
+  const CMD_COLS="id,project_id,action,text,status,created_by,created_at,started_at,finished_at,runner,note:result->>note_tr,target:result->>target_game,att_name:result->attachment->>name,att_thumb:result->attachment->>thumb,operation:result->>operation,validation:result->validation";
   function normCmd(c){
     const r=c&&c.result&&typeof c.result==="object"?c.result:{};const at=r.attachment||{};
-    return {id:c.id,action:c.action,text:c.text,status:c.status,created_at:c.created_at,runner:c.runner,
+    return {id:c.id,action:c.action,text:c.text,status:c.status,created_at:c.created_at,finished_at:c.finished_at,runner:c.runner,operation:c.operation!==undefined?c.operation:r.operation,validation:c.validation!==undefined?c.validation:(r.validation||null),
       note:c.note!==undefined?c.note:r.note_tr,target:c.target!==undefined?c.target:r.target_game,
       att_name:c.att_name!==undefined?c.att_name:at.name,att_thumb:c.att_thumb!==undefined?c.att_thumb:(at.thumb||null)};
   }
+  let extrasRequest=0;
   async function loadExtras(id){
-    if(demo||!sb||!id)return;
-    try{const {data,error}=await sb.from("shadow_reviews").select("*").eq("project_id",id).order("at",{ascending:false}).limit(1);shadow=error?null:((data||[])[0]||null);}catch{shadow=null;}
-    try{
-      let r=await sb.from("commands").select(CMD_COLS).eq("project_id","koza").order("created_at",{ascending:false}).limit(30);
-      if(r.error)r=await sb.from("commands").select("*").eq("project_id","koza").order("created_at",{ascending:false}).limit(30);
-      commands=r.error?null:(r.data||[]);
-    }catch{commands=null;}
-    renderGemini();renderCmd();if(view==="detail"&&detailKey==="gemini")fillDetail("gemini");
+    if(demo||!sb||!id)return;const request=++extrasRequest;let nextShadow=null,nextCommands=null;
+    try{const {data,error}=await sb.from("shadow_reviews").select("*").eq("project_id",id).order("at",{ascending:false}).limit(1);nextShadow=error?null:((data||[])[0]||null);}catch{}
+    try{let r=await sb.from("commands").select(CMD_COLS).eq("project_id","koza").order("created_at",{ascending:false}).limit(30);if(r.error)r=await sb.from("commands").select("*").eq("project_id","koza").order("created_at",{ascending:false}).limit(30);nextCommands=r.error?null:(r.data||[]);}catch{}
+    if(id!==current||request!==extrasRequest)return;shadow=nextShadow;commands=nextCommands;
+    renderGemini();renderCmd();if(view==="detail"&&detailKey==="gemini")fillDetail("gemini");document.dispatchEvent(new CustomEvent("oryvona:validation-change",{detail:{id}}));
   }
   const gLabel=v=>({PASS:S().gemini.pass,FAIL:S().gemini.fail,UNVERIFIED:S().gemini.unverified,BLOCKED:S().gemini.blocked}[v]||v||"—");
   function renderGemini(){const G=S().gemini;const c=$("cardGemini");if(!shadow){c.hidden=true;return;}c.hidden=false;
@@ -1490,7 +1498,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       const th=c.att_thumb&&String(c.att_thumb).startsWith("data:image/")?`<img class="cmd-thumb" src="${esc(c.att_thumb)}" alt="${esc(c.att_name||"")}">`:(c.att_name?`<span class="chip sm">📸 ${esc(c.att_name)}</span>`:"");
       const canStop=c.status==="running"||c.status==="queued";
       const stopBtn=canStop?`<button type="button" class="ctx-btn stop" data-ctx-cmd="stop" data-cmd-id="${esc(c.id)}" style="padding:5px 10px;font-size:.75rem">⏹️ ${esc(C.stop)}</button>`:"";
-      return `<div class="cmdrow"><div class="tx"><b>${esc(C.act[c.action]||c.action)}</b>${c.text?`<span class="s">${esc(humanText(String(c.text)).slice(0,180))}</span>`:""}${th}<span class="s">${esc(ago(c.created_at))}${note?" · "+esc(note):""}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${stopBtn}<span class="chip sm ${cls}">${esc(C.st[c.status]||c.status)}</span></div></div>`;}).join("");}
+      return `<div class="cmdrow"><div class="tx"><b>${esc(c.operation==="background_validate"?(lang==="tr"?"Arka plan doğrulaması":"Background validation"):(C.act[c.action]||c.action))}</b>${c.text?`<span class="s">${esc(humanText(String(c.text)).slice(0,180))}</span>`:""}${th}<span class="s">${esc(ago(c.created_at))}${note?" · "+esc(note):""}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${stopBtn}<span class="chip sm ${cls}">${esc(C.st[c.status]||c.status)}</span></div></div>`;}).join("");}
 
   // ---------- Görsel Ekleme + Dokunmatik Kırmızı İşaretleme ----------
   let cmdBaseImg=null,cmdImgName="",cmdDrawMode=true,cmdDrawing=false,cmdLastPt=null,cmdAnnotCount=0;
@@ -1505,6 +1513,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       ctx.clearRect(0,0,cv.width,cv.height);
       ctx.drawImage(img,0,0,cv.width,cv.height);
       cmdBaseImg=img;cmdImgName=name||"ekran-goruntusu.jpg";cmdAnnotCount=0;cmdDrawMode=true;
+      cv.style.touchAction="none";
       if($("cmdDrawToggle"))$("cmdDrawToggle").setAttribute("aria-pressed","true");
       if($("cmdImgName"))$("cmdImgName").textContent="📸 "+cmdImgName;
       if($("cmdImgPreviewBox"))$("cmdImgPreviewBox").hidden=false;
@@ -1526,6 +1535,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   $("cmdDrawToggle")?.addEventListener("click",()=>{
     cmdDrawMode=!cmdDrawMode;
     $("cmdDrawToggle").setAttribute("aria-pressed",String(cmdDrawMode));
+    $("cmdAnnotCanvas").style.touchAction=cmdDrawMode?"none":"pan-y";
   });
   $("cmdDrawClear")?.addEventListener("click",()=>{
     const cv=$("cmdAnnotCanvas");if(!cv||!cmdBaseImg)return;
@@ -1537,15 +1547,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
   $("cmdImgRemove")?.addEventListener("click",clearAttachment);
   (function initAnnotCanvas(){
     const cv=$("cmdAnnotCanvas");if(!cv)return;
-    const pt=e=>{const r=cv.getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return {x:(cx-r.left)*(cv.width/Math.max(1,r.width)),y:(cy-r.top)*(cv.height/Math.max(1,r.height))};};
+    const pt=e=>{const r=cv.getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return {x:(cx-r.left-cv.clientLeft)*(cv.width/Math.max(1,cv.clientWidth)),y:(cy-r.top-cv.clientTop)*(cv.height/Math.max(1,cv.clientHeight))};};
     const start=e=>{if(!cmdDrawMode||!cmdBaseImg)return;e.preventDefault();cmdDrawing=true;cmdLastPt=pt(e);cmdAnnotCount++;
       const ctx=cv.getContext("2d");ctx.fillStyle="#ff3b30";ctx.beginPath();ctx.arc(cmdLastPt.x,cmdLastPt.y,3.5,0,Math.PI*2);ctx.fill();};
     const move=e=>{if(!cmdDrawing||!cmdDrawMode||!cmdLastPt)return;e.preventDefault();const p=pt(e);
       const ctx=cv.getContext("2d");ctx.strokeStyle="#ff3b30";ctx.lineWidth=4;ctx.lineCap="round";ctx.lineJoin="round";
       ctx.beginPath();ctx.moveTo(cmdLastPt.x,cmdLastPt.y);ctx.lineTo(p.x,p.y);ctx.stroke();cmdLastPt=p;};
-    const end=()=>{cmdDrawing=false;cmdLastPt=null;};
-    cv.addEventListener("pointerdown",start);cv.addEventListener("pointermove",move);
-    window.addEventListener("pointerup",end);
+    const end=e=>{cmdDrawing=false;cmdLastPt=null;if(e&&cv.hasPointerCapture?.(e.pointerId))cv.releasePointerCapture(e.pointerId);};
+    cv.addEventListener("pointerdown",e=>{start(e);if(cmdDrawing)cv.setPointerCapture?.(e.pointerId);});cv.addEventListener("pointermove",move);
+    cv.addEventListener("pointerup",end);cv.addEventListener("pointercancel",end);cv.addEventListener("lostpointercapture",end);window.addEventListener("blur",end);
   })();
 
   // ---------- 🎙️ Sesle Yaz (Web Speech API · tr-TR / en-US) ----------
@@ -1596,7 +1606,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(error)return{ok:false,error:error.message};
     if(!data||!data.length)return{ok:false,error:P.noPerm};
     if(sg)sg.meta=meta;else store.games.push({...row,package_id:null,store_url:null,console_url:null});
-    updatePlayButtonUI(id);renderReadiness();return{ok:true};
+    if(id===current){updatePlayButtonUI(id);renderReadiness();}return{ok:true};
   }
   function resolveGameTargetUrl(gid){
     const id=gid||current||"koza";const sp=gameMeta(id);const ln=getGameLinks(id);
@@ -1620,19 +1630,20 @@ textarea{width:100%;min-height:80px;resize:vertical}
       if(isOwner)a.setAttribute("href","#");else a.setAttribute("aria-disabled","true");
     }
     if(ed)ed.hidden=!isOwner||res.kind==="missing";
+    document.dispatchEvent(new CustomEvent("oryvona:play-button-rendered",{detail:{id}}));
   }
-  let linkModalReturn=null;
+  let linkModalReturn=null,linkModalGameId=null;
   function openLinkModal(gid){
     if(!isOwner)return;
     const id=gid||current||"koza";const sp=gameMeta(id);const ln=getGameLinks(id);const P=S().play;
-    linkModalReturn=document.activeElement;
+    linkModalReturn=document.activeElement;linkModalGameId=id;
     $("linkModalTitle").textContent=P.modalTitle(sp.name);$("linkModalSub").textContent=P.modalSub;
     $("inpWebUrl").value=ln.webUrl;$("inpApkUrl").value=ln.apkUrl;$("inpPlayUrl").value=ln.playUrl;
-    $("linkModalMsg").textContent="";$("linkModal").hidden=false;
-    setTimeout(()=>{try{$("inpWebUrl").focus();}catch{}},30);
+    $("linkModalMsg").textContent="";if(window.OryvonaNativeShell)window.OryvonaNativeShell.open("linkModal",{initialFocus:"#inpWebUrl",onOpen:()=>{linkModalGameId=id;},onClose:()=>{linkModalGameId=null;}});else{$("linkModal").hidden=false;$("inpWebUrl").focus();}
   }
   function closeLinkModal(){
-    if($("linkModal"))$("linkModal").hidden=true;
+    if(window.OryvonaNativeShell){window.OryvonaNativeShell.close("linkModal");linkModalReturn=null;return;}
+    linkModalGameId=null;if($("linkModal"))$("linkModal").hidden=true;
     if(linkModalReturn&&linkModalReturn.focus){try{linkModalReturn.focus();}catch{}}linkModalReturn=null;
   }
   $("playNowBtn")?.addEventListener("click",e=>{
@@ -1646,12 +1657,12 @@ textarea{width:100%;min-height:80px;resize:vertical}
   $("linkModal")?.addEventListener("click",e=>{if(e.target.id==="linkModal")closeLinkModal();});
   document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;if($("linkModal")&&!$("linkModal").hidden)closeLinkModal();else if($("drawer")&&!$("drawer").hidden)closeDrawer();});
   $("linkModalForm")?.addEventListener("submit",async e=>{
-    e.preventDefault();const P=S().play;const msg=$("linkModalMsg"),btn=$("linkModalSave");
+    e.preventDefault();if(!isOwner||!linkModalGameId)return;const editedGame=linkModalGameId;const P=S().play;const msg=$("linkModalMsg"),btn=$("linkModalSave");
     btn.disabled=true;msg.textContent=P.saving;
-    const r=await saveGameLinks(current||"koza",{webUrl:$("inpWebUrl").value,apkUrl:$("inpApkUrl").value,playUrl:$("inpPlayUrl").value});
-    btn.disabled=false;
+    let r;try{r=await saveGameLinks(editedGame,{webUrl:$("inpWebUrl").value,apkUrl:$("inpApkUrl").value,playUrl:$("inpPlayUrl").value});}catch(error){r={ok:false,error:error.message||String(error)};}
+    btn.disabled=false;if(editedGame!==linkModalGameId)return;
     if(!r.ok){msg.textContent=P.saveFail+r.error;return;}
-    msg.textContent=r.demo?P.noSave:P.saved;setTimeout(closeLinkModal,450);
+    msg.textContent=r.demo?P.noSave:P.saved;setTimeout(()=>{if(linkModalGameId===editedGame)closeLinkModal();},450);
   });
 
 
@@ -1668,9 +1679,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
       $("cmdMsg").textContent=m;
     }
   }
-  async function insertCommand(action,text,result){
-    const {error}=await sb.from("commands").insert({project_id:"koza",action,text,created_by:(session?.user?.email||"").toLowerCase(),status:"queued",result});
-    return error;
+  async function insertCommand(action,text,result,options={}){
+    const query=sb.from("commands").insert({project_id:"koza",action,text,created_by:(session?.user?.email||"").toLowerCase(),status:"queued",result});
+    if(options.returnRecord){const {data,error}=await query.select("id,created_at,status").single();return{error,id:data?.id||null,created_at:data?.created_at,status:data?.status};}
+    const {error}=await query;return error;
   }
   async function dispatchContextualCmd(action,btnEl){
     const C=S().cmd;
@@ -1754,19 +1766,21 @@ textarea{width:100%;min-height:80px;resize:vertical}
     else if(session||demo)renderHomeEmpty();
     else{renderNowCard();$("heroV").textContent=T("home.waitingData");$("heroS").textContent=T("home.waitingSub");}
     refreshOpen();}
+  let projectRequest=0,projectLoading=false;
   async function loadAll(id){
-    if(demo){
+    const request=++projectRequest;projectLoading=true;$("view-home").setAttribute("aria-busy","true");
+    if(demo){projectLoading=false;$("view-home").setAttribute("aria-busy","false");
       const presets=demoPresets();
       feedDocs=(presets.feed[id]||[]).map(r=>asDoc(r));runsDocs=(presets.runs[id]||[]).map(r=>asDoc(r));
       renderTimeline("tl",24);applyStatus({data:allStatus[id]||presets.status[id]||null});return;
     }
-    const [st,ev,rn]=await Promise.all([sb.from("project_status").select("data,updated_at").eq("project_id",id).maybeSingle(),sb.from("events").select("*").eq("project_id",id).order("at",{ascending:false}).limit(80),sb.from("runs").select("run_id,data,started_at").eq("project_id",id).order("started_at",{ascending:true,nullsFirst:true}).limit(60)]);
-    if(st.error||ev.error||rn.error){console.error(st.error||ev.error||rn.error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("ui.connErr");return;}
-    if(id!==current)return;   // the user already switched to another game while this was loading
+    let st,ev,rn;try{[st,ev,rn]=await Promise.all([sb.from("project_status").select("data,updated_at").eq("project_id",id).maybeSingle(),sb.from("events").select("*").eq("project_id",id).order("at",{ascending:false}).limit(80),sb.from("runs").select("run_id,data,started_at").eq("project_id",id).order("started_at",{ascending:false,nullsFirst:false}).limit(60)]);}catch(error){if(id!==current||request!==projectRequest)return;projectLoading=false;$("view-home").setAttribute("aria-busy","false");refreshOpen();$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("ui.connErr");return;}
+    if(id!==current||request!==projectRequest)return;projectLoading=false;$("view-home").setAttribute("aria-busy","false");
+    if(st.error||ev.error||rn.error){refreshOpen();console.error(st.error||ev.error||rn.error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("ui.connErr");return;}
     feedDocs=(ev.data||[]).map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));
     runsDocs=(rn.data||[]).map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));
     renderTimeline("tl",24);applyStatus(st.data||null);loadExtras(id);}
-  function select(id){if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];if(!demo){shadow=null;commands=[];}freshness();renderGameBar();updatePlayButtonUI(id);renderGemini();renderCmd();
+  function select(id){if(id===current)return;current=id;remember(id);status=null;feedDocs=[];runsDocs=[];shadow=null;commands=[];projectLoading=!demo&&!!sb;extrasRequest++;renderHomeEmpty();renderTimeline("tl",24);refreshOpen();freshness();if(projectLoading){$("fresh").textContent=T("ui.connecting");$("view-home").setAttribute("aria-busy","true");}renderGemini();renderCmd();document.dispatchEvent(new CustomEvent("oryvona:project-change",{detail:{id:current}}));
     if(demo||!sb){const presets=demoPresets();feedDocs=(presets.feed[id]||[]).map(r=>asDoc(r));runsDocs=(presets.runs[id]||[]).map(r=>asDoc(r));applyStatus({data:allStatus[id]||presets.status[id]||null});renderTimeline("tl",24);return;}
     if(channel){sb.removeChannel(channel);channel=null;}loadAll(id);
     channel=sb.channel("panel-"+id).on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"shadow_reviews",filter:"project_id=eq."+id},()=>loadExtras(id)).on("postgres_changes",{event:"*",schema:"public",table:"commands",filter:"project_id=eq.koza"},()=>loadExtras(id)).subscribe();}
@@ -1807,6 +1821,20 @@ textarea{width:100%;min-height:80px;resize:vertical}
     renderTimeline("tl",24);applyStatus({data:status});renderStoreBadge();renderGemini();renderCmd();requestAnimationFrame(()=>scrollTo(0,0));
     window.__oryvonaInject=d=>{if(d.status){status=d.status;allStatus[current]=d.status;}if(d.events)feedDocs=d.events.map(r=>asDoc({...r,kindTr:r.kind_tr,textTr:r.text_tr,titleTr:r.title_tr}));if(d.runs)runsDocs=d.runs.map(r=>asDoc({...r.data,run_id:r.run_id,startedAt:r.started_at||r.data?.startedAt||null}));if(d.store)store={...store,...d.store};ensureStudioCatalog();renderTimeline("tl",24);applyStatus({data:status});renderStoreBadge();};}
 
+  window.OryvonaPanel=Object.freeze({
+    getContext:()=>({projectId:current,locale:lang,isOwner,authenticated:!!session,demo}),
+    getRunnerStatus:()=>{const {on,r}=runnerState();return{online:!!on,lastSeen:r?.lastSeen||null};},
+    getBuildValidation(gameId){const id=gameId||current;const row=(commands||[]).map(normCmd).find(c=>c.operation==="background_validate"&&(c.target||"koza")===id);return row?{id:row.id,status:row.status,created_at:row.created_at,finished_at:row.finished_at,note:row.note||"",validation:row.validation?JSON.parse(JSON.stringify(row.validation)):null}:null;},
+    openTests(gameId){if(gameId&&projects.some(p=>p.id===gameId))select(gameId);history.pushState({view:"tests"},"");showView("tests");return this.getContext();},
+    async enqueueBuildValidation(gameId){
+      if(!isOwner||!session||!sb||demo)return{ok:false,id:null,error:lang==="tr"?"Bu işlem için sahip hesabıyla giriş yapmalısın.":"Sign in as the owner to request validation."};
+      const id=gameId||current;if(!STUDIO_PROJECTS.some(p=>p.id===id))return{ok:false,id:null,error:lang==="tr"?"Geçersiz oyun.":"Unknown game."};
+      const text="Yalnız mevcut kaynak ve APK/AAB dosyalarının sürüm, boyut ve bütünlük bilgilerini arka planda doğrula. Oyunu, sesi veya görünür pencereyi başlatma. Sonucu gerçek dosya kanıtıyla kaydet.";
+      try{const record=await insertCommand("gemini_review",text,{operation:"background_validate",mode:"artifact_validation",target_game:id},{returnRecord:true});if(record.error)return{ok:false,id:null,error:record.error.message};if(current===id){commands=[{id:record.id,action:"gemini_review",status:record.status||"queued",created_at:record.created_at,operation:"background_validate",target:id},...(commands||[])];renderCmd();document.dispatchEvent(new CustomEvent("oryvona:validation-change",{detail:{id}}));loadExtras(id);}return{ok:true,id:record.id,error:null};}catch(error){return{ok:false,id:null,error:error.message||String(error)};}
+    }
+  });
+  document.dispatchEvent(new CustomEvent("oryvona:ready",{detail:window.OryvonaPanel.getContext()}));
+
   // Measure the real header height so scroll-padding / scroll-margin always match it (no hard-coded 138px).
   function watchTopbar(){const tb=$("topbar");if(!tb)return;const set=()=>document.documentElement.style.setProperty("--topbar-h",Math.round(tb.getBoundingClientRect().height)+"px");set();if("ResizeObserver" in window)new ResizeObserver(set).observe(tb);else addEventListener("resize",set);}
   applyLang();watchTopbar();
@@ -1824,5 +1852,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   })();
 })();
 </script>
+<script src="native-shell.js"></script>
+<script src="game-lab.js"></script>
 </body>
 </html>

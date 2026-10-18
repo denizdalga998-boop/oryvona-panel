@@ -1,0 +1,229 @@
+{
+ "format": "koza-arena",
+ "version": 2,
+ "id": "arena-garden-inci-kabuk",
+ "title": "Ayışığı Bahçesi · İnci Kabuk · approved plate",
+ "region": "garden",
+ "kind": "boss",
+ "guardian": "İnci Kabuk",
+ "stage": 10,
+ "camera": {
+  "projection": "orthographic",
+  "pitchDeg": 52,
+  "yawDeg": 0,
+  "template": "7x15"
+ },
+ "floor": [
+  7,
+  15
+ ],
+ "image": {
+  "w": 941,
+  "h": 2152,
+  "floorRect": [
+   56,
+   426,
+   828,
+   1398
+  ],
+  "plate": {
+   "file": "approved-art/inci-kabuk-approved.png",
+   "sha256": "867dda5b15b00344f3201a3d562272cfbe6410c761ab5f05492987c506c36377",
+   "rect": [
+    0,
+    240,
+    941,
+    1672
+   ]
+  }
+ },
+ "base": "arena-garden-inci-kabuk-base.png",
+ "water": "arena-garden-inci-kabuk-water.png",
+ "floorPolygon": [
+  [
+   2.391,
+   3.095
+  ],
+  [
+   4.609,
+   3.095
+  ],
+  [
+   5.388,
+   3.725
+  ],
+  [
+   5.937,
+   4.964
+  ],
+  [
+   6.167,
+   6.838
+  ],
+  [
+   6.188,
+   9.11
+  ],
+  [
+   5.977,
+   10.993
+  ],
+  [
+   5.328,
+   12.47
+  ],
+  [
+   3.5,
+   13.7
+  ],
+  [
+   1.672,
+   12.47
+  ],
+  [
+   1.023,
+   10.993
+  ],
+  [
+   0.812,
+   9.11
+  ],
+  [
+   0.833,
+   6.838
+  ],
+  [
+   1.063,
+   4.964
+  ],
+  [
+   1.612,
+   3.725
+  ]
+ ],
+ "bossArea": [
+  [
+   2.15,
+   3.7
+  ],
+  [
+   4.85,
+   3.7
+  ],
+  [
+   4.85,
+   8.6
+  ],
+  [
+   2.15,
+   8.6
+  ]
+ ],
+ "props": [],
+ "spawns": [
+  {
+   "u": 1.55,
+   "v": 3.85,
+   "dir": [
+    0.55,
+    1
+   ],
+   "via": "water"
+  },
+  {
+   "u": 5.45,
+   "v": 3.85,
+   "dir": [
+    -0.55,
+    1
+   ],
+   "via": "water"
+  },
+  {
+   "u": 0.85,
+   "v": 8.9,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "water"
+  },
+  {
+   "u": 6.15,
+   "v": 8.9,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "water"
+  },
+  {
+   "u": 3.5,
+   "v": 13.7,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "water"
+  }
+ ],
+ "sentryAnchors": [
+  [
+   2.3,
+   4.9
+  ],
+  [
+   4.7,
+   4.9
+  ],
+  [
+   2.4,
+   10.6
+  ],
+  [
+   4.6,
+   10.6
+  ]
+ ],
+ "occlusion": {
+  "propTops": "none",
+  "foreground": null
+ },
+ "units": "world units: u across 0..7 from the left floor edge, v from the far edge 0..depth",
+ "light": {
+  "key": "#eaf2ff",
+  "keyIntensity": 3.4,
+  "keyDir": [
+   -3.2,
+   6,
+   4.6
+  ],
+  "shadowSoftness": 2.5,
+  "sky": "#a6c0ea",
+  "ground": "#24406a",
+  "hemi": 1.8,
+  "rim": "#c6d6ff",
+  "rimIntensity": 2.0,
+  "shadow": "3,10,26",
+  "shadowOpacity": 0.46,
+  "separation": "158,186,228",
+  "quietFloor": true,
+  "danger": "255,168,140",
+  "fill": "#1a3d6c",
+  "roles": {
+   "boss": {
+    "exposure": 1.02,
+    "rim": "#ffdcae",
+    "rimIntensity": 2.7
+   },
+   "enemy": {
+    "exposure": 2.0,
+    "hemi": 4.2,
+    "rim": "#ffd8c8",
+    "rimIntensity": 4.4
+   }
+  },
+  "keyDirNote": "v5.15.1: yön onaylı plakadaki boyalı gölgelere göre düzeltildi (ışık sol üstten, gölge sağ-aşağı)."
+ },
+ "source": "APPROVED PLATE displayed directly (no regeneration). Runtime copy = plate pixels + edge-extended padding of 240 px above and below for phone aspect."
+}

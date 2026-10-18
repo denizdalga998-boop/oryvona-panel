@@ -1,0 +1,290 @@
+{
+  "generatedAt": "2026-10-18",
+  "audit": {
+    "privateFilenameHits": 0,
+    "recognizedSecretPatternHits": 0,
+    "oversizeStagedFiles": 0,
+    "method": "Static source, manifest and artifact inspection; SHA-256 computed from real files",
+    "audioPlayed": false,
+    "browserTestsRun": false,
+    "singleFileLimitBytes": 104857600,
+    "gamesLaunched": false
+  },
+  "games": [
+    {
+      "id": "koza",
+      "name": "KOZA",
+      "version": "K01 SIMPLE RUN k01-2 / 516.6-q31",
+      "runtime": "Browser JavaScript",
+      "entry": "play/koza/k01.html?panel=1",
+      "legacyEntry": "play/koza/index.html?panel=1",
+      "sourceRevision": "1d5915a4c805a0487aeab5c88a8824b124921b6c (recorded reviewed source; later QA helper change did not change public files)",
+      "candidateSHA256": "a90247a9822b8346a45a00023e8cc67e21de982f75699c58f4941e1718006c48",
+      "manifestSHA256": "154d6cff3e73a80b04af7912dcaad9f6c414d560d46c450b5580c0d2e3cdb653",
+      "sourceFiles": 205,
+      "sourceBytes": 144489846,
+      "entryBytes": 16889,
+      "entrySHA256": "6f5fcf0d773c8dbb460ef502843c9889ff3f5902d924fcb8f25805a144b13f3f",
+      "acceptance": "READY_WORK; full acceptance pending",
+      "qa": {
+        "physicalPhone": "NOT_RUN",
+        "runConclusion": "failure",
+        "touch": "SKIPPED",
+        "freshness": "Recorded evidence only; no game or QA execution in this staging audit",
+        "lumiPassed": 17,
+        "codePassed": 99,
+        "lifecyclePassed": 22,
+        "naturalPassed": 33,
+        "summary": "Recorded cloud run: code, baseline, natural, lifecycle and Lumi checks passed; Koru blocked on sampling cadence and touch skipped. Fresh run after helper fix unknown.",
+        "koru": "BLOCKED: sample cadence defect",
+        "browserPassed": 45,
+        "observedAt": "2026-10-17",
+        "status": "PARTIAL",
+        "source": "HANDOFF.json / actual GitHub Actions run 39014893149",
+        "newRunAfterCadenceFix": "unknown"
+      },
+      "content": {
+        "pilotWaves": 6,
+        "heroes": [
+          "Lumi",
+          "Koru",
+          "Pera"
+        ],
+        "arena": "Ayışığı Bahçesi",
+        "secondsPerWave": 35
+      },
+      "storage": "Current K01 entry uses koza-k01: namespaced local storage and an existing offline cloud no-op",
+      "stagedChanges": [
+        {
+          "stagedSHA256": "5e48d40dd0d2d7bd6495889e2066c557471314b758cc8987ba122d8303072b03",
+          "path": "play/koza/cloud.js",
+          "purpose": "Legacy entry panel=1 disables cloud requests, queues and poll/listeners; K01 entry already offline",
+          "sourceSHA256": "e1a435f793da0add05d4d6dcc84e53f6bdf3746ca4bc68905d8aaadc1d2b847f"
+        }
+      ],
+      "platform": "Browser JavaScript",
+      "versionCode": null,
+      "artifact": {
+        "sha256": "6f5fcf0d773c8dbb460ef502843c9889ff3f5902d924fcb8f25805a144b13f3f",
+        "file": "play/koza/k01.html",
+        "bytes": 16889
+      },
+      "scenes": [
+        {
+          "status": "K01 implemented single-arena pilot",
+          "name": "Ayışığı Bahçesi"
+        }
+      ],
+      "levels": {
+        "implemented": 6,
+        "unit": "waves",
+        "secondsPerWave": 35,
+        "planned": null
+      }
+    },
+    {
+      "id": "charm-drop",
+      "name": "Charm Drop",
+      "version": "C21 CUSTOMER VISIBILITY F1",
+      "runtime": "Self-contained browser HTML",
+      "entry": "play/charm-drop/index.html",
+      "sourceRevision": "f601634e15a4d20b4ea99241a6d8b2f7bcd2f11f",
+      "artifact": {
+        "sha256": "0c51bf12efb5eba7d7738c2ca365fbff09f2da74dfd9ef3992bb1440deef0523",
+        "file": "play/charm-drop/index.html",
+        "bytes": 16521181
+      },
+      "acceptance": "C21 presentation accepted; full game still in progress",
+      "nextPhase": "C22 prepared, not implemented",
+      "qa": {
+        "summary": "C21 presentation/customer visibility acceptance recorded. Full product, natural long play, physical phone and touch acceptance remain pending.",
+        "physicalPhone": "NOT_RUN",
+        "status": "RECORDED_PASS_WITH_LIMITS",
+        "standardPassed": 531,
+        "observedAt": "2026-10-17",
+        "customerChecksPassed": 94,
+        "visibilityStatesPassed": 36,
+        "freshness": "Recorded evidence only; no game or QA execution in this staging audit",
+        "listening": "NOT_RUN",
+        "touch": "NOT_RUN",
+        "source": "CURRENT.json / C21 VIS F1 recorded evidence",
+        "presentationChecksPassed": 95
+      },
+      "content": {
+        "collections": 4,
+        "designs": 48,
+        "fullProductPhases": "C22–C26 pending"
+      },
+      "publication": {
+        "existingWebBuild": "Historical C20 deployment; staged HTML is newer C21",
+        "finalUserAcceptance": "pending",
+        "apkTransitionAllowed": false
+      },
+      "platform": "Self-contained browser HTML",
+      "versionCode": null,
+      "scenes": [
+        {
+          "status": "C21 implemented; C22 long-term progression not integrated",
+          "name": "Studio / workshop"
+        }
+      ],
+      "levels": {
+        "implemented": null,
+        "designs": 48,
+        "unit": "freeform studio progression",
+        "planned": null
+      }
+    },
+    {
+      "id": "aeryo",
+      "name": "AERYO",
+      "version": "1.2.0",
+      "versionCode": 10004,
+      "runtime": "Self-contained browser HTML / Capacitor Android",
+      "entry": "play/aeryo/index.html",
+      "artifact": {
+        "sha256": "c73f207e7be9cd7a5368e7211d78151c83ea8cd0fb46d5fa9889fc215e9a6d94",
+        "file": "play/aeryo/index.html",
+        "bytes": 879307
+      },
+      "acceptance": "Release artifact built and statically validated; real device test pending",
+      "qa": {
+        "observedAt": "2026-10-02",
+        "physicalPhone": "PENDING: no device",
+        "contentChecksPassed": 22,
+        "status": "DEVICE_PENDING",
+        "summary": "v1.2.0 release validator records 41/41 checks; content validation records 22/22. Physical phone test remains pending.",
+        "freshness": "Recorded evidence only; no game or QA execution in this staging audit",
+        "source": "RELEASE_OUTPUT/android_artifacts.json; docs/content-300",
+        "playValidationHere": "NOT_RUN",
+        "androidArtifactChecksPassed": 41
+      },
+      "content": {
+        "dailyBoards": 120,
+        "dailyDigest": "efca3db3",
+        "newFlows": 62,
+        "newLevels": 200,
+        "campaignLevels": 300,
+        "legacyDigest": "95a5045a",
+        "legacyLevelsUnchanged": 100,
+        "campaignDigest": "728f490b"
+      },
+      "android": {
+        "apk": {
+          "sha256": "fa2235c2b3d4c28c8fe9fc1835b15fe499a6f04d8a138862a90e59f4e9e87c64",
+          "bytes": 8720226
+        },
+        "package": "games.oryvona.aeryo",
+        "binariesPublished": false,
+        "targetSdk": 36,
+        "minSdk": 24,
+        "testAds": "Native SDK and consent require separate real-device QA",
+        "aab": {
+          "sha256": "8f8668795848f230fa97f6aadf09faf01ba2ae675ef2d8bf39b43fafbd7d47f7",
+          "bytes": 8478374
+        }
+      },
+      "platform": "Self-contained browser HTML / Capacitor Android",
+      "scenes": [
+        {
+          "status": "300 shipped puzzles",
+          "name": "Campaign"
+        },
+        {
+          "status": "120 shipped boards",
+          "name": "Daily Flow"
+        }
+      ],
+      "levels": {
+        "planned": null,
+        "dailyDigest": "efca3db3",
+        "dailyBoards": 120,
+        "legacy100Digest": "95a5045a",
+        "runtimeDigest": "728f490b",
+        "implemented": 300
+      }
+    },
+    {
+      "id": "forge-run",
+      "name": "Forge Run",
+      "version": "0.9.43 FR25J",
+      "versionCode": 47,
+      "runtime": "Unity 6000.3.24f1 Android ARM64",
+      "entry": null,
+      "webBuildAvailable": false,
+      "acceptance": "Test APK built; NIGHT-QA OPEN; no phone test",
+      "android": {
+        "apk": {
+          "sha256": "94505e0e249835c73203771bd149f69f4e04430563b88b04b180891c30682bd6",
+          "bytes": 128072750
+        },
+        "package": "com.forgerun.dtslicetest",
+        "binariesPublished": false,
+        "targetSdk": 35,
+        "minSdk": 26,
+        "signing": "Android Debug certificate; test build",
+        "githubFileLimit": "APK exceeds standard 100 MiB Git blob limit; metadata only"
+      },
+      "qa": {
+        "bookLoss": "OPEN",
+        "physicalPhone": "NOT_RUN",
+        "naturalWarrior": "VICTORY: 132.2 seconds, 3 UI forge selections; bot movement and synthetic pointer events, not finger input",
+        "status": "OPEN",
+        "blur": "OPEN",
+        "staleRun": "OPEN",
+        "freshness": "Recorded evidence only; no game or QA execution in this staging audit",
+        "summary": "FR25J test APK build and artifact verification recorded; Warrior bot run completed, Archer incomplete, NIGHT-QA open and phone not tested.",
+        "bookFixturePassed": 36,
+        "naturalArcher": "INCOMPLETE",
+        "observedAt": "2026-10-17",
+        "source": "FR25J delivery archive / 00-SONUC.md",
+        "bookCatalogBuilds": 54,
+        "audioPerformance": "NOT_RUN"
+      },
+      "content": {
+        "implementedWorld": "GREEN FRONTIER / Forest",
+        "enabledScenes": [
+          "ForgeRunMenu",
+          "ForgeRunDT_Forest"
+        ],
+        "implementedChapters": 8,
+        "plannedChapters": 24,
+        "plannedWorlds": [
+          "ANCIENT RUINS",
+          "EMBER LANDS"
+        ],
+        "disabledLegacyScene": "ForgeRun"
+      },
+      "platform": "Unity 6000.3.24f1 Android ARM64",
+      "artifact": {
+        "sha256": "94505e0e249835c73203771bd149f69f4e04430563b88b04b180891c30682bd6",
+        "file": null,
+        "bytes": 128072750
+      },
+      "scenes": [
+        {
+          "status": "enabled build scene",
+          "name": "ForgeRunMenu"
+        },
+        {
+          "status": "enabled build scene",
+          "name": "ForgeRunDT_Forest"
+        },
+        {
+          "status": "disabled legacy scene",
+          "name": "ForgeRun"
+        }
+      ],
+      "levels": {
+        "unimplementedWorlds": [
+          "ANCIENT RUINS",
+          "EMBER LANDS"
+        ],
+        "implemented": 8,
+        "world": "GREEN FRONTIER / Forest",
+        "planned": 24
+      }
+    }
+  ],
+  "schemaVersion": 1
+}

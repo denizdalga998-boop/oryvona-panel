@@ -1,0 +1,1005 @@
+{
+ "format": "koza-arena",
+ "version": 3,
+ "id": "arena-garden-ayisigi-bahcesi-hybrid",
+ "title": "Ayışığı Bahçesi · normal stages · hybrid pass 3 (frozen)",
+ "region": "garden",
+ "kind": "normal",
+ "stage": null,
+ "wide": true,
+ "hybrid": {
+  "project": "koza-map1-main-hybrid-pass3",
+  "arena": "map1-main-ayisigi-bahcesi-hybrid-pass3",
+  "status": "FROZEN - integrated as-is (Map 1 full integration)",
+  "footprintRadiusWu": 0.4,
+  "polygonInsetWu": 0.06,
+  "legacySpec": "arena-garden-wide-v516"
+ },
+ "camera": {
+  "projection": "orthographic",
+  "pitchDeg": 52,
+  "yawDeg": 0,
+  "viewWidth": 7.7,
+  "keepInView": [
+   2.98,
+   1.2,
+   9.78,
+   18.25
+  ],
+  "note": "KOZA's own 52 deg orthographic camera, visW 7.7, established bounded follow; keepInView = the frozen hybrid framing (the follow target is only narrowed, never widened; Lumi visibility keeps priority)"
+ },
+ "floor": [
+  12.818,
+  20.0
+ ],
+ "image": {
+  "w": 1630,
+  "h": 2524,
+  "floorRect": [
+   56,
+   330,
+   1516,
+   1864
+  ],
+  "plate": {
+   "file": "approved-art/ayisigi-bahcesi-approved.png",
+   "sha256": "e9e1b5b0603400e6557036ccd713ba731330d436629f09d1f276b6d2afe2345d",
+   "note": "approved master: hashed only (never modified); the runtime plate is the frozen hybrid gameplay plate"
+  }
+ },
+ "base": "arena-garden-ayisigi-bahcesi-hybrid-plate.webp",
+ "floorPolygon": [
+  [
+   3.866,
+   2.078
+  ],
+  [
+   4.301,
+   2.06
+  ],
+  [
+   4.999,
+   2.07
+  ],
+  [
+   5.75,
+   2.08
+  ],
+  [
+   6.55,
+   2.08
+  ],
+  [
+   7.451,
+   2.08
+  ],
+  [
+   8.179,
+   2.05
+  ],
+  [
+   8.468,
+   2.076
+  ],
+  [
+   8.542,
+   2.447
+  ],
+  [
+   8.826,
+   2.784
+  ],
+  [
+   9.219,
+   3.088
+  ],
+  [
+   9.385,
+   3.478
+  ],
+  [
+   9.638,
+   3.868
+  ],
+  [
+   9.658,
+   4.742
+  ],
+  [
+   9.558,
+   5.091
+  ],
+  [
+   9.538,
+   6.046
+  ],
+  [
+   9.48,
+   6.529
+  ],
+  [
+   9.283,
+   6.824
+  ],
+  [
+   9.118,
+   7.342
+  ],
+  [
+   9.138,
+   7.96
+  ],
+  [
+   9.28,
+   8.414
+  ],
+  [
+   9.38,
+   8.968
+  ],
+  [
+   9.599,
+   9.464
+  ],
+  [
+   9.638,
+   10.399
+  ],
+  [
+   9.599,
+   10.931
+  ],
+  [
+   9.319,
+   11.382
+  ],
+  [
+   9.298,
+   12.053
+  ],
+  [
+   9.358,
+   12.555
+  ],
+  [
+   9.378,
+   13.094
+  ],
+  [
+   9.277,
+   13.547
+  ],
+  [
+   9.358,
+   14.206
+  ],
+  [
+   9.398,
+   14.796
+  ],
+  [
+   9.28,
+   15.382
+  ],
+  [
+   9.039,
+   15.935
+  ],
+  [
+   8.98,
+   16.524
+  ],
+  [
+   8.608,
+   16.938
+  ],
+  [
+   8.776,
+   17.357
+  ],
+  [
+   8.709,
+   17.836
+  ],
+  [
+   8.615,
+   18.119
+  ],
+  [
+   7.351,
+   18.1
+  ],
+  [
+   6.302,
+   18.08
+  ],
+  [
+   5.303,
+   18.04
+  ],
+  [
+   4.498,
+   17.983
+  ],
+  [
+   4.346,
+   17.679
+  ],
+  [
+   3.944,
+   17.414
+  ],
+  [
+   3.46,
+   17.307
+  ],
+  [
+   3.305,
+   17.015
+  ],
+  [
+   3.46,
+   16.561
+  ],
+  [
+   3.48,
+   15.953
+  ],
+  [
+   3.51,
+   15.444
+  ],
+  [
+   3.36,
+   14.841
+  ],
+  [
+   3.34,
+   14.341
+  ],
+  [
+   3.206,
+   13.814
+  ],
+  [
+   3.599,
+   13.322
+  ],
+  [
+   3.62,
+   12.746
+  ],
+  [
+   3.539,
+   12.29
+  ],
+  [
+   3.46,
+   11.746
+  ],
+  [
+   3.46,
+   11.25
+  ],
+  [
+   3.46,
+   10.956
+  ],
+  [
+   3.52,
+   10.655
+  ],
+  [
+   3.499,
+   10.174
+  ],
+  [
+   3.206,
+   9.881
+  ],
+  [
+   3.36,
+   9.257
+  ],
+  [
+   3.36,
+   8.752
+  ],
+  [
+   3.4,
+   8.153
+  ],
+  [
+   3.42,
+   7.362
+  ],
+  [
+   3.617,
+   6.87
+  ],
+  [
+   3.761,
+   6.405
+  ],
+  [
+   3.698,
+   5.933
+  ],
+  [
+   3.512,
+   5.519
+  ],
+  [
+   3.254,
+   5.171
+  ],
+  [
+   3.1,
+   4.741
+  ],
+  [
+   3.12,
+   4.263
+  ],
+  [
+   3.296,
+   3.821
+  ],
+  [
+   3.519,
+   3.164
+  ],
+  [
+   3.578,
+   2.74
+  ],
+  [
+   3.776,
+   2.404
+  ]
+ ],
+ "bossArea": null,
+ "props": [],
+ "spawns": [
+  {
+   "u": 6.238,
+   "v": 2.08,
+   "dir": [
+    0,
+    1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 5.945,
+   "v": 18.066,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 3.377,
+   "v": 8.491,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 9.169,
+   "v": 7.18,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 3.364,
+   "v": 14.86,
+   "dir": [
+    1,
+    -0.1
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 9.135,
+   "v": 15.715,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 4.13,
+   "v": 2.067,
+   "dir": [
+    0.3,
+    1
+   ],
+   "via": "air"
+  },
+  {
+   "u": 8.512,
+   "v": 2.297,
+   "dir": [
+    -0.3,
+    1
+   ],
+   "via": "air"
+  },
+  {
+   "u": 9.65,
+   "v": 4.397,
+   "dir": [
+    -1,
+    0.3
+   ],
+   "via": "air"
+  },
+  {
+   "u": 3.106,
+   "v": 4.592,
+   "dir": [
+    1,
+    0.3
+   ],
+   "via": "air"
+  }
+ ],
+ "sentryAnchors": [
+  [
+   4.899,
+   4.2
+  ],
+  [
+   7.932,
+   4.6
+  ],
+  [
+   6.036,
+   7.4
+  ],
+  [
+   4.649,
+   10.4
+  ],
+  [
+   8.0,
+   11.6
+  ],
+  [
+   6.303,
+   13.6
+  ],
+  [
+   4.982,
+   15.6
+  ],
+  [
+   7.942,
+   15.9
+  ]
+ ],
+ "start": {
+  "player": [
+   6.391,
+   12.4
+  ],
+  "boss": null
+ },
+ "occlusion": {
+  "propTops": "none",
+  "foreground": null
+ },
+ "units": "world units: u across 0..w from the left floor edge, v from the far edge 0..depth",
+ "light": {
+  "key": "#e9f1ff",
+  "keyIntensity": 3.4,
+  "keyDir": [
+   -3.2,
+   6,
+   4.6
+  ],
+  "shadowSoftness": 2.5,
+  "sky": "#a4c4e6",
+  "ground": "#2a4c5a",
+  "hemi": 1.8,
+  "rim": "#b8f0e4",
+  "rimIntensity": 2.0,
+  "shadow": "5,18,24",
+  "shadowOpacity": 0.46,
+  "separation": "182,220,212",
+  "quietFloor": true,
+  "danger": "255,168,140",
+  "fill": "#0b1f26",
+  "roles": {
+   "enemy": {
+    "exposure": 2.0,
+    "hemi": 4.2,
+    "rim": "#ffd8c8",
+    "rimIntensity": 4.4
+   },
+   "boss": {
+    "exposure": 1.05,
+    "rim": "#ffdcae",
+    "rimIntensity": 2.8
+   }
+  },
+  "keyDirNote": "v5.15.1: yön onaylı plakadaki boyalı gölgelere göre düzeltildi (ışık sol üstten, gölge sağ-aşağı)."
+ },
+ "fx": {
+  "note": "restrained Canvas2D port of the frozen hybrid FX: masked, outside the walkable polygon, value/colour only",
+  "water": {
+   "alpha": 0.16,
+   "source": "hybrid fx mask G"
+  },
+  "glow": {
+   "mask": "arena-garden-ayisigi-bahcesi-hybrid-glow.png",
+   "amp": 0.08,
+   "w": 0.33,
+   "source": "hybrid fx mask B (breath, value only)"
+  },
+  "motes": [
+   [
+    1.3,
+    1.0,
+    4.0
+   ],
+   [
+    2.4,
+    0.9,
+    7.2
+   ],
+   [
+    1.6,
+    0.8,
+    11.0
+   ],
+   [
+    11.1,
+    0.9,
+    5.5
+   ],
+   [
+    11.2,
+    0.8,
+    10.2
+   ],
+   [
+    10.8,
+    0.8,
+    15.2
+   ],
+   [
+    5.0,
+    1.2,
+    -0.5
+   ],
+   [
+    7.2,
+    1.1,
+    -0.8
+   ],
+   [
+    2.2,
+    0.8,
+    16.5
+   ]
+  ],
+  "notPorted": "R channel (canopy / mist value breathing, +-5..18 %): full-plate precomposite, left static in production"
+ },
+ "qa": {
+  "visibleWall": [
+   [
+    3.82,
+    2.02
+   ],
+   [
+    4.3,
+    2.0
+   ],
+   [
+    5.0,
+    2.01
+   ],
+   [
+    5.75,
+    2.02
+   ],
+   [
+    6.55,
+    2.02
+   ],
+   [
+    7.45,
+    2.02
+   ],
+   [
+    8.18,
+    1.99
+   ],
+   [
+    8.518,
+    2.02
+   ],
+   [
+    8.598,
+    2.42
+   ],
+   [
+    8.868,
+    2.74
+   ],
+   [
+    9.268,
+    3.05
+   ],
+   [
+    9.438,
+    3.45
+   ],
+   [
+    9.698,
+    3.85
+   ],
+   [
+    9.718,
+    4.75
+   ],
+   [
+    9.618,
+    5.1
+   ],
+   [
+    9.598,
+    6.05
+   ],
+   [
+    9.538,
+    6.55
+   ],
+   [
+    9.338,
+    6.85
+   ],
+   [
+    9.178,
+    7.35
+   ],
+   [
+    9.198,
+    7.95
+   ],
+   [
+    9.338,
+    8.4
+   ],
+   [
+    9.438,
+    8.95
+   ],
+   [
+    9.658,
+    9.45
+   ],
+   [
+    9.698,
+    10.4
+   ],
+   [
+    9.658,
+    10.95
+   ],
+   [
+    9.378,
+    11.4
+   ],
+   [
+    9.358,
+    12.05
+   ],
+   [
+    9.418,
+    12.55
+   ],
+   [
+    9.438,
+    13.1
+   ],
+   [
+    9.338,
+    13.55
+   ],
+   [
+    9.418,
+    14.2
+   ],
+   [
+    9.458,
+    14.8
+   ],
+   [
+    9.338,
+    15.4
+   ],
+   [
+    9.098,
+    15.95
+   ],
+   [
+    9.038,
+    16.55
+   ],
+   [
+    8.678,
+    16.95
+   ],
+   [
+    8.838,
+    17.35
+   ],
+   [
+    8.768,
+    17.85
+   ],
+   [
+    8.658,
+    18.18
+   ],
+   [
+    7.35,
+    18.16
+   ],
+   [
+    6.3,
+    18.14
+   ],
+   [
+    5.3,
+    18.1
+   ],
+   [
+    4.46,
+    18.04
+   ],
+   [
+    4.3,
+    17.72
+   ],
+   [
+    3.92,
+    17.47
+   ],
+   [
+    3.42,
+    17.36
+   ],
+   [
+    3.24,
+    17.02
+   ],
+   [
+    3.4,
+    16.55
+   ],
+   [
+    3.42,
+    15.95
+   ],
+   [
+    3.45,
+    15.45
+   ],
+   [
+    3.3,
+    14.85
+   ],
+   [
+    3.28,
+    14.35
+   ],
+   [
+    3.14,
+    13.8
+   ],
+   [
+    3.54,
+    13.3
+   ],
+   [
+    3.56,
+    12.75
+   ],
+   [
+    3.48,
+    12.3
+   ],
+   [
+    3.4,
+    11.75
+   ],
+   [
+    3.4,
+    11.25
+   ],
+   [
+    3.4,
+    10.95
+   ],
+   [
+    3.46,
+    10.65
+   ],
+   [
+    3.44,
+    10.2
+   ],
+   [
+    3.14,
+    9.9
+   ],
+   [
+    3.3,
+    9.25
+   ],
+   [
+    3.3,
+    8.75
+   ],
+   [
+    3.34,
+    8.15
+   ],
+   [
+    3.36,
+    7.35
+   ],
+   [
+    3.56,
+    6.85
+   ],
+   [
+    3.7,
+    6.4
+   ],
+   [
+    3.64,
+    5.95
+   ],
+   [
+    3.46,
+    5.55
+   ],
+   [
+    3.2,
+    5.2
+   ],
+   [
+    3.04,
+    4.75
+   ],
+   [
+    3.06,
+    4.25
+   ],
+   [
+    3.24,
+    3.8
+   ],
+   [
+    3.46,
+    3.15
+   ],
+   [
+    3.52,
+    2.72
+   ],
+   [
+    3.72,
+    2.38
+   ]
+  ],
+  "visibleWallNames": [
+   "top: garden edge L (left tree roots)",
+   "top: front bush foot",
+   "top: front bush foot",
+   "top: Moon Tree roots / stones",
+   "top: Moon Tree roots / stones",
+   "top: front bush foot",
+   "top: front bush foot",
+   "top: moss stone (right)",
+   "right: around moss stone",
+   "right: ferns / tree roots",
+   "right: ferns",
+   "right: plants before boulder",
+   "right: plant line",
+   "right: plant line",
+   "right: pink log",
+   "right: plants",
+   "right: plants",
+   "right: bush lobe",
+   "right: flower plant",
+   "right: flower plant",
+   "right: bush",
+   "right: plants",
+   "right: plant line",
+   "right: plant line",
+   "right: grass before boulder",
+   "right: fern at boulder",
+   "right: fern",
+   "right: pond fern",
+   "right: pond bank",
+   "right: pond ferns",
+   "right: plants",
+   "right: pink root plants",
+   "right: grass at bush",
+   "right: bush",
+   "right: bush",
+   "right: ferns",
+   "right: ferns",
+   "right: bush / ferns",
+   "bottom: bush / stones R",
+   "bottom: threshold stones",
+   "bottom: threshold stones",
+   "bottom: threshold stones",
+   "bottom: bush / stones L",
+   "bottom-left: bush top",
+   "bottom-left: bush top",
+   "bottom-left: bush top",
+   "left: ferns",
+   "left: bush",
+   "left: bush",
+   "left: ferns",
+   "left: pink root / stone",
+   "left: stone",
+   "left: bank",
+   "left: big fern",
+   "left: big fern",
+   "left: ferns",
+   "left: ferns",
+   "left: ferns at brook stones",
+   "left: ferns",
+   "left: fern",
+   "left: fern",
+   "left: bank",
+   "left: ferns",
+   "left: ferns / stone",
+   "left: trunk ferns",
+   "left: trunk ferns",
+   "left: under Moon Tree canopy",
+   "left: Moon Tree canopy",
+   "left: Moon Tree canopy",
+   "left: Moon Tree canopy",
+   "left: canopy / bank",
+   "left: bank at stone",
+   "left: bank",
+   "left: ferns",
+   "left: stone",
+   "left: tree roots",
+   "left: shrub"
+  ],
+  "polygonStatus": "hybrid pass 2 polygon, unchanged in pass 3: HAND-AUTHORED on the visible walls of the runtime composite, inset 0.06 wu (left side = pass-1 points; right side = pass-1 points + the inserted floor width; top = garden front row + Moon Tree roots; bottom = stones between bushes). Never regenerated from pixels.",
+  "polygonAreas": {
+   "hybridPass2": 92.815,
+   "hybridPass1": 63.793,
+   "visibleWallLine": 95.41,
+   "approvedShifted": 63.577,
+   "oldWideQA": 164.046
+  },
+  "note": "qa block is test data only - the runtime never reads it"
+ },
+ "source": {
+  "hybridWorld": "koza-map1-main-hybrid-pass3/preview/assets/world.json",
+  "hybridWorldSha256": "8e6ea430536c12feaec75b49e3e0b5e001ed86b7b19e8414a91a0c5cf4dabf26",
+  "plateSha256": "efa22ae4e5c28ca34eb061415b0d47c520f3f687710f1de1d2a282bec6c9e5b3",
+  "handfit": "koza-map1-main-hybrid-pass3/source-data/map1-polygon-handfit.json",
+  "handfitSha256": "45f7584001354fa2c396b4ed3a6af04979b73508aa28b0d43e49d260fa999988"
+ },
+ "water": "arena-garden-ayisigi-bahcesi-hybrid-water.png"
+}

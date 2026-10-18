@@ -1,0 +1,554 @@
+{
+ "format": "koza-arena",
+ "version": 3,
+ "id": "arena-garden-wide-v516",
+ "title": "Ayışığı Bahçesi · wide v5.16 (QA extension — art pending)",
+ "region": "garden",
+ "kind": "normal",
+ "stage": null,
+ "wide": true,
+ "camera": {
+  "projection": "orthographic",
+  "pitchDeg": 52,
+  "yawDeg": 0,
+  "template": "11.0x20.0",
+  "viewWidth": 7.7,
+  "note": "v5.16 bounded soft-follow camera; cameraBounds derive from the painting extents at runtime (no void); viewWidth in wu across the phone"
+ },
+ "floor": [
+  11.0,
+  20.0
+ ],
+ "image": {
+  "w": 1415,
+  "h": 2524,
+  "floorRect": [
+   56,
+   330,
+   1301,
+   1864
+  ],
+  "plate": {
+   "file": "approved-art/ayisigi-bahcesi-approved.png",
+   "sha256": "e9e1b5b0603400e6557036ccd713ba731330d436629f09d1f276b6d2afe2345d",
+   "rect": [
+    237,
+    426,
+    941,
+    1672
+   ],
+   "locked": true
+  }
+ },
+ "base": "arena-garden-wide-v516-base.png",
+ "floorPolygon": [
+  [
+   0.975,
+   0.9
+  ],
+  [
+   0.9,
+   19.025
+  ],
+  [
+   10.025,
+   19.1
+  ],
+  [
+   10.1,
+   0.975
+  ],
+  [
+   6.55,
+   0.9
+  ],
+  [
+   6.475,
+   2.175
+  ],
+  [
+   5.425,
+   2.275
+  ],
+  [
+   5.25,
+   0.9
+  ]
+ ],
+ "bossArea": null,
+ "props": [
+  {
+   "u": 2.75,
+   "v": 12.575,
+   "r": 0.528,
+   "qa": "water"
+  },
+  {
+   "u": 2.825,
+   "v": 12.025,
+   "r": 0.432,
+   "qa": "water"
+  },
+  {
+   "u": 2.675,
+   "v": 10.85,
+   "r": 0.426,
+   "qa": "water"
+  },
+  {
+   "u": 8.425,
+   "v": 12.9,
+   "r": 0.426,
+   "qa": "water"
+  },
+  {
+   "u": 2.5,
+   "v": 4.425,
+   "r": 0.405,
+   "qa": "water"
+  },
+  {
+   "u": 2.475,
+   "v": 13.9,
+   "r": 0.376,
+   "qa": "water"
+  },
+  {
+   "u": 2.125,
+   "v": 3.125,
+   "r": 0.351,
+   "qa": "water"
+  },
+  {
+   "u": 2.375,
+   "v": 4.025,
+   "r": 0.311,
+   "qa": "water"
+  },
+  {
+   "u": 2.5,
+   "v": 4.85,
+   "r": 0.305,
+   "qa": "water"
+  },
+  {
+   "u": 2.5,
+   "v": 11.275,
+   "r": 0.305,
+   "qa": "water"
+  },
+  {
+   "u": 2.55,
+   "v": 9.975,
+   "r": 0.3,
+   "qa": "water"
+  },
+  {
+   "u": 2.4,
+   "v": 5.15,
+   "r": 0.274,
+   "qa": "water"
+  },
+  {
+   "u": 2.625,
+   "v": 11.6,
+   "r": 0.274,
+   "qa": "water"
+  },
+  {
+   "u": 2.525,
+   "v": 14.275,
+   "r": 0.274,
+   "qa": "water"
+  },
+  {
+   "u": 2.325,
+   "v": 14.975,
+   "r": 0.274,
+   "qa": "water"
+  },
+  {
+   "u": 2.475,
+   "v": 9.4,
+   "r": 0.265,
+   "qa": "water"
+  },
+  {
+   "u": 7.975,
+   "v": 12.85,
+   "r": 0.256,
+   "qa": "water"
+  },
+  {
+   "u": 5.125,
+   "v": 1.325,
+   "r": 0.252,
+   "qa": "water"
+  },
+  {
+   "u": 2.25,
+   "v": 3.45,
+   "r": 0.252,
+   "qa": "water"
+  },
+  {
+   "u": 2.375,
+   "v": 10.525,
+   "r": 0.252,
+   "qa": "water"
+  },
+  {
+   "u": 2.525,
+   "v": 9.65,
+   "r": 0.25,
+   "qa": "water"
+  },
+  {
+   "u": 2.35,
+   "v": 10.2,
+   "r": 0.25,
+   "qa": "water"
+  },
+  {
+   "u": 8.1,
+   "v": 12.55,
+   "r": 0.25,
+   "qa": "water"
+  },
+  {
+   "u": 2.275,
+   "v": 3.7,
+   "r": 0.225,
+   "qa": "water"
+  },
+  {
+   "u": 2.95,
+   "v": 10.375,
+   "r": 0.225,
+   "qa": "water"
+  },
+  {
+   "u": 8.875,
+   "v": 12.95,
+   "r": 0.218,
+   "qa": "water"
+  },
+  {
+   "u": 2.825,
+   "v": 13.125,
+   "r": 0.218,
+   "qa": "water"
+  },
+  {
+   "u": 2.55,
+   "v": 14.55,
+   "r": 0.218,
+   "qa": "water"
+  }
+ ],
+ "spawns": [
+  {
+   "u": 5.402,
+   "v": 2.094,
+   "dir": [
+    0,
+    1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 5.29,
+   "v": 19.061,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 0.944,
+   "v": 8.474,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 10.074,
+   "v": 7.212,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 0.917,
+   "v": 14.891,
+   "dir": [
+    1,
+    -0.1
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 10.039,
+   "v": 15.633,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 3.995,
+   "v": 0.9,
+   "dir": [
+    0.3,
+    1
+   ],
+   "via": "air"
+  },
+  {
+   "u": 6.475,
+   "v": 2.175,
+   "dir": [
+    -0.3,
+    1
+   ],
+   "via": "air"
+  },
+  {
+   "u": 10.086,
+   "v": 4.411,
+   "dir": [
+    -1,
+    0.3
+   ],
+   "via": "air"
+  },
+  {
+   "u": 0.96,
+   "v": 4.595,
+   "dir": [
+    1,
+    0.3
+   ],
+   "via": "air"
+  },
+  {
+   "u": 0.937,
+   "v": 10.0,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 10.063,
+   "v": 10.0,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 0.917,
+   "v": 15.0,
+   "dir": [
+    1,
+    -0.2
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 10.042,
+   "v": 15.0,
+   "dir": [
+    -1,
+    -0.2
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 2.0,
+   "v": 0.9,
+   "dir": [
+    0,
+    1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 8.999,
+   "v": 0.952,
+   "dir": [
+    0,
+    1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 2.501,
+   "v": 19.038,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 8.5,
+   "v": 19.087,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "path"
+  }
+ ],
+ "sentryAnchors": [
+  [
+   4.4,
+   4.2
+  ],
+  [
+   6.6,
+   4.6
+  ],
+  [
+   5.2,
+   7.4
+  ],
+  [
+   4.3,
+   10.4
+  ],
+  [
+   6.6,
+   11.6
+  ],
+  [
+   5.4,
+   13.6
+  ],
+  [
+   4.5,
+   15.6
+  ],
+  [
+   6.5,
+   15.9
+  ],
+  [
+   1.8,
+   4.5
+  ],
+  [
+   9.2,
+   4.5
+  ],
+  [
+   1.7,
+   9.5
+  ],
+  [
+   9.3,
+   9.5
+  ],
+  [
+   1.8,
+   15.0
+  ],
+  [
+   9.2,
+   15.0
+  ],
+  [
+   3.4,
+   1.9
+  ],
+  [
+   5.5,
+   18.3
+  ]
+ ],
+ "start": {
+  "player": [
+   5.5,
+   12.4
+  ],
+  "boss": null
+ },
+ "occlusion": {
+  "propTops": "none — the approved plate has no scenery over the walkable floor",
+  "foreground": null
+ },
+ "units": "world units: u across 0..w from the left floor edge, v from the far edge 0..depth",
+ "light": {
+  "key": "#e9f1ff",
+  "keyIntensity": 3.4,
+  "keyDir": [
+   -3.2,
+   6,
+   4.6
+  ],
+  "shadowSoftness": 2.5,
+  "sky": "#a4c4e6",
+  "ground": "#2a4c5a",
+  "hemi": 1.8,
+  "rim": "#b8f0e4",
+  "rimIntensity": 2.0,
+  "shadow": "5,18,24",
+  "shadowOpacity": 0.46,
+  "separation": "182,220,212",
+  "quietFloor": true,
+  "danger": "255,168,140",
+  "fill": "#0b1f26",
+  "roles": {
+   "enemy": {
+    "exposure": 2.0,
+    "hemi": 4.2,
+    "rim": "#ffd8c8",
+    "rimIntensity": 4.4
+   },
+   "boss": {
+    "exposure": 1.05,
+    "rim": "#ffdcae",
+    "rimIntensity": 2.8
+   }
+  },
+  "keyDirNote": "v5.15.1: yön onaylı plakadaki boyalı gölgelere göre düzeltildi (ışık sol üstten, gölge sağ-aşağı)."
+ },
+ "derivedFrom": {
+  "spec": "arena-garden-pilot",
+  "oldFloor": [
+   7,
+   16
+  ],
+  "extensionWu": {
+   "left": 2.0,
+   "right": 2.0,
+   "top": 2.0,
+   "bottom": 2.0
+  },
+  "pxPerWu": 118.286,
+  "pxPerWuDepth": 93.188
+ },
+ "qa": {
+  "status": "ART EXTENSION REQUIRED",
+  "extension": "TEMPORARY QA-ONLY technical continuation (matte edge colour + hatch + label + 1 wu grid). Not finished art.",
+  "lockedMasterRect": [
+   237,
+   426,
+   941,
+   1672
+  ],
+  "geometry": "QA geometry: broad glade opened across the old plate borders; MUST be re-fit to the final painted extension (art first, gameplay fit second)."
+ },
+ "source": "APPROVED PLATE copied byte-identically into a 1415x2524 canvas at (237, 426); outside = QA extension. APPROVED PLATE displayed directly (no regeneration). Runtime copy = plate pixels + edge-extended padding of 240 px above and below for phone aspect.",
+ "water": "arena-garden-wide-v516-water.png"
+}

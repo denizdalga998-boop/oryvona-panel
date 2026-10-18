@@ -1,0 +1,311 @@
+{
+ "format": "koza-arena",
+ "version": 2,
+ "id": "arena-garden-kadim-ay-ejderi",
+ "title": "Ayışığı Bahçesi · Kadim Ay Ejderi · approved plate",
+ "region": "garden",
+ "kind": "boss",
+ "guardian": "Kadim Ay Ejderi",
+ "stage": 20,
+ "camera": {
+  "projection": "orthographic",
+  "pitchDeg": 52,
+  "yawDeg": 0,
+  "template": "7x15"
+ },
+ "floor": [
+  7,
+  15
+ ],
+ "image": {
+  "w": 941,
+  "h": 2152,
+  "floorRect": [
+   56,
+   426,
+   828,
+   1398
+  ],
+  "plate": {
+   "file": "approved-art/kadim-ay-ejderi-approved.png",
+   "sha256": "7da1da6ca6d439d6bdabb169f31e86c54ea214ba96d2b1a38cf1d9b79dba7864",
+   "rect": [
+    0,
+    240,
+    941,
+    1672
+   ]
+  }
+ },
+ "base": "arena-garden-kadim-ay-ejderi-base.png",
+ "floorPolygon": [
+  [
+   2.745,
+   2.059
+  ],
+  [
+   4.256,
+   2.059
+  ],
+  [
+   5.768,
+   2.334
+  ],
+  [
+   6.523,
+   2.974
+  ],
+  [
+   6.858,
+   3.614
+  ],
+  [
+   6.957,
+   4.469
+  ],
+  [
+   6.954,
+   5.536
+  ],
+  [
+   6.951,
+   6.601
+  ],
+  [
+   6.679,
+   7.664
+  ],
+  [
+   6.256,
+   8.3
+  ],
+  [
+   6.088,
+   8.723
+  ],
+  [
+   5.584,
+   9.357
+  ],
+  [
+   4.999,
+   9.989
+  ],
+  [
+   4.751,
+   10.627
+  ],
+  [
+   4.67,
+   11.054
+  ],
+  [
+   4.42,
+   11.503
+  ],
+  [
+   4.379,
+   12.125
+  ],
+  [
+   4.087,
+   12.982
+  ],
+  [
+   3.92,
+   13.733
+  ],
+  [
+   3.626,
+   13.733
+  ],
+  [
+   3.333,
+   12.982
+  ],
+  [
+   3.166,
+   12.124
+  ],
+  [
+   2.916,
+   11.502
+  ],
+  [
+   2.415,
+   11.055
+  ],
+  [
+   2.334,
+   10.627
+  ],
+  [
+   2.002,
+   9.99
+  ],
+  [
+   1.501,
+   9.357
+  ],
+  [
+   1.039,
+   8.723
+  ],
+  [
+   0.828,
+   8.3
+  ],
+  [
+   0.321,
+   7.664
+  ],
+  [
+   0.049,
+   6.6
+  ],
+  [
+   0.047,
+   5.535
+  ],
+  [
+   0.043,
+   4.468
+  ],
+  [
+   0.142,
+   3.614
+  ],
+  [
+   0.477,
+   2.973
+  ],
+  [
+   1.233,
+   2.334
+  ]
+ ],
+ "bossArea": [
+  [
+   1.7,
+   2.6
+  ],
+  [
+   5.3,
+   2.6
+  ],
+  [
+   5.3,
+   9.2
+  ],
+  [
+   1.7,
+   9.2
+  ]
+ ],
+ "props": [],
+ "spawns": [
+  {
+   "u": 3.5,
+   "v": 2.059,
+   "dir": [
+    0,
+    1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 0.047,
+   "v": 5.514,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "air"
+  },
+  {
+   "u": 6.954,
+   "v": 5.514,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "air"
+  },
+  {
+   "u": 1.478,
+   "v": 9.326,
+   "dir": [
+    1,
+    -0.4
+   ],
+   "via": "air"
+  },
+  {
+   "u": 5.563,
+   "v": 9.379,
+   "dir": [
+    -1,
+    -0.4
+   ],
+   "via": "air"
+  }
+ ],
+ "sentryAnchors": [
+  [
+   2.2,
+   4.6
+  ],
+  [
+   4.8,
+   4.6
+  ],
+  [
+   2.4,
+   8.6
+  ],
+  [
+   4.6,
+   8.6
+  ]
+ ],
+ "occlusion": {
+  "propTops": "none — nothing in the approved plate overhangs the playable surface",
+  "foreground": null
+ },
+ "units": "world units: u across 0..7 from the left floor edge, v from the far edge 0..depth",
+ "light": {
+  "key": "#eaf2ff",
+  "keyIntensity": 3.4,
+  "keyDir": [
+   3.2,
+   6,
+   4.6
+  ],
+  "shadowSoftness": 2.5,
+  "sky": "#a6c0ea",
+  "ground": "#24406a",
+  "hemi": 1.8,
+  "rim": "#c6d6ff",
+  "rimIntensity": 2.0,
+  "shadow": "3,10,26",
+  "shadowOpacity": 0.46,
+  "separation": "158,186,228",
+  "quietFloor": true,
+  "danger": "255,168,140",
+  "fill": "#1a3d6c",
+  "roles": {
+   "enemy": {
+    "exposure": 2.0,
+    "hemi": 4.2,
+    "rim": "#ffd8c8",
+    "rimIntensity": 4.4
+   },
+   "boss": {
+    "exposure": 1.55,
+    "rim": "#ffd2a0",
+    "rimIntensity": 5.0
+   }
+  }
+ },
+ "source": "APPROVED PLATE displayed directly (no regeneration). Runtime copy = plate pixels + clean matte bands of 240 px above and below. Final arena: the whole clear crescent platform is playable and the dragon area spans it (u 1.7-5.3, v 2.6-9.2, silhouette kept on screen); step band and lower terrace playable as a retreat."
+}

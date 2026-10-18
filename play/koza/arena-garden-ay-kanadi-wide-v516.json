@@ -1,0 +1,312 @@
+{
+ "format": "koza-arena",
+ "version": 3,
+ "id": "arena-garden-ay-kanadi-wide-v516",
+ "title": "Ayışığı Bahçesi · Ay Kanadı · wide v5.16 (QA extension — art pending)",
+ "region": "garden",
+ "kind": "boss",
+ "stage": 15,
+ "wide": true,
+ "camera": {
+  "projection": "orthographic",
+  "pitchDeg": 52,
+  "yawDeg": 0,
+  "template": "11.0x17.5",
+  "viewWidth": 7.7,
+  "note": "v5.16 bounded soft-follow camera; cameraBounds derive from the painting extents at runtime (no void); viewWidth in wu across the phone"
+ },
+ "floor": [
+  11.0,
+  17.5
+ ],
+ "image": {
+  "w": 1283,
+  "h": 2536,
+  "floorRect": [
+   51,
+   440,
+   1180,
+   1479
+  ],
+  "plate": {
+   "file": "approved-art/ay-kanadi-approved.png",
+   "sha256": "bf79025dc76a873a0e67c4dbe05c02d4b8706fe261f722862076875c97ed9089",
+   "rect": [
+    215,
+    346,
+    853,
+    1844
+   ],
+   "locked": true
+  }
+ },
+ "base": "arena-garden-ay-kanadi-wide-v516-base.png",
+ "floorPolygon": [
+  [
+   0.875,
+   1.9
+  ],
+  [
+   0.8,
+   16.525
+  ],
+  [
+   10.125,
+   16.6
+  ],
+  [
+   10.2,
+   1.975
+  ],
+  [
+   7.075,
+   1.9
+  ],
+  [
+   6.9,
+   3.225
+  ],
+  [
+   6.7,
+   2.975
+  ],
+  [
+   4.1,
+   3.0
+  ],
+  [
+   3.925,
+   1.9
+  ]
+ ],
+ "bossArea": [
+  [
+   2.7,
+   3.9
+  ],
+  [
+   8.3,
+   3.9
+  ],
+  [
+   8.3,
+   12.3
+  ],
+  [
+   2.7,
+   12.3
+  ]
+ ],
+ "props": [],
+ "spawns": [
+  {
+   "u": 4.099,
+   "v": 2.991,
+   "dir": [
+    0.2,
+    1
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 6.9,
+   "v": 3.225,
+   "dir": [
+    -0.2,
+    1
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 0.842,
+   "v": 8.34,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 10.161,
+   "v": 9.536,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 5.716,
+   "v": 16.565,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 0.844,
+   "v": 8.0,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 10.169,
+   "v": 8.0,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 0.813,
+   "v": 14.0,
+   "dir": [
+    1,
+    -0.3
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 10.138,
+   "v": 14.0,
+   "dir": [
+    -1,
+    -0.3
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 2.5,
+   "v": 16.539,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 8.5,
+   "v": 16.587,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "vegetation"
+  }
+ ],
+ "sentryAnchors": [
+  [
+   4.3,
+   5.75
+  ],
+  [
+   6.7,
+   5.75
+  ],
+  [
+   4.6,
+   11.25
+  ],
+  [
+   6.4,
+   11.25
+  ],
+  [
+   1.9,
+   6.0
+  ],
+  [
+   9.1,
+   6.0
+  ],
+  [
+   1.9,
+   12.0
+  ],
+  [
+   9.1,
+   12.0
+  ]
+ ],
+ "start": {
+  "player": [
+   5.5,
+   13.5
+  ],
+  "boss": [
+   5.5,
+   6.59
+  ]
+ },
+ "occlusion": {
+  "propTops": "none — nothing in the approved plate overhangs the walkable moss",
+  "foreground": null
+ },
+ "units": "world units: u across 0..w from the left floor edge, v from the far edge 0..depth",
+ "light": {
+  "key": "#e9f1ff",
+  "keyIntensity": 3.4,
+  "keyDir": [
+   -3.2,
+   6,
+   4.6
+  ],
+  "shadowSoftness": 2.5,
+  "sky": "#a4c4e6",
+  "ground": "#2a4c5a",
+  "hemi": 1.8,
+  "rim": "#b8f0e4",
+  "rimIntensity": 2.0,
+  "shadow": "5,18,24",
+  "shadowOpacity": 0.46,
+  "separation": "182,220,212",
+  "quietFloor": true,
+  "danger": "255,168,140",
+  "fill": "#091622",
+  "roles": {
+   "enemy": {
+    "exposure": 2.0,
+    "hemi": 4.2,
+    "rim": "#ffd8c8",
+    "rimIntensity": 4.4
+   },
+   "boss": {
+    "exposure": 1.05,
+    "rim": "#ffe2b8",
+    "rimIntensity": 2.8
+   }
+  }
+ },
+ "derivedFrom": {
+  "spec": "arena-garden-ay-kanadi",
+  "oldFloor": [
+   7,
+   15
+  ],
+  "extensionWu": {
+   "left": 2.0,
+   "right": 2.0,
+   "top": 1.25,
+   "bottom": 1.25
+  },
+  "pxPerWu": 107.286,
+  "pxPerWuDepth": 84.533
+ },
+ "qa": {
+  "status": "ART EXTENSION REQUIRED",
+  "extension": "TEMPORARY QA-ONLY technical continuation (matte edge colour + hatch + label + 1 wu grid). Not finished art.",
+  "lockedMasterRect": [
+   215,
+   346,
+   853,
+   1844
+  ],
+  "geometry": "QA geometry: broad glade opened across the old plate borders; MUST be re-fit to the final painted extension (art first, gameplay fit second)."
+ },
+ "source": "APPROVED PLATE copied byte-identically into a 1283x2536 canvas at (215, 346); outside = QA extension. APPROVED PLATE displayed directly (no regeneration). Runtime copy = plate pixels + clean matte bands of 240 px above and below. Key light upper-left as in the plate (moon top-left)."
+}

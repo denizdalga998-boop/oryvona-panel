@@ -1,0 +1,71 @@
+#app.playing{grid-template-rows:auto minmax(0,1fr);min-height:500px}
+#app.playing #arena{grid-row:2;min-height:0;margin:0;border:0;background:none!important}
+#app.playing .scene-actions{display:none}
+#app.playing #home,#app.playing #identity,#app.playing #growth,#app.playing .play-dock{display:none!important}
+#app.playing #hud{inset:14px 4px auto;gap:12px;filter:none;text-shadow:0 2px 5px #10383d}
+#app.playing #hud>div>span{color:#daf4e6;font-size:11px}
+#app.playing #hud b{font-size:29px}
+#app.playing #hud .icon{background:#124b5344;border-color:#c8efda44}
+#app.playing #missionHud{top:106px;left:3px;right:3px;background:#14536270;border-color:#d5f3da28;color:#fff0c3}
+#app.playing #windHud{bottom:8px;color:#effae2;text-shadow:0 2px 5px #184049}
+#app.playing #hint{bottom:39px;text-shadow:0 1px 4px #164146}
+body.game-screen{background-size:cover}
+#entrance{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:24px;text-align:center;touch-action:none;color:#e7fff5;pointer-events:auto}
+#entrance[hidden]{display:none}
+.entrance-copy{max-width:340px;text-shadow:0 2px 14px #073c49}
+.entrance-copy>span{font-size:14px;letter-spacing:.12em}
+.entrance-copy>strong{display:block;font-size:clamp(44px,12vw,70px);line-height:1.2;margin:18px 0;color:#ffe39b}
+.entrance-copy>p{font-size:16px;line-height:1.5}
+.entering-game #app{pointer-events:none}/* Map 1 integration fix: the entrance survives a pause (by design), so an open dialog inside #app (pause / result / power choice) must stay tappable while body.entering-game is on */.entering-game #app dialog[open]{pointer-events:auto}
+.entering-game .playing #arena{animation:arrive-in-garden 1.25s ease-out both}
+@keyframes arrive-in-garden{from{opacity:.3;transform:scale(1.025)}to{opacity:1;transform:scale(1)}}
+.reduce-motion .entering-game #arena,.reduce-motion body.entering-game #arena{animation:none}
+@media(prefers-reduced-motion:reduce){.entering-game .playing #arena{animation:none}
+}
+body.game-screen{height:100dvh;min-height:0;overflow:hidden;overscroll-behavior:none}
+#app.playing,#app.playing.grove{background:transparent!important;position:fixed;inset:0;display:block;width:100%;max-width:none;height:100dvh;min-height:0;margin:0;padding:0;overflow:hidden;border-radius:0}
+#app.playing #arena{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0;overflow:hidden}
+#app.playing>header{position:absolute;top:max(10px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));z-index:5}
+#app.playing #hud{top:calc(68px + env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right))}
+#app.playing #missionHud{top:calc(170px + env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right))}
+#app.playing #abilityDock{bottom:max(16px,env(safe-area-inset-bottom));right:max(16px,env(safe-area-inset-right))}
+#app.playing #runPowerBadge{bottom:max(16px,env(safe-area-inset-bottom));left:max(16px,env(safe-area-inset-left))}
+#app.playing #windHud{bottom:calc(90px + env(safe-area-inset-bottom))}
+html:fullscreen{width:100%;height:100%;background:#145968}
+@media(orientation:landscape) and (max-height:500px){#app.playing .brand{font-size:18px}
+#app.playing #hud{top:58px}
+#app.playing #missionHud{top:148px;font-size:12px}
+#app.playing #abilityDock{bottom:8px}
+}
+#app.playing>header,#app.playing #windHud,#app.playing #abilityHint,#app.playing #combo{display:none!important}
+#app.playing #hud{top:max(16px,env(safe-area-inset-top))}
+#app.playing #missionHud{top:calc(112px + env(safe-area-inset-top));font-size:13px;width:max-content;max-width:calc(100% - 32px);margin:0 auto;padding:7px 13px;border-radius:20px}
+#app.playing #abilityDock{width:auto;max-width:62%}
+#app.playing #ability{padding:6px 12px 6px 6px;min-height:50px}
+#app.playing #abilityLabel{font-size:13px!important}
+#app.playing #runPowerBadge{max-width:32%;padding:5px}
+#app.playing #runPowerBadgeLabel{display:none}
+#app.playing #hint{bottom:90px;font-size:14px}
+@media(orientation:landscape) and (max-height:500px){#app.playing #hud{top:10px}
+#app.playing #missionHud{top:100px}
+}
+#app.playing #arena::before{content:"";position:absolute;top:0;left:0;right:0;height:var(--field-top,150px);z-index:2;pointer-events:none;background:linear-gradient(135deg,#135766,#174957);border-bottom:2px solid #85cbbd;box-shadow:0 5px 14px #083e4655;box-sizing:border-box}
+#app.playing #hud,#app.playing #missionHud{z-index:3}
+#app.playing #missionHud{background:#0d414f;border-color:#82bcba44}
+#app.playing .hearts{display:flex;align-items:center;gap:7px;letter-spacing:0;top:74px;filter:none}
+#app.playing .life-heart{display:block;width:24px;height:24px;overflow:visible}
+.life-heart path{stroke-width:1.8;stroke-linejoin:round}
+.life-heart.full path{fill:#ff829a;stroke:#ffc4cb}
+.life-heart.empty path{fill:#184450;stroke:#8cacb4;stroke-dasharray:2 2}
+#app.playing #arena::before{height:var(--field-top,82px)}
+#app.playing #hud{top:max(8px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));gap:8px}
+#app.playing #hud>div>span{font-size:10px;letter-spacing:1px}
+#app.playing #hud b{font-size:24px;line-height:1.1;padding-top:2px}
+#app.playing #hud .icon{width:36px;height:36px;font-size:20px}
+#app.playing .hearts{top:44px;gap:5px}
+#app.playing .life-heart{width:19px;height:19px}
+#app.playing #missionHud{top:calc(46px + env(safe-area-inset-top));left:100px;right:12px;margin:0 0 0 auto;max-width:calc(100% - 112px);font-size:12px;line-height:1.2;padding:6px 9px;border:0;background:#103e49;border-radius:12px}
+#cloudSignIn{display:block;padding:12px;border-radius:12px;background:#9cf0cd;color:#10372f;text-align:center;font-size:14px;text-decoration:none;font-weight:600}
+#cloudRetry{font-size:14px}
+
+

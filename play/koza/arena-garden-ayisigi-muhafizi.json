@@ -1,0 +1,316 @@
+{
+ "format": "koza-arena",
+ "version": 2,
+ "id": "arena-garden-ayisigi-muhafizi",
+ "title": "Ayışığı Bahçesi · Ayışığı Muhafızı · approved plate",
+ "region": "garden",
+ "kind": "boss",
+ "guardian": "Ayışığı Muhafızı",
+ "stage": 5,
+ "camera": {
+  "projection": "orthographic",
+  "pitchDeg": 52,
+  "yawDeg": 0,
+  "template": "7x15"
+ },
+ "floor": [
+  7,
+  15
+ ],
+ "image": {
+  "w": 941,
+  "h": 2152,
+  "floorRect": [
+   56,
+   426,
+   828,
+   1398
+  ],
+  "plate": {
+   "file": "approved-art/ayisigi-muhafizi-approved.png",
+   "sha256": "97f2fd925c0520c83d644cd6e0b775f7408f3f2ffa36492fb2a2db4b2ea3de7c",
+   "rect": [
+    0,
+    240,
+    941,
+    1672
+   ]
+  }
+ },
+ "base": "arena-garden-ayisigi-muhafizi-base.png",
+ "floorPolygon": [
+  [
+   1.025,
+   2.439
+  ],
+  [
+   1.991,
+   2.389
+  ],
+  [
+   2.579,
+   2.337
+  ],
+  [
+   4.508,
+   2.338
+  ],
+  [
+   5.431,
+   2.389
+  ],
+  [
+   5.935,
+   2.548
+  ],
+  [
+   6.269,
+   3.081
+  ],
+  [
+   6.52,
+   3.615
+  ],
+  [
+   6.854,
+   4.467
+  ],
+  [
+   6.937,
+   5.106
+  ],
+  [
+   6.344,
+   5.748
+  ],
+  [
+   6.511,
+   6.597
+  ],
+  [
+   6.848,
+   7.446
+  ],
+  [
+   6.933,
+   8.295
+  ],
+  [
+   6.681,
+   9.038
+  ],
+  [
+   6.01,
+   9.779
+  ],
+  [
+   5.931,
+   11.167
+  ],
+  [
+   5.765,
+   11.915
+  ],
+  [
+   5.347,
+   12.77
+  ],
+  [
+   4.929,
+   13.627
+  ],
+  [
+   4.761,
+   14.27
+  ],
+  [
+   3.333,
+   14.269
+  ],
+  [
+   2.955,
+   13.518
+  ],
+  [
+   2.452,
+   12.983
+  ],
+  [
+   2.076,
+   12.234
+  ],
+  [
+   1.574,
+   11.487
+  ],
+  [
+   1.619,
+   10.631
+  ],
+  [
+   1.076,
+   9.888
+  ],
+  [
+   0.657,
+   9.038
+  ],
+  [
+   0.659,
+   7.658
+  ],
+  [
+   0.363,
+   7.021
+  ],
+  [
+   0.489,
+   6.171
+  ],
+  [
+   1.161,
+   5.43
+  ],
+  [
+   0.738,
+   4.895
+  ],
+  [
+   0.819,
+   4.042
+  ],
+  [
+   0.815,
+   2.759
+  ],
+  [
+   0.899,
+   2.492
+  ]
+ ],
+ "bossArea": [
+  [
+   1.8,
+   3.3
+  ],
+  [
+   5.2,
+   3.3
+  ],
+  [
+   5.2,
+   10.0
+  ],
+  [
+   1.8,
+   10.0
+  ]
+ ],
+ "props": [],
+ "spawns": [
+  {
+   "u": 3.5,
+   "v": 2.337,
+   "dir": [
+    0,
+    1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 0.916,
+   "v": 5.701,
+   "dir": [
+    1,
+    0.1
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 6.562,
+   "v": 5.512,
+   "dir": [
+    -1,
+    0.1
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 1.605,
+   "v": 10.899,
+   "dir": [
+    1,
+    -0.3
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 5.872,
+   "v": 11.435,
+   "dir": [
+    -1,
+    -0.3
+   ],
+   "via": "vegetation"
+  }
+ ],
+ "sentryAnchors": [
+  [
+   2.4,
+   5.0
+  ],
+  [
+   4.6,
+   5.0
+  ],
+  [
+   2.6,
+   10.6
+  ],
+  [
+   4.5,
+   10.6
+  ]
+ ],
+ "occlusion": {
+  "propTops": "none — nothing in the approved plate overhangs the playable surface",
+  "foreground": null
+ },
+ "units": "world units: u across 0..7 from the left floor edge, v from the far edge 0..depth",
+ "light": {
+  "key": "#eaf2ff",
+  "keyIntensity": 3.4,
+  "keyDir": [
+   3.2,
+   6,
+   4.6
+  ],
+  "shadowSoftness": 2.5,
+  "sky": "#a4c4e6",
+  "ground": "#2a4c5a",
+  "hemi": 1.8,
+  "rim": "#b8f0e4",
+  "rimIntensity": 2.0,
+  "shadow": "5,18,24",
+  "shadowOpacity": 0.46,
+  "separation": "182,220,212",
+  "quietFloor": true,
+  "danger": "255,168,140",
+  "fill": "#0b1f26",
+  "roles": {
+   "enemy": {
+    "exposure": 2.0,
+    "hemi": 4.2,
+    "rim": "#ffd8c8",
+    "rimIntensity": 4.4
+   },
+   "boss": {
+    "exposure": 1.3,
+    "rim": "#ffdcae",
+    "rimIntensity": 3.2
+   }
+  }
+ },
+ "source": "APPROVED PLATE displayed directly (no regeneration). Runtime copy = plate pixels + clean matte bands of 240 px above and below. Deer sanctuary: dais + antler gate at the far end (guardian backdrop), moss floor playable, waterfall/pool masked for the drift.",
+ "water": "arena-garden-ayisigi-muhafizi-water.png"
+}

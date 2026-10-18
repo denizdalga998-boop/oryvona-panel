@@ -1,0 +1,319 @@
+{
+ "format": "koza-arena",
+ "version": 2,
+ "id": "arena-garden-pilot",
+ "title": "Ayışığı Bahçesi · approved plate",
+ "region": "garden",
+ "kind": "normal",
+ "camera": {
+  "projection": "orthographic",
+  "pitchDeg": 52,
+  "yawDeg": 0,
+  "template": "7x16"
+ },
+ "floor": [
+  7,
+  16
+ ],
+ "image": {
+  "w": 941,
+  "h": 2152,
+  "floorRect": [
+   56,
+   330,
+   828,
+   1491
+  ],
+  "plate": {
+   "file": "approved-art/ayisigi-bahcesi-approved.png",
+   "sha256": "e9e1b5b0603400e6557036ccd713ba731330d436629f09d1f276b6d2afe2345d",
+   "rect": [
+    0,
+    240,
+    941,
+    1672
+   ]
+  }
+ },
+ "base": "arena-garden-pilot-base.png",
+ "water": "arena-garden-pilot-water.png",
+ "floorPolygon": [
+  [
+   1.651,
+   0.148
+  ],
+  [
+   2.912,
+   0.107
+  ],
+  [
+   4.256,
+   0.107
+  ],
+  [
+   4.803,
+   0.149
+  ],
+  [
+   5.348,
+   1.113
+  ],
+  [
+   5.723,
+   2.29
+  ],
+  [
+   5.718,
+   3.895
+  ],
+  [
+   5.419,
+   5.135
+  ],
+  [
+   5.37,
+   6.556
+  ],
+  [
+   5.514,
+   8.14
+  ],
+  [
+   5.757,
+   9.628
+  ],
+  [
+   5.634,
+   10.481
+  ],
+  [
+   5.344,
+   11.785
+  ],
+  [
+   5.264,
+   13.317
+  ],
+  [
+   4.929,
+   14.989
+  ],
+  [
+   4.762,
+   15.89
+  ],
+  [
+   1.581,
+   15.891
+  ],
+  [
+   1.356,
+   14.454
+  ],
+  [
+   1.199,
+   12.858
+  ],
+  [
+   1.279,
+   11.251
+  ],
+  [
+   1.243,
+   9.671
+  ],
+  [
+   1.25,
+   8.109
+  ],
+  [
+   1.25,
+   6.555
+  ],
+  [
+   1.608,
+   5.55
+  ],
+  [
+   1.66,
+   4.079
+  ],
+  [
+   1.276,
+   2.376
+  ],
+  [
+   1.61,
+   0.898
+  ]
+ ],
+ "bossArea": null,
+ "props": [],
+ "spawns": [
+  {
+   "u": 3.3,
+   "v": 0.107,
+   "dir": [
+    0,
+    1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 3.3,
+   "v": 15.89,
+   "dir": [
+    0,
+    -1
+   ],
+   "via": "path"
+  },
+  {
+   "u": 1.275,
+   "v": 6.484,
+   "dir": [
+    1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 5.417,
+   "v": 5.201,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "roots"
+  },
+  {
+   "u": 1.203,
+   "v": 12.9,
+   "dir": [
+    1,
+    -0.1
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 5.203,
+   "v": 13.621,
+   "dir": [
+    -1,
+    0
+   ],
+   "via": "vegetation"
+  },
+  {
+   "u": 1.995,
+   "v": 0.137,
+   "dir": [
+    0.3,
+    1
+   ],
+   "via": "air"
+  },
+  {
+   "u": 4.867,
+   "v": 0.262,
+   "dir": [
+    -0.3,
+    1
+   ],
+   "via": "air"
+  },
+  {
+   "u": 5.723,
+   "v": 2.401,
+   "dir": [
+    -1,
+    0.3
+   ],
+   "via": "air"
+  },
+  {
+   "u": 1.328,
+   "v": 2.605,
+   "dir": [
+    1,
+    0.3
+   ],
+   "via": "air"
+  }
+ ],
+ "sentryAnchors": [
+  [
+   2.4,
+   2.2
+  ],
+  [
+   4.6,
+   2.6
+  ],
+  [
+   3.2,
+   5.4
+  ],
+  [
+   2.3,
+   8.4
+  ],
+  [
+   4.6,
+   9.6
+  ],
+  [
+   3.4,
+   11.6
+  ],
+  [
+   2.5,
+   13.6
+  ],
+  [
+   4.5,
+   13.9
+  ]
+ ],
+ "occlusion": {
+  "propTops": "none — the approved plate has no scenery over the walkable floor",
+  "foreground": null
+ },
+ "units": "world units: u across 0..7 from the left floor edge, v from the far edge 0..depth",
+ "light": {
+  "key": "#e9f1ff",
+  "keyIntensity": 3.4,
+  "keyDir": [
+   -3.2,
+   6,
+   4.6
+  ],
+  "shadowSoftness": 2.5,
+  "sky": "#a4c4e6",
+  "ground": "#2a4c5a",
+  "hemi": 1.8,
+  "rim": "#b8f0e4",
+  "rimIntensity": 2.0,
+  "shadow": "5,18,24",
+  "shadowOpacity": 0.46,
+  "separation": "182,220,212",
+  "quietFloor": true,
+  "danger": "255,168,140",
+  "fill": "#0b1f26",
+  "roles": {
+   "enemy": {
+    "exposure": 2.0,
+    "hemi": 4.2,
+    "rim": "#ffd8c8",
+    "rimIntensity": 4.4
+   },
+   "boss": {
+    "exposure": 1.05,
+    "rim": "#ffdcae",
+    "rimIntensity": 2.8
+   }
+  },
+  "keyDirNote": "v5.15.1: yön onaylı plakadaki boyalı gölgelere göre düzeltildi (ışık sol üstten, gölge sağ-aşağı)."
+ },
+ "source": "APPROVED PLATE displayed directly (no regeneration). Runtime copy = plate pixels + edge-extended padding of 240 px above and below for phone aspect."
+}

@@ -1,0 +1,24 @@
+#app.playing #arena::before{height:calc(var(--field-top,100px) + 28px);border:0;box-shadow:none;background:linear-gradient(180deg,#061d2c88,transparent);pointer-events:none}
+#app.playing #arena{border:0!important}
+
+
+#app.playing #hud{top:max(12px,env(safe-area-inset-top));text-shadow:0 2px 6px #00161d,0 0 14px #00131b}
+#app.playing #hud>div>span{font-size:11px;letter-spacing:1.5px;color:#d5e8e3}
+#app.playing #hud b{font-size:28px;font-weight:600}
+#app.playing #hud .icon{background:#061e2c88;border:1px solid #d7f4ed42;backdrop-filter:blur(6px);width:44px;height:44px}
+#app.playing #missionHud.boss-health-hud{top:calc(84px + env(safe-area-inset-top));left:max(24px,env(safe-area-inset-left));right:max(24px,env(safe-area-inset-right));width:auto;max-width:none;margin:0;padding:0 0 9px;border:0;border-radius:0;background:none;box-shadow:none;backdrop-filter:none;filter:drop-shadow(0 2px 5px #021820)}
+.boss-health-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 7px;color:#e6f5ef;font-size:13px;text-shadow:0 1px 4px #061620}
+.boss-health-heading strong{font-weight:600;letter-spacing:.3px}
+.boss-health-heading span{font-size:12px;color:#b7d0d4;white-space:nowrap;font-variant-numeric:tabular-nums}
+#app.playing .boss-health-track{height:7px;border:0;border-radius:2px;background:#051923c9;box-shadow:0 1px 0 #c9e9e72b;overflow:visible}
+#app.playing .boss-health-track i{position:relative;display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#497e95,#8ccfdb 65%,#d7ffeb);box-shadow:0 0 9px #83e4eb66;transition:width .35s ease}
+#app.playing .boss-health-track i::after{content:'';position:absolute;right:0;top:-1px;width:3px;height:9px;background:#eafff5;box-shadow:0 0 8px #9bf9ef}
+#app.playing .hearts{top:43px;gap:5px}
+#app.playing .life-heart{width:17px;height:17px}
+#app.playing #ability{background:linear-gradient(150deg,#193f4dec,#102b38f5);color:#e5f8ea;border:1px solid #b8e6d38c;box-shadow:0 3px 14px #001a2d80,inset 0 1px 0 #c7f1db33;border-radius:17px}
+#app.playing #ability:disabled{border-color:#7fa69b44;color:#a3bcb8;box-shadow:none}
+#app.playing #ability .feature-icon{border-radius:12px}
+#app .toast{left:50%;right:auto;width:max-content;max-width:calc(100% - 40px);white-space:normal;transform:translate(-50%,8px);padding:8px 14px;border-radius:14px;background:#092e3a99;backdrop-filter:blur(5px)}
+@media(orientation:landscape) and (max-height:500px){#app.playing #missionHud.boss-health-hud{top:68px;left:100px;right:70px}
+}
+
