@@ -289,6 +289,7 @@
         requireAccountKey(args && args.accountKey);
         await syncAccount(); const id = requireOwner();
         requireAccountKey(args.accountKey);
+        if (connectionInfo?.attachmentsAvailable === false) throw error('EVIDENCE_UNAVAILABLE', 'Görsel yükleme henüz hazır değil. Metinle komut gönderebilirsin.');
         if (typeof document === 'undefined' || typeof createImageBitmap !== 'function') throw error('IMAGE_UNSUPPORTED', 'Bu tarayıcı görsel eklemeyi desteklemiyor.');
         const limit = Math.min(MAX_FILES, Math.max(1, args && args.maxFiles || MAX_FILES));
         const files = await new Promise(resolve => {

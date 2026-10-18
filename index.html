@@ -1272,7 +1272,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       $("v22PipeBody").innerHTML=`<div class="v22-pipe">${steps.map(([lbl,sub],idx)=>{
         const cls=cur==="tupsper"?(idx===0?"blocked":""):(idx===stepIdx?"active":"");
         return `<div class="v22-pipe-step ${cls}"><b>${esc(lbl)}</b><small>${esc(sub)}</small></div>`;
-      }).join("")}</div><div class="detail" style="margin-top:6px">${esc(sp.name)} · ${lang==="tr"?"İzolasyon/işçi koruması: canlı v23 receipt bağlantısı gerekli":"Isolation/worker protection requires live v23 receipt binding"}</div>`;
+      }).join("")}</div><div class="detail" style="margin-top:6px">${esc(sp.name)} · ${lang==="tr"?"Canlı bağlantı ve işçi teslim kanıtı Jarvis ekranında doğrulanır":"Live connection and worker delivery receipts are verified in Jarvis"}</div>`;
     }
     if($("v22ReleaseBody")){
       const playSt=playConnected()?(lang==="tr"?"Play Console bağlı":"Play Console connected"):(lang==="tr"?"Mağaza metrikleri: Henüz bağlı değil":"Store metrics: Not connected yet");
