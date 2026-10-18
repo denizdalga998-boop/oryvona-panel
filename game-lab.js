@@ -51,6 +51,7 @@
     return `<div class="lab-validation"><b>${esc(label)}</b>${count}${note ? `<p>${esc(note)}</p>` : ''}${checks.length ? `<details><summary>${text('Dosya kontrol ayrıntıları','File check details')} (${checks.length})</summary><ul>${checks.map(c=>`<li>${esc(c.name || c.id || c.label)} · ${esc(c.status || (c.ok === true ? 'PASS' : c.ok === false ? 'FAIL' : 'UNKNOWN'))}</li>`).join('')}</ul></details>` : ''}<small>${text('Bu kontrol oynanış kabulü değildir.','This check is not gameplay acceptance.')}</small></div>`;
   }
   function render() {
+    const visibleView=document.getElementById("view-tests");if(document.hidden||!visibleView||visibleView.hidden)return;
     const target = document.getElementById('testsBody');
     if (!target) return;
     let lab = document.getElementById('gameLab');
@@ -114,9 +115,9 @@
   },true);
   addEventListener('popstate',()=>{if(dialog && !history.state?.oryvonaPlayer)stopPlayer();});
   document.addEventListener('oryvona:project-change',e=>{selected=e.detail?.id || selected;tab='build';render();});
-  document.addEventListener('oryvona:view-change',render);document.addEventListener('oryvona:tests-rendered',render);document.addEventListener('oryvona:validation-change',render);
+  document.addEventListener('oryvona:view-change',event=>{if(event.detail?.view!=="tests")stopPlayer();else render();});document.addEventListener('oryvona:tests-rendered',render);document.addEventListener('oryvona:validation-change',render);
   document.addEventListener('oryvona:play-button-rendered',()=>{const g=game();if(g)syncHero(g);});
   addEventListener('pagehide',stopPlayer);
-  setInterval(()=>{const g=game();if(!g)return;const signature=JSON.stringify([context().projectId,context().locale,context().isOwner,context().authenticated,window.OryvonaPanel?.getBuildValidation?.(g.id)]);if(signature!==lastSignature){lastSignature=signature;render();}},2500);
+  setInterval(()=>{const testView=document.getElementById("view-tests");if(document.hidden||!testView||testView.hidden)return;const g=game();if(!g)return;const signature=JSON.stringify([context().projectId,context().locale,context().isOwner,context().authenticated,window.OryvonaPanel?.getBuildValidation?.(g.id)]);if(signature!==lastSignature){lastSignature=signature;render();}},2500);
   fetch('data/game-builds.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw Error(`HTTP ${r.status}`);return r.json();}).then(data=>{games=data.games || [];render();}).catch(()=>{const target=document.getElementById('testsBody');if(target){const warning=document.createElement('p');warning.className='lab-notice';warning.textContent=text('Sürüm kayıtları yüklenemedi. Bağlantını kontrol edip yenile.','Build records could not load. Check connectivity and refresh.');target.before(warning);}});
 })();

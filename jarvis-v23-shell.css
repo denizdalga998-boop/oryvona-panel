@@ -1,0 +1,11 @@
+/* App-shell integration. Only the global Jarvis world changes these surfaces. */
+body.oryvona-jarvis-world{background:#081114;overflow:hidden}
+body.oryvona-jarvis-world #gameSwitcherBar,
+body.oryvona-jarvis-world #titleBtn,
+body.oryvona-jarvis-world #topLocChip{display:none!important}
+body.oryvona-jarvis-world main.wrap{max-width:none;padding-inline:0;padding-bottom:0}
+body.oryvona-jarvis-world #view-jarvis:not([hidden]){display:block;margin:0;padding:0;gap:0;max-width:none}
+#jarvisLegacySurface[hidden],#jarvisV23BootMessage[hidden]{display:none!important}
+#jarvisV23BootMessage{padding:24px;font:14px/1.6 system-ui;color:#9fb6bb}
+#jarvisWorld{width:100%;min-width:0}
+.jw-root .jw-message-body,.jw-root .jw-source{user-select:text;-webkit-user-select:text}
