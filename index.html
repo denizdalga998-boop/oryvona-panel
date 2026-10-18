@@ -17,7 +17,7 @@
 <script src="command-outbox.js"></script>
 <script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{}));}</script>
 <style>
-/* Oryvona Games Paneli v3.4 (v24) — Doğrulanmış Teslim & Jarvis Stüdyo Merkezi, dark navy app shell, real game links, honest data, TR/EN. */
+/* Oryvona Games Paneli v3.5 (v25) — Doğrulanmış Teslim & Jarvis Stüdyo Merkezi, dark navy app shell, real game links, honest data, TR/EN. */
 :root{
   --bg:#f2f3f9; --surface:#ffffff; --surface-2:#edeef7; --line:rgba(24,22,58,.08); --line-2:rgba(24,22,58,.15);
   --fg:#13122b; --fg-2:#565475; --fg-3:#8886a6;
@@ -365,8 +365,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
 @media (max-width:420px){.app-head #topLocChip{display:none}}
 </style>
 <link rel="stylesheet" href="native-shell.css">
-<link rel="stylesheet" href="jarvis-world.css?v=24">
-<link rel="stylesheet" href="jarvis-v23-shell.css?v=24">
+<link rel="stylesheet" href="jarvis-world.css?v=25">
+<link rel="stylesheet" href="jarvis-v23-shell.css?v=25">
 </head>
 <body>
 <header class="app-shell-top" id="topbar">
@@ -435,7 +435,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       </div>
     </div>
     <div class="card" id="v22StudioSummaryCard">
-      <div class="hd"><b id="v22StudioSummaryTitle">🎯 Doğrulanmış Teslim & 4 Boyutlu Kabul</b><span id="v22StudioSummarySub">Sürüm 3.4 (v24)</span></div>
+      <div class="hd"><b id="v22StudioSummaryTitle">🎯 Doğrulanmış Teslim & 4 Boyutlu Kabul</b><span id="v22StudioSummarySub">Sürüm 3.5 (v25)</span></div>
       <div id="v22StudioSummaryBody"></div>
     </div>
     <div class="card" id="readinessCard">
@@ -616,7 +616,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     </div>
     <div class="secthead" data-i18n="set.app">Uygulama</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.4 (v24) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi</span></div></div>
+      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.5 (v25) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi</span></div></div>
       <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b data-i18n="set.apk">Android kurulum dosyası</b><span data-i18n="set.apkSub">Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/latest/download/oryvona-panel.apk" download rel="noopener" data-i18n="ui.download">İndir</a></div>
       <div class="item"><span class="ic" id="icHelp"></span><div class="tx"><b data-i18n="ui.terms">Terimler ve roller</b><span data-i18n="set.termsSub">Claude, OpenAI, Gemini ve süreç adımları</span></div><button class="act" type="button" data-detail="terms" data-i18n="ui.open">Aç</button></div>
     </div>
@@ -784,7 +784,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`Yapılan her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI otomatik geçişi",on:"etkin",off:"kapalı",wakeSub:v=>`Claude çalışmasını bitirince OpenAI kendiliğinden devreye girer. Son hareket: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Claude görev geldiğinde otomatik veya Komut Kutusu ile çalışır.",repo:"Proje bağlantısı: ",openRepo:"Proje sayfasını aç ›",lastPush:v=>` · son güncelleme ${v}`,openCommit:"Son değişikliği gör ›",last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
       workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar"},
     terms:[["Jarvis","Tek beyin komuta asistanı. Doğrudan seninle konuşur, durum kartını okur ve arka plan işlerini kredi yakmadan yönetir."],["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Doğrudan Jarvis'e sesle, yazıyla veya ekran görüntüsüyle emir vermeni sağlayan alan."]],
-    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.4 (v24) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Jarvis, Claude, OpenAI ve süreç adımları",
+    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.5 (v25) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Jarvis, Claude, OpenAI ve süreç adımları",
       demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · ${src}`,ghSignal:"Canlı senkronizasyon aktif",noDataYet:"Henüz veri yok",
       pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
     pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
@@ -889,7 +889,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI auto-handoff",on:"enabled",off:"off",wakeSub:v=>`When Claude finishes, OpenAI steps in automatically. Last activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"Claude runs automatically on new tasks or via the Command Box.",repo:"Project link: ",openRepo:"Open project page ›",lastPush:v=>` · last update ${v}`,openCommit:"View latest change ›",last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
       workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes"},
     terms:[["Jarvis","Single-brain command assistant. Talks directly with you, reads the status card, and orchestrates background tasks without wasting credits."],["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Send voice, text, or annotated screenshot commands directly to Jarvis."]],
-    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.4 (v24) · Verified Delivery & Jarvis Studio Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Jarvis, Claude, OpenAI and workflow steps",
+    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.5 (v25) · Verified Delivery & Jarvis Studio Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Jarvis, Claude, OpenAI and workflow steps",
       demoView:"Sample view",notSignedIn:"Not signed in",ownerRole:"Studio owner",memberRole:"Team member",liveInfo:(t,src)=>`Last update ${t} · ${src}`,ghSignal:"Live sync active",noDataYet:"No data yet",
       pushOn:"On",pushOff:"Turn on",pushDemo:"Off in the sample view",pushUnsup:"This browser does not support it",pushDenied:"Notification permission is off; enable it in the phone's app settings",pushActive:"This device receives notifications. If they arrive as \"Chrome\": open phone Settings → Apps → Oryvona → Notifications.",pushIdle:"Alerts you even when the app is closed",pushSaveErr:"Could not save: ",pushAsking:"Asking for permission…",pushClosed:"The permission box closed; tap Turn on again and choose Allow.",pushFail:"Could not enable: ",pushSending:"Sending…",pushSendFail:"Could not send: ",pushSent:n=>`Test sent · ${n} device(s). It arrives within seconds.`},
     pref:{mine:"When the turn comes to me (final test)",blocked:"When a blocker is recorded",turns:"On every hand-over (Claude ↔ OpenAI)",runs:"When a cloud test finishes",store:"Store: new review, mail, status change"},
@@ -2201,10 +2201,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
 </script>
 <script src="native-shell.js"></script>
 <script src="game-lab.js"></script>
-<script src="jarvis-energy.js?v=24"></script>
-<script src="jarvis-bridge.js?v=24"></script>
-<script src="supabase-host-port.js?v=24"></script>
-<script src="jarvis-world.js?v=24"></script>
-<script src="jarvis-v23-bootstrap.js?v=24"></script>
+<script src="jarvis-energy.js?v=25"></script>
+<script src="jarvis-bridge.js?v=25"></script>
+<script src="supabase-host-port.js?v=25"></script>
+<script src="jarvis-world.js?v=25"></script>
+<script src="jarvis-v23-bootstrap.js?v=25"></script>
 </body>
 </html>

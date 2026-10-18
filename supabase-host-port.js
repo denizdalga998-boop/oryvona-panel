@@ -15,10 +15,13 @@
   function rowToIntent(row) {
     const r = row.result || {}, receipt = r.receipt || null;
     return { request_id: row.id, requested_project: r.target_game, text: row.text, attachments: r.attachments || [],
-      status: row.status === 'cancelled' ? 'cancelled' : row.status === 'failed' ? 'failed' : row.status === 'done' ? 'completed' : receipt ? 'claimed' : 'recorded',
-      cancel_requested: row.status === 'cancelled', worker_id: receipt?.workerId || null, receipt,
+      status: row.status === 'cancelled' ? 'cancelled' : row.status === 'failed' ? 'failed' : row.status === 'done' ? 'completed' : row.status === 'running' ? 'running' : receipt ? 'claimed' : 'recorded',
+      cancel_requested: row.status === 'cancelled', worker_id: receipt?.workerId || null, receipt, note_tr: String(r.note_tr || '').slice(0, 600),
+      ...(r.execution && r.execution.projectId ? { workspace_label: 'izole çalışma klasörü' } : {}),
       created_at: row.created_at, updated_at: r.received_at || row.finished_at || row.started_at || row.created_at };
   }
+  const PROVIDER_SUFFIX = { auth_required: ' · Claude girişi bekleniyor', quota_wait: ' · Claude kotası bekleniyor', missing: ' · Claude aracı bulunamadı', auth_method_rejected: ' · Claude giriş türü reddedildi', cli_incompatible: ' · Claude aracı uyumsuz' };
+  function providerSuffix(state) { return Object.prototype.hasOwnProperty.call(PROVIDER_SUFFIX, state) ? PROVIDER_SUFFIX[state] : ' · AI işçisi hazır değil'; }
   function create(options) {
     const client = options.client, getContext = options.getContext;
     if (!client || typeof getContext !== 'function') throw new TypeError('Private Supabase client and getContext required');
@@ -52,7 +55,9 @@
         if (probe.error) throw probe.error; if (status.error) throw status.error;
         const worker = status.data?.value, age = Date.now() - Date.parse(worker?.lastSeen || '');
         const alive = worker?.host === 'DJ-KABIN' && worker?.adapter === 'commands-isolated-v24' && worker?.ingressReady === true && worker?.extraModelSpendAllowed === 0 && !worker?.stopped && Number.isFinite(age) && age >= -5000 && age < 20000;
-        return { status: alive ? 'connected' : 'waiting', label: alive ? 'DJ-KABIN · Canlı Bağlı' : 'Güvenli kuyruk bağlı · DJ-KABIN sinyali bekleniyor', submitAvailable: true, workerOnline: alive, attachmentsAvailable: worker?.evidenceBucketReady === true, lastSeen: worker?.lastSeen || null };
+        const provider = worker && worker.provider && typeof worker.provider === 'object' && !Array.isArray(worker.provider) ? worker.provider : null, providerState = provider && typeof provider.state === 'string' ? provider.state : null;
+        const suffix = alive && provider && providerState !== 'ready' ? providerSuffix(providerState) : '';
+        return { status: alive ? 'connected' : 'waiting', label: (alive ? 'DJ-KABIN · Canlı Bağlı' : 'Güvenli kuyruk bağlı · DJ-KABIN sinyali bekleniyor') + suffix, submitAvailable: true, workerOnline: alive, attachmentsAvailable: worker?.evidenceBucketReady === true, providerState, executionEnabled: worker?.executionEnabled === true, lastSeen: worker?.lastSeen || null };
       }
       if (operation === 'submitIntent') {
         if (!UUID.test(payload.requestId || '') || !PROJECTS.includes(payload.requestedProject) || typeof payload.text !== 'string' || !payload.text.trim() || payload.text.length > 12000 || !Array.isArray(payload.attachments || []) || (payload.attachments || []).length > 3) throw failure('PAYLOAD_MISMATCH','İstek kapsamı geçersiz.');

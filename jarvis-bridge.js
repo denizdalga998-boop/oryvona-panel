@@ -131,8 +131,11 @@
         const remote = row.remote || (row.request_id ? row : null), id = row.requestId || row.request_id, projectId = row.projectId || row.requested_project;
         let status = 'queued', statusText = 'Cihazda kaydedildi · sunucuya iletilmedi';
         if (remote) { const s = remote.status; status = ({ recorded: 'queued', claimed: 'queued', running: 'running', waiting_review: 'waiting_review', completed: 'completed', failed: 'failed', cancelled: 'cancelled' })[s] || 'blocked'; statusText = ({ recorded: 'İstek sunucuda kayıtlı · ajan başlamadı', claimed: 'İzole işçi teslim aldı · çalışma kanıtı bekleniyor', running: 'İşçi çalışma bildirimi alındı', waiting_review: 'İnceleme bekliyor', completed: 'İşçi tamamlanma kaydı alındı · test kanıtlarını incele', failed: 'İşçi hata kaydı alındı', cancelled: 'İstek iptal edildi' })[s] || 'Bilinmeyen sunucu durumu'; }
-        const terminalRemote = remote && ['completed','failed','cancelled'].includes(remote.status);
-        if (remote?.receipt?.status === 'DURABLY_QUEUED' && !terminalRemote) statusText = 'DJ-KABIN izole kalıcı kuyruğa aldı · ajan başlatılmadı';
+        const terminalRemote = remote && ['completed','failed','cancelled'].includes(remote.status), runningRemote = remote && remote.status === 'running';
+        const note = remote && typeof remote.note_tr === 'string' ? remote.note_tr.trim().slice(0, 240) : '';
+        if (note && (terminalRemote || runningRemote)) statusText = note;
+        if (remote?.receipt?.status === 'DURABLY_QUEUED' && !terminalRemote && !runningRemote) statusText = 'DJ-KABIN izole kalıcı kuyruğa aldı · ajan başlatılmadı';
+        if (remote?.receipt?.status === 'WAITING' && note) statusText = note;
         if (remote?.receipt?.status === 'NEEDS_CLARIFICATION' && !terminalRemote) { status = 'blocked'; statusText = 'DJ-KABIN kaydetti · işlem netleştirme bekliyor'; }
         if (!terminalRemote) {
           if (row.status === 'retry') statusText = 'Bağlantı kesildi · güvenli tekrar bekleniyor';

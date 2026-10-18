@@ -1,9 +1,9 @@
 // v22: durable commands live in IndexedDB. Shell updates never erase that queue or existing game caches.
-const CACHE = 'oryvona-panel-v24';
+const CACHE = 'oryvona-panel-v25';
 // Game payloads did not change in v22: retain the v20 on-demand cache instead of forcing a download.
 const GAME_CACHE = 'oryvona-games-v20';
 const SCOPE = new URL('./', self.registration.scope);
-const SHELL = ['./jarvis-world.css?v=24','./jarvis-v23-shell.css?v=24','./jarvis-energy.js?v=24','./jarvis-bridge.js?v=24','./supabase-host-port.js?v=24','./jarvis-world.js?v=24','./jarvis-v23-bootstrap.js?v=24','./','./index.html','./config.js','./command-outbox.js','./vendor/supabase-2.45.4.min.js','./manifest.json','./native-shell.css','./native-shell.js','./game-lab.css','./game-lab.js','./data/game-builds.json','./logo.webp','./logo.png','./icon-192.png','./icon-512.png','./icon-512-maskable.png','./badge-96.png'];
+const SHELL = ['./jarvis-world.css?v=25','./jarvis-v23-shell.css?v=25','./jarvis-energy.js?v=25','./jarvis-bridge.js?v=25','./supabase-host-port.js?v=25','./jarvis-world.js?v=25','./jarvis-v23-bootstrap.js?v=25','./','./index.html','./config.js','./command-outbox.js','./vendor/supabase-2.45.4.min.js','./manifest.json','./native-shell.css','./native-shell.js','./game-lab.css','./game-lab.js','./data/game-builds.json','./logo.webp','./logo.png','./icon-192.png','./icon-512.png','./icon-512-maskable.png','./badge-96.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('oryvona-panel-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
