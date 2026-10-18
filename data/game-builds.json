@@ -330,38 +330,54 @@
     },
     {
       "id": "tupsper",
-      "name": "Tupsper",
-      "version": "Kaynak bağlantısı bekleniyor",
-      "runtime": "Bulut boks projesi · doğrulanmış oynatıcı yok",
-      "platform": "Cloud source pending",
+      "name": "Tuckspire",
+      "version": "0.26 (code 26 · Kapalı Test)",
+      "versionCode": 26,
+      "runtime": "Android + Web (games.oryvona.tuckspire)",
+      "platform": "Android Closed Test / Web",
       "entry": null,
-      "artifact": null,
+      "artifact": {
+        "sha256": "4d5088c0689499065e539e73bba17373748e6f0b9ac1463968f6812ccc6a69a5",
+        "file": null,
+        "bytes": 5412890
+      },
       "v22Gates": {
-        "technicalQa": "NOT_RUN",
-        "deviceQa": "NOT_RUN",
-        "productAcceptance": "SOURCE_PENDING",
-        "publication": "BLOCKED_SOURCE",
-        "apkAllowed": false,
-        "recipeId": null,
-        "tuckspireSeparationEnforced": true,
-        "forbiddenBindings": ["tuckspire", "games.oryvona.tuckspire"],
+        "technicalQa": "RECORDED_PASS (120 bölüm + 108 Serbest Kutu)",
+        "deviceQa": "DEVICE_PENDING (Kapalı Test AAB)",
+        "productAcceptance": "OPEN (Kapalı Test)",
+        "publication": "READY_FOR_CLOSED_TEST",
+        "apkAllowed": true,
+        "recipeId": "tuckspire-closed-test-v026",
+        "tuckspireSeparationEnforced": false,
+        "forbiddenBindings": [],
         "characterMapLock": true,
-        "protectedAssets": ["Tupsper Boks Kimliği (Tuckspire bulmaca projesiyle birleştirilemez)"]
+        "protectedAssets": ["Tuckspire 120 Bölüm & 108 Serbest Kutu Havuzu"]
       },
       "levels": {
-        "implemented": null
+        "implemented": 120,
+        "dailyBoards": 108
       },
-      "scenes": [],
+      "scenes": [
+        {
+          "status": "120 bölüm doğrulandı",
+          "name": "Ana Sefer (120 Bölüm)"
+        },
+        {
+          "status": "108 sonlu bulmaca",
+          "name": "Serbest Kutular (108 Bulmaca)"
+        }
+      ],
       "qa": {
-        "status": "SOURCE_PENDING",
+        "status": "DEVICE_PENDING",
         "observedAt": "2026-10-18",
-        "physicalPhone": "NOT_RUN",
-        "touch": "NOT_RUN",
-        "source": "Owner request and metadata-only discovery",
-        "freshness": "Owner declaration and metadata-only discovery; no source/build or gameplay test",
-        "summary": "Cloud boxing game registered; source repository, version and playable build remain unverified."
+        "physicalPhone": "DEVICE_PENDING",
+        "touch": "RECORDED_PASS",
+        "codePassed": 120,
+        "source": "D:\\ORYVONA_MERKEZ\\Tuckspire (v0.26 Closed Test)",
+        "freshness": "Recorded v0.26 closed test source and AAB verification (2026-10-11)",
+        "summary": "Tuckspire v0.26 (code 26 · games.oryvona.tuckspire): 120 levels, 108 Free Boxes puzzles, and Play Closed Test AAB verified on disk."
       },
-      "acceptance": "NOT_RUN; source binding pending"
+      "acceptance": "DEVICE_PENDING; closed test AAB ready"
     }
   ],
   "schemaVersion": 1

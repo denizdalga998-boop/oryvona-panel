@@ -254,7 +254,7 @@
     function resolveIntent(payload) {
       const scope = payload.scope, text = String(payload.text || '').normalize('NFKC').toLocaleLowerCase('tr-TR');
       const boundary = value => new RegExp('(?<![\\p{L}\\p{N}])(?:' + value + ')(?![\\p{L}\\p{N}])', 'u');
-      const aliases = { koza: boundary('koza'), 'charm-drop': boundary('charm[ -]?drop'), 'forge-run': boundary('forge[ -]?run'), aeryo: boundary('aeryo'), tupsper: boundary('tupsper'), 'oryvona-panel': boundary('oryvona[ -]?panel|panel|paneli|panelde|panelden|panelin|panelinde|jarvis|uygulama|uygulamayı|uygulamayi|uygulamada|uygulamaya') };
+      const aliases = { koza: boundary('koza'), 'charm-drop': boundary('charm[ -]?drop'), 'forge-run': boundary('forge[ -]?run'), aeryo: boundary('aeryo'), tupsper: boundary('tuckspire|tupsper'), 'oryvona-panel': boundary('oryvona[ -]?panel|panel|paneli|panelde|panelden|panelin|panelinde|jarvis|uygulama|uygulamayı|uygulamayi|uygulamada|uygulamaya') };
       const mentioned = PROJECTS.filter(p => aliases[p].test(text));
       if (scope && !PROJECTS.includes(scope)) return { status: 'rejected', message: 'Geçersiz proje kapsamı.' };
       if (mentioned.length > 1 || (scope && mentioned.length === 1 && mentioned[0] !== scope)) return { status: 'clarify', question: 'Bu isteği hangi tek projeye göndereyim?', candidates: mentioned.length ? mentioned : PROJECTS.slice() };

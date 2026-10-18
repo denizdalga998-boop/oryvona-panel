@@ -1032,7 +1032,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     {id:"charm-drop",name:"Charm Drop",code:"CD1",sort_order:2,locState:"active",platform:"web",buildVer:"C21 · C22 hazırlık",localPath:"D:\\ORYVONA_MERKEZ\\Charm-Drop",locTr:"DJ-KABIN · Aktif · C21",locEn:"DJ-KABIN · Active · C21",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
     {id:"forge-run",name:"Forge Run",code:"FR1",sort_order:3,locState:"active",platform:"apk",buildVer:"0.9.43 · FR25J",localPath:"D:\\ORYVONA_MERKEZ\\Forge-Run",locTr:"DJ-KABIN · Aktif · 0.9.43 (FR25J)",locEn:"DJ-KABIN · Active · 0.9.43 (FR25J)",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
     {id:"aeryo",name:"AERYO",code:"AE1",sort_order:4,locState:"active",platform:"apk",buildVer:"v1.2.0 (10004 · 300levels)",localPath:"D:\\ORYVONA_MERKEZ\\AERYO",locTr:"DJ-KABIN · Aktif · v1.2.0 (10004)",locEn:"DJ-KABIN · Active · v1.2.0 (10004)",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
-    {id:"tupsper",name:"Tupsper",code:"TP1",sort_order:5,locState:"transfer",platform:"cloud",buildVer:null,localPath:"D:\\ORYVONA_MERKEZ\\Tupsper",locTr:"Merkez kaydı hazır · Bulut kaynağı bekleniyor",locEn:"Registered · Cloud source pending",locShortTr:"Kaynak bekleniyor",locShortEn:"Source pending"}
+    {id:"tupsper",name:"Tuckspire",code:"TS1",sort_order:5,locState:"active",platform:"apk",buildVer:"v0.26 (Kapalı Test · 120 Bölüm)",localPath:"D:\\ORYVONA_MERKEZ\\Tuckspire",locTr:"DJ-KABIN · Aktif · v0.26 (Kapalı Test)",locEn:"DJ-KABIN · Active · v0.26 (Closed Test)",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"}
   ];
   let dbProjectIds=new Set();   // ids that exist in the `projects` table (the only valid targets of store_games.project_id)
   const gameMeta=id=>{
@@ -1232,13 +1232,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
       pkgTr:"Web (879 KB) + APK (25.56 MB · telefon) + AAB (24.48 MB · mağaza)"
     },
     tupsper:{
-      technical_qa:"UNVERIFIED (Kaynak bekleniyor)",device_qa:"UNVERIFIED",product_acceptance:"SOURCE_PENDING",publication:"BLOCKED_SOURCE",
-      recipe_id:"tupsper-cloud-boxing-pending",apk_allowed:false,character_map_lock:true,
-      readyTr:"5. resmi oyun merkez kaydı ve durum kartı hazır (Buluttaki boks projesi)",
-      waitingTr:"Buluttaki boks oyununun gerçek repo/kaynak ve doğrulanmış build bağlantısı",
-      ownerTr:"Bulut boks kaynak/repo adresini bağla (Tuckspire bulmaca APK'sı kesinlikle Tupsper'e bağlanmaz).",
-      nextTaskTr:"Tupsper bulut boks repo ve ilk doğrulanmış paket bağlantısı",
-      pkgTr:"Kaynak bekleniyor · Tuckspire (bulmaca) ayrı arşivde izole"
+      technical_qa:"RECORDED_PASS (120 bölüm + 108 Serbest Kutu)",device_qa:"DEVICE_PENDING (v0.26 Kapalı Test)",product_acceptance:"OPEN (120 bölüm)",publication:"READY_FOR_CLOSED_TEST",
+      recipe_id:"tuckspire-closed-test-v026",apk_allowed:true,character_map_lock:true,
+      readyTr:"Tuckspire v0.26 (code 26 · games.oryvona.tuckspire) kaynağı ve Kapalı Test AAB paketi (SHA: 4d5088c0…)",
+      waitingTr:"Play Console kapalı test incelemesi ve fiziksel cihaz doğrulaması",
+      ownerTr:"D:\\ORYVONA_MERKEZ\\Tuckspire altında kaynak kodu ve v0.26 Kapalı Test AAB paketi aktif.",
+      nextTaskTr:"Tuckspire v0.26 kapalı test doğrulaması ve cihaz kabulü",
+      pkgTr:"Tuckspire-v0.26-CLOSED-TEST.aab (code 26 · games.oryvona.tuckspire)"
     }
   };
   function renderV22StudioCards(){
@@ -1261,7 +1261,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       <div class="detail" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><span>${esc(lockBadge)}</span><span>${lang==="tr"?"Ek ücretli API politikası: kapalı; hesap kullanımı doğrulanmadı":"Extra paid API policy: disabled; account usage unverified"}</span></div>`;
     }
     if($("v22PipeBody")){
-      const stepIdx=cur==="tupsper"?0:hs==="CLAUDE_WORKING"||hs==="READY_CLAUDE"?0:hs==="WORK_WORKING"||hs==="READY_WORK"?2:hs==="USER_TEST_READY"?4:1;
+      const stepIdx=hs==="CLAUDE_WORKING"||hs==="READY_CLAUDE"?0:hs==="WORK_WORKING"||hs==="READY_WORK"?2:hs==="USER_TEST_READY"?4:1;
       const steps=[
         [lang==="tr"?"1. Geliştirme":"1. Develop","Claude Code"],
         [lang==="tr"?"2. Test":"2. Test","Bulut / Kanıt"],
@@ -1270,7 +1270,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         [lang==="tr"?"5. Teslim":"5. Deliver","Deniz Onayı"]
       ];
       $("v22PipeBody").innerHTML=`<div class="v22-pipe">${steps.map(([lbl,sub],idx)=>{
-        const cls=cur==="tupsper"?(idx===0?"blocked":""):(idx===stepIdx?"active":"");
+        const cls=idx===stepIdx?"active":"";
         return `<div class="v22-pipe-step ${cls}"><b>${esc(lbl)}</b><small>${esc(sub)}</small></div>`;
       }).join("")}</div><div class="detail" style="margin-top:6px">${esc(sp.name)} · ${lang==="tr"?"Canlı bağlantı ve işçi teslim kanıtı Jarvis ekranında doğrulanır":"Live connection and worker delivery receipts are verified in Jarvis"}</div>`;
     }
@@ -1283,7 +1283,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       </div>`;
     }
     if($("jarvisDecisionGrid")){
-      const turnTxt=st&&st.handoff?turnLabel(turnInfo(st.handoff.status)):(cur==="tupsper"?(lang==="tr"?"Kaynak Bekleniyor":"Source Pending"):(lang==="tr"?"DJ-KABIN Hazır":"DJ-KABIN Ready"));
+      const turnTxt=st&&st.handoff?turnLabel(turnInfo(st.handoff.status)):(lang==="tr"?"DJ-KABIN Hazır":"DJ-KABIN Ready");
       $("jarvisDecisionGrid").innerHTML=`
         <div class="j-dec-card"><span class="jk">1. ${lang==="tr"?"Şimdi Ne Oluyor?":"What is Happening?"}</span><span class="jv">${esc(sp.name)} · ${esc(turnTxt)}</span><span class="js">${esc(c.technical_qa)}</span></div>
         <div class="j-dec-card"><span class="jk">2. ${lang==="tr"?"Sıradaki Doğru İş":"Next Right Task"}</span><span class="jv">${esc(c.nextTaskTr)}</span><span class="js">${esc(c.recipe_id)}</span></div>
@@ -1441,7 +1441,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     renderNowCard();
     $("heroV").textContent=sp.buildVer?(locOf(sp,true)+" · "+sp.buildVer):Hm.noPipeTitle;
     $("heroS").textContent=sp.locState==="transfer"?Hm.noPipeTransfer:(sp.buildVer?(lang==="tr"?`${sp.name} kaynak dosyaları ve son sürümü (${sp.buildVer}) DJ-KABIN (${sp.localPath||"D:\\ORYVONA_MERKEZ"}) altında aktif. Otomatik bulut test hattı henüz bağlanmadı.`:`${sp.name} source files and latest build (${sp.buildVer}) are active on DJ-KABIN (${sp.localPath||"D:\\ORYVONA_MERKEZ"}). Automated cloud test pipeline is not connected yet.`):Hm.noPipeActive);
-    if(sp.id==="tupsper"){$("heroV").textContent="Tupsper · "+(lang==="tr"?"Kaynak bekleniyor":"Source pending");$("heroS").textContent=lang==="tr"?"Buluttaki boks oyununun merkez kaydı hazır. Kaynak/repo ve build doğrulanmadı; durum kartından izleniyor.":"The cloud boxing game is registered. Source/repository and build remain unverified; the root status card tracks the handoff.";}
+    if(sp.id==="tupsper"){$("heroV").textContent="Tuckspire · "+(lang==="tr"?"DJ-KABIN · Aktif · v0.26 (Kapalı Test)":"DJ-KABIN · Active · v0.26 (Closed Test)");$("heroS").textContent=lang==="tr"?"Tuckspire kaynak dosyaları (120 bölüm + 108 Serbest Kutu) ve v0.26 Kapalı Test AAB paketi D:\\ORYVONA_MERKEZ\\Tuckspire altında aktif.":"Tuckspire source files (120 levels + 108 Free Boxes) and v0.26 Closed Test AAB package are active under D:\\ORYVONA_MERKEZ\\Tuckspire.";}
     for(const [v,s,i] of [["cTurn","cTurnS","icTurn"],["cStage","cStageS","icStage"],["cQa","cQaS","icQa"],["cAuto","cAutoS","icAuto"]]){$(v).textContent="—";$(s).textContent="";$(i).className="ic";}
     if(sp.buildVer){$("cStage").textContent=sp.buildVer;$("cStageS").textContent=locOf(sp,true);$("icStage").className="ic good";}
     $("ring").innerHTML="";$("cardWork").hidden=true;

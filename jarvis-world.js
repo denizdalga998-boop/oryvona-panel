@@ -1,6 +1,6 @@
 /* ORYVONA v23 Jarvis World. UMD, no network/agent/OS calls and no implicit project. */
 (function(root,factory){'use strict';var api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.OryvonaJarvisWorld=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){'use strict';
-  var PROJECTS=Object.freeze([{id:'koza',label:'KOZA'},{id:'charm-drop',label:'Charm Drop'},{id:'forge-run',label:'Forge Run'},{id:'aeryo',label:'AERYO'},{id:'tupsper',label:'Tupsper'},{id:'oryvona-panel',label:'Oryvona Panel'}]);
+  var PROJECTS=Object.freeze([{id:'koza',label:'KOZA'},{id:'charm-drop',label:'Charm Drop'},{id:'forge-run',label:'Forge Run'},{id:'aeryo',label:'AERYO'},{id:'tupsper',label:'Tuckspire'},{id:'oryvona-panel',label:'Oryvona Panel'}]);
   var STATUS={queued:'Sırada',running:'Çalışıyor',blocked:'Engellendi',completed:'Tamamlandı',failed:'Başarısız',paused:'Duraklatıldı',cancelled:'İptal edildi',waiting_review:'İnceleme bekliyor'};
   var ICONS={plus:'M12 5v14M5 12h14',mic:'M9 5a3 3 0 016 0v7a3 3 0 01-6 0V5M5 10v2a7 7 0 0014 0v-2M12 19v3M9 22h6',up:'M12 19V5M5 12l7-7 7 7',chevron:'M6 9l6 6 6-6',activity:'M3 12h4l3-7 4 14 3-7h4',close:'M6 6l12 12M18 6L6 18'};
   function safeText(v,max){return String(v==null?'':v).slice(0,max||40000);}
