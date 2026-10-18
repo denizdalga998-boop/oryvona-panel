@@ -22,6 +22,30 @@ main,.view,.card,.app-top-inner{min-width:0}
 .drawer-close{align-self:flex-end;margin:0 2px 2px;min-width:44px;min-height:44px}
 .dpanel{overscroll-behavior:contain;padding-bottom:max(20px,env(safe-area-inset-bottom,0px))}
 .lm-close,.img-prev-ops button,.ctx-btn{min-height:44px}
-.tabs button{min-height:50px}
-@media(max-width:360px){.form{grid-template-columns:minmax(0,1fr)}.lm-card{padding:16px;gap:12px}.cmd-target-seg{flex-basis:100%}.now-card .tx{min-width:0;flex-basis:150px}.now-card .ctx-actions{width:100%;margin-left:0}.hero .ring{width:76px;height:76px}.hero .v{font-size:1.4rem}}
+.tabs button{min-height:50px;padding:6px 1px;font-size:.68rem}
+.tabs .pill{padding:3px 11px}
+.jarvis-shell{display:flex;flex-direction:column;gap:11px;min-height:calc(var(--native-vh,100dvh) - var(--topbar-h,112px) - var(--tabbar,72px) - 36px);user-select:none;-webkit-user-select:none}
+.jarvis-banner{background:linear-gradient(135deg,#11102c 0%,#18353b 55%,#271d54 100%);color:#fff;border-radius:22px;padding:14px 16px;box-shadow:var(--shadow-lg);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.jarvis-banner .jb-left{display:flex;align-items:center;gap:11px;min-width:0;flex:1}
+.jarvis-banner .jb-ic{width:42px;height:42px;border-radius:14px;background:rgba(90,216,194,.18);border:1px solid rgba(90,216,194,.4);display:grid;place-items:center;font-size:1.25rem;flex:none;color:#7ef3de}
+.jarvis-banner .jb-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.jarvis-banner .jb-tx b{font-weight:900;font-size:1.06rem;letter-spacing:-.01em;color:#fff}
+.jarvis-banner .jb-tx span{font-size:.78rem;color:#c9e9e4;font-weight:700}
+.jarvis-stream{flex:1;display:flex;flex-direction:column;gap:11px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);min-height:210px;max-height:46vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.j-msg{display:flex;gap:9px;align-items:flex-end}
+.j-msg.user{flex-direction:row-reverse}
+.j-av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:.82rem;flex:none}
+.j-msg.jarvis .j-av{background:var(--gemini-soft);color:var(--gemini);border:1px solid rgba(13,141,120,.3)}
+.j-msg.user .j-av{background:var(--deniz-soft);color:var(--deniz)}
+.j-bub{max-width:86%;padding:11px 14px;border-radius:18px;font-size:.92rem;line-height:1.44;font-weight:700;display:flex;flex-direction:column;gap:5px;overflow-wrap:anywhere}
+.j-msg.user .j-bub{background:linear-gradient(135deg,var(--brand) 0%,#6c56f5 100%);color:#fff;border-bottom-right-radius:5px}
+.j-msg.jarvis .j-bub{background:linear-gradient(180deg,var(--gemini-soft),var(--surface-2) 90%);border:1px solid var(--line-2);border-left:4px solid var(--gemini);color:var(--fg);border-bottom-left-radius:5px}
+.j-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.73rem;opacity:.82;font-weight:800;flex-wrap:wrap}
+.j-chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.j-chip{border:1px solid var(--line-2);background:var(--surface);color:var(--fg);border-radius:14px;padding:9px 11px;min-height:44px;font-weight:900;font-size:.82rem;display:flex;align-items:center;gap:7px;text-align:left;cursor:pointer;box-shadow:var(--shadow);transition:transform .1s,background .15s}
+.j-chip:active,.j-chip[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-ink)}
+.j-composer{background:var(--surface);border:1px solid var(--line-2);border-radius:20px;padding:11px 12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+.j-input-row{display:flex;gap:8px;align-items:flex-end}
+#jarvisInput{flex:1;min-height:46px;max-height:110px;border-radius:14px;padding:10px 12px;font-size:.95rem;resize:none}
+@media(max-width:360px){.form{grid-template-columns:minmax(0,1fr)}.lm-card{padding:16px;gap:12px}.cmd-target-seg{flex-basis:100%}.now-card .tx{min-width:0;flex-basis:150px}.now-card .ctx-actions{width:100%;margin-left:0}.hero .ring{width:76px;height:76px}.hero .v{font-size:1.4rem}.j-chips{grid-template-columns:minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}

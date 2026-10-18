@@ -1,6 +1,6 @@
-// v19: cache the app shell, never live account data. Games are cached only as they are played.
-const CACHE = 'oryvona-panel-v19';
-const GAME_CACHE = 'oryvona-games-v19';
+// v20: cache the app shell, never live account data. Games are cached only as they are played.
+const CACHE = 'oryvona-panel-v20';
+const GAME_CACHE = 'oryvona-games-v20';
 const SCOPE = new URL('./', self.registration.scope);
 const SHELL = ['./','./index.html','./config.js','./vendor/supabase-2.45.4.min.js','./manifest.json','./native-shell.css','./native-shell.js','./game-lab.css','./game-lab.js','./data/game-builds.json','./logo.webp','./logo.png','./icon-192.png','./icon-512.png','./icon-512-maskable.png','./badge-96.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
