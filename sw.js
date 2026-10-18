@@ -1,6 +1,6 @@
 // Minimal service worker: makes the panel installable and keeps the shell available offline.
 // Data always comes live from Supabase (network); only the static shell is cached.
-const CACHE = 'oryvona-panel-v16';
+const CACHE = 'oryvona-panel-v17';
 const SHELL = ['./', './index.html', './config.js', './manifest.json', './logo.png', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
