@@ -1,5 +1,6 @@
 {
   "generatedAt": "2026-10-18",
+  "studioVersion": "v22",
   "audit": {
     "privateFilenameHits": 0,
     "recognizedSecretPatternHits": 0,
@@ -26,6 +27,16 @@
       "entryBytes": 16889,
       "entrySHA256": "6f5fcf0d773c8dbb460ef502843c9889ff3f5902d924fcb8f25805a144b13f3f",
       "acceptance": "READY_WORK; full acceptance pending",
+      "v22Gates": {
+        "technicalQa": "PARTIAL",
+        "deviceQa": "NOT_RUN",
+        "productAcceptance": "READY_WORK",
+        "publication": "INTERNAL_PREVIEW_ONLY",
+        "apkAllowed": false,
+        "recipeId": "koza-k01-web-bundle",
+        "characterMapLock": true,
+        "protectedAssets": ["Lumi", "Koru", "Pera", "Ayışığı Bahçesi"]
+      },
       "qa": {
         "physicalPhone": "NOT_RUN",
         "runConclusion": "failure",
@@ -96,6 +107,16 @@
       },
       "acceptance": "C21 presentation accepted; full game still in progress",
       "nextPhase": "C22 prepared, not implemented",
+      "v22Gates": {
+        "technicalQa": "RECORDED_PASS_WITH_LIMITS",
+        "deviceQa": "NOT_RUN",
+        "productAcceptance": "IN_PROGRESS_C22_C26",
+        "publication": "STAGED_C21_WEB",
+        "apkAllowed": false,
+        "recipeId": "charm-drop-c21-singlefile",
+        "characterMapLock": true,
+        "protectedAssets": ["4 Koleksiyon & 48 Tasarım", "Atölye / Müşteri Görünürlük Sahnesi (C21)"]
+      },
       "qa": {
         "summary": "C21 presentation/customer visibility acceptance recorded. Full product, natural long play, physical phone and touch acceptance remain pending.",
         "physicalPhone": "NOT_RUN",
@@ -148,6 +169,16 @@
         "bytes": 879307
       },
       "acceptance": "Release artifact built and statically validated; real device test pending",
+      "v22Gates": {
+        "technicalQa": "PASS",
+        "deviceQa": "OWNER_REPORTED_LIMITED_SCOPE",
+        "productAcceptance": "CLOSED_TEST_ACTIVE",
+        "publication": "CLOSED_TEST_TRACK",
+        "apkAllowed": true,
+        "recipeId": "aeryo-capacitor-release-10004",
+        "characterMapLock": true,
+        "protectedAssets": ["İlk 100 Klasik Bölüm (95a5045a)", "300 Kampanya Bölümü (728f490b)", "120 Günlük Tahta (efca3db3)"]
+      },
       "qa": {
         "observedAt": "2026-10-02",
         "physicalPhone": "PENDING: no device",
@@ -213,6 +244,18 @@
       "entry": null,
       "webBuildAvailable": false,
       "acceptance": "Test APK built; NIGHT-QA OPEN; no phone test",
+      "v22Gates": {
+        "technicalQa": "OPEN",
+        "deviceQa": "NOT_RUN",
+        "productAcceptance": "OPEN_NIGHT_QA",
+        "publication": "TEST_APK_ONLY",
+        "apkAllowed": true,
+        "recipeId": "forge-run-dt-forest-fr25j",
+        "entrypoint": "ForgeRun.Editor.DT.ForgeDTSliceApk",
+        "blockedLegacyRecipes": ["Tools/Build-Android.ps1", "ForgeRun.Editor.ForgeBuild.BuildAndroid"],
+        "characterMapLock": true,
+        "protectedAssets": ["ForgeRunMenu & ForgeRunDT_Forest", "Green Frontier / Forest (8 Bölüm)", "Savaşçı & Okçu + 54 Kitap"]
+      },
       "android": {
         "apk": {
           "sha256": "94505e0e249835c73203771bd149f69f4e04430563b88b04b180891c30682bd6",
@@ -293,6 +336,18 @@
       "platform": "Cloud source pending",
       "entry": null,
       "artifact": null,
+      "v22Gates": {
+        "technicalQa": "NOT_RUN",
+        "deviceQa": "NOT_RUN",
+        "productAcceptance": "SOURCE_PENDING",
+        "publication": "BLOCKED_SOURCE",
+        "apkAllowed": false,
+        "recipeId": null,
+        "tuckspireSeparationEnforced": true,
+        "forbiddenBindings": ["tuckspire", "games.oryvona.tuckspire"],
+        "characterMapLock": true,
+        "protectedAssets": ["Tupsper Boks Kimliği (Tuckspire bulmaca projesiyle birleştirilemez)"]
+      },
       "levels": {
         "implemented": null
       },

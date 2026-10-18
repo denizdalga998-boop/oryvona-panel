@@ -1,4 +1,4 @@
-/* v19: local, versioned game builds + evidence. Never manufactures live QA or executes a game on the runner. */
+/* v22: local, versioned game builds + 4-dimensional acceptance gates + evidence. Never manufactures live QA or executes a game on the runner. */
 (() => {
   'use strict';
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -14,9 +14,19 @@
     'charm-drop':text('Kabul edilen oynanabilir sürüm C21. C22 görev olarak hazırlanmış; henüz bu sürüme uygulanmamış.','The accepted playable build is C21. C22 is prepared work, not an implemented release.'),
     aeryo:text('Gerçek 1.2.0 web oynatıcısı ve Android paket kayıtları. 300 bölüm; fiziksel telefon testi bekliyor.','Actual 1.2.0 web player and Android artifact records. 300 levels; physical-phone testing is pending.'),
     'forge-run':text('FR25J Android test paketi. WebGL çıktısı yok; gerçek build, sahne ve QA kanıtlarını aşağıdan inceleyebilirsin.','FR25J Android test package. No WebGL output exists; inspect the actual build, scenes and QA evidence below.'),
-    tupsper:text('Beşinci resmi oyunumuz: buluttaki boks projesi. Kaynak/repo bağlantısı bekleniyor; doğrulanmış build veya oynatıcı henüz bağlı değil.','Our fifth official game: the cloud boxing project. Source/repository binding is pending; no verified build or player is connected.')
+    tupsper:text('Beşinci resmi oyunumuz: buluttaki boks projesi. Kaynak/repo bağlantısı bekleniyor; Tuckspire bulmaca APK’sı bu oyuna bağlanmaz.','Our fifth official game: the cloud boxing project. Source/repository binding is pending; Tuckspire puzzle APK is never bound here.')
   })[id] || '';
   function row(label, value) { return `<div class="lab-row"><span>${esc(label)}</span><strong>${esc(value ?? text('Bilinmiyor','Unknown'))}</strong></div>`; }
+  function gateRow(g) {
+    const gates = g.v22Gates;
+    if (!gates) return '';
+    return row(text('Teknik QA','Technical QA'), gates.technical_qa)
+      + row(text('Telefon / Cihaz Testi','Phone / Device QA'), gates.device_qa)
+      + row(text('Ürün Kabulü','Product Acceptance'), gates.product_acceptance)
+      + row(text('Yayın Kapısı','Publication Gate'), gates.publication)
+      + (gates.recipe_id ? row(text('Build Tarifi','Build Recipe'), gates.recipe_id) : '')
+      + row(text('Tasarım Koruma Kilidi','Design Lock'), gates.character_map_lock ? text('🔒 Karakter & Harita Kilitli','🔒 Character & Map Locked') : text('Standart','Standard'));
+  }
   function details(g) {
     if (tab === 'content') {
       const l = g.levels || {};
@@ -25,14 +35,14 @@
     if (tab === 'qa') {
       const q = g.qa || {};
       const counts = [['codePassed','Kod','Code'],['browserPassed','Tarayıcı','Browser'],['naturalPassed','Oynanış','Gameplay'],['lifecyclePassed','Yaşam döngüsü','Lifecycle'],['lumiPassed','Lumi','Lumi'],['standardPassed','Standart kontrol','Standard checks'],['presentationChecksPassed','Sunum kontrolü','Presentation checks'],['customerChecksPassed','Müşteri kontrolü','Customer checks'],['contentChecksPassed','İçerik kontrolü','Content checks'],['androidArtifactChecksPassed','Paket kontrolü','Artifact checks']];
-      return `<p class="lab-evidence-note">${text('Bunlar tarihli kaynak kanıtlarıdır. Yeni bir oynanış veya telefon testi yapılmış sayılmaz.','These are dated source records, not a new gameplay or phone test.')}</p>` + row(text('Kayıt tarihi','Evidence date'),q.observedAt) + row(text('Fiziksel telefon','Physical phone'),q.physicalPhone) + row(text('Dokunmatik','Touch'),q.touch || text('Yeni doğrulama yok','No fresh validation')) + counts.filter(([k]) => Number.isFinite(q[k])).map(([k,a,b])=>row(text(a,b),`${q[k]} ${text('kayıtlı başarılı kontrol','recorded passed checks')}`)).join('');
+      return `<p class="lab-evidence-note">${text('Bunlar tarihli kaynak kanıtlarıdır. Yeni bir oynanış veya telefon testi yapılmış sayılmaz.','These are dated source records, not a new gameplay or phone test.')}</p>` + gateRow(g) + row(text('Kayıt tarihi','Evidence date'),q.observedAt) + row(text('Fiziksel telefon','Physical phone'),q.physicalPhone) + row(text('Dokunmatik','Touch'),q.touch || text('Yeni doğrulama yok','No fresh validation')) + counts.filter(([k]) => Number.isFinite(q[k])).map(([k,a,b])=>row(text(a,b),`${q[k]} ${text('kayıtlı başarılı kontrol','recorded passed checks')}`)).join('');
     }
     const hash = g.artifact?.sha256 || '';
-    return row(text('Sürüm','Version'),g.version) + (g.versionCode != null ? row(text('Sürüm kodu','Version code'),g.versionCode) : '') + row(text('Oynatıcı / paket','Player / package'),g.runtime || g.platform) + row(text('Dosya boyutu','Artifact size'),size(g.artifact?.bytes)) + (hash ? `<div class="lab-row"><span>SHA-256</span><code title="${esc(hash)}">${esc(hash.slice(0,16))}…</code><button type="button" class="lab-copy" data-lab-copy="${esc(hash)}" aria-label="${text('SHA-256 kopyala','Copy SHA-256')}">${text('Kopyala','Copy')}</button></div>` : '');
+    return row(text('Sürüm','Version'),g.version) + (g.versionCode != null ? row(text('Sürüm kodu','Version code'),g.versionCode) : '') + row(text('Oynatıcı / paket','Player / package'),g.runtime || g.platform) + row(text('Dosya boyutu','Artifact size'),size(g.artifact?.bytes)) + (hash ? `<div class="lab-row"><span>SHA-256</span><code title="${esc(hash)}">${esc(hash.slice(0,16))}…</code><button type="button" class="lab-copy" data-lab-copy="${esc(hash)}" aria-label="${text('SHA-256 kopyala','Copy SHA-256')}">${text('Kopyala','Copy')}</button></div>` : '') + gateRow(g);
   }
   function recentResult(g) {
     const r = window.OryvonaPanel?.getBuildValidation?.(g.id);
-    if (!r) return `<p class="lab-note">${text('v21 hafif modu yalnız kök DURUM-KARTI.json şemasını ve alanlarını kontrol eder. Ağır kaynak/build taranmaz; oynanış, paket ve yayın testi yapılmaz.','v21 light mode checks only the root status-card schema and fields. It does not scan sources/builds or test gameplay, artifacts or publication.')}</p>`;
+    if (!r) return `<p class="lab-note">${text('v22 hafif modu yalnız kök DURUM-KARTI.json şemasını ve alanlarını kontrol eder. Ağır kaynak/build taranmaz; oynanış, paket ve yayın testi yapılmaz.','v22 light mode checks only the root status-card schema and fields. It does not scan sources/builds or test gameplay, artifacts or publication.')}</p>`;
     const v = r.validation || r.result?.validation;
     const label = ({queued:text('Kuyrukta','Queued'),running:text('Doğrulanıyor','Validating'),done:text('Doğrulama tamamlandı','Validation completed'),failed:text('Doğrulama başarısız','Validation failed'),cancelled:text('İptal edildi','Cancelled')})[r.status] || r.status;
     const note = r.note || r.note_tr || r.result?.note_tr || '';
@@ -81,12 +91,10 @@
     try {
       if(dialog!==currentDialog)return;
       const frame=document.createElement('iframe');frame.title=`${g.name} ${text('oyun testi','game test')}`;
-      frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-pointer-lock');frame.setAttribute('allow',"fullscreen 'none'; gamepad");
+      frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');frame.setAttribute('allow',"fullscreen 'none'; gamepad");
       frame.addEventListener('load',()=>{
         if(dialog!==currentDialog)return;
-        try{if(new URL(frame.contentWindow.location.href).pathname!==url.pathname)return;}catch{return;}
         clearTimeout(loadingTimer);dialog.querySelector('.player-loading')?.remove();
-        try{const doc=frame.contentDocument;const style=doc.createElement('style');style.textContent='html,body{overscroll-behavior:none;overflow-x:hidden}*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}';doc.head.append(style);doc.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault();});doc.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();closePlayer();}},true);}catch{}
       });
       frame.src=url.href;dialog.querySelector('.player-stage').append(frame);
       loadingTimer=setTimeout(()=>{if(dialog===currentDialog){const loading=dialog.querySelector('.player-loading');if(loading)loading.textContent=text('Yükleme sürüyor. Bağlantını kontrol edebilir veya panele dönebilirsin.','Still loading. Check connectivity or return to the panel.');}},25000);

@@ -17,7 +17,7 @@
 <script src="command-outbox.js"></script>
 <script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{}));}</script>
 <style>
-/* Oryvona Games Paneli v3.1 (v21) — Jarvis single-brain command center, dark navy app shell, real game links, honest data, TR/EN. */
+/* Oryvona Games Paneli v3.2 (v22) — Doğrulanmış Teslim & Jarvis Stüdyo Merkezi, dark navy app shell, real game links, honest data, TR/EN. */
 :root{
   --bg:#f2f3f9; --surface:#ffffff; --surface-2:#edeef7; --line:rgba(24,22,58,.08); --line-2:rgba(24,22,58,.15);
   --fg:#13122b; --fg-2:#565475; --fg-3:#8886a6;
@@ -338,6 +338,27 @@ textarea{width:100%;min-height:80px;resize:vertical}
 #gate .msg{min-height:1.2em;font-size:.9rem;color:#9af0bb;display:block}
 #gate .langs{display:flex;gap:8px;justify-content:center} #gate .langs button{border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:999px;padding:5px 12px;font-weight:800;font-size:.82rem;cursor:pointer} #gate .langs button[aria-pressed="true"]{background:#fff;color:#1b1a3e}
 .banner{background:var(--warn-soft);color:var(--warn);border-radius:var(--r-s);padding:10px 14px;font-weight:800;font-size:.88rem;display:flex;gap:10px;align-items:center;justify-content:space-between}
+/* v22 Verified Delivery & 4-Dimensional Gate UI */
+.v22-exec-grid{display:flex;flex-direction:column;gap:8px}
+.v22-exec-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:14px;background:var(--surface-2);font-size:.88rem;line-height:1.38}
+.v22-exec-row .k{font-weight:900;color:var(--brand-ink);min-width:118px;flex:none}
+.v22-exec-row .v{font-weight:700;color:var(--fg);flex:1;min-width:0}
+.v22-gate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:4px}
+.v22-gate-item{display:flex;flex-direction:column;gap:3px;padding:9px 11px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
+.v22-gate-item .gk{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-3)}
+.v22-gate-item .gv{font-size:.84rem;font-weight:900;color:var(--fg)}
+.v22-pipe{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:4px}
+.v22-pipe-step{display:flex;flex-direction:column;gap:4px;padding:8px 6px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);text-align:center;min-width:0}
+.v22-pipe-step b{font-size:.75rem;font-weight:900;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v22-pipe-step small{font-size:.68rem;font-weight:800;color:var(--fg-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v22-pipe-step.done{background:var(--good-soft);border-color:rgba(24,134,71,.28)} .v22-pipe-step.done b,.v22-pipe-step.done small{color:var(--good)}
+.v22-pipe-step.active{background:var(--brand-soft);border-color:var(--brand)} .v22-pipe-step.active b,.v22-pipe-step.active small{color:var(--brand-ink)}
+.v22-pipe-step.blocked{background:var(--warn-soft);border-color:rgba(181,98,8,.28)} .v22-pipe-step.blocked b,.v22-pipe-step.blocked small{color:var(--warn)}
+.j-decision-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.j-dec-card{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:10px 12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px;min-width:0}
+.j-dec-card .jk{font-size:.68rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase;color:var(--brand)}
+.j-dec-card .jv{font-size:.84rem;font-weight:900;line-height:1.28;color:var(--fg)}
+.j-dec-card .js{font-size:.76rem;font-weight:700;line-height:1.3;color:var(--fg-2)}
 @media (prefers-reduced-motion:no-preference){.chip.good.dot::before{animation:beat 2.6s ease-in-out infinite}@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}}
 @media (min-width:720px){.grid2{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style>
@@ -353,6 +374,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <span class="title-row"><b id="topTitle">KOZA</b><span class="loc-chip" id="topLocChip"><i></i><span id="topLocTxt">DJ-KABIN · Aktif</span></span></span>
       </button>
       <button class="iconbtn" id="refreshBtn" type="button" aria-label="Yenile" data-i18n-aria="ui.refresh"></button>
+      <button class="iconbtn" id="settingsTopBtn" type="button" data-go="settings" aria-label="Ayarlar" data-i18n-aria="tab.settings"></button>
     </div>
     <div class="game-bar" id="gameSwitcherBar" role="navigation" aria-label="Oyun seç" data-i18n-aria="ui.pickGame"></div>
   </div>
@@ -367,6 +389,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     <div class="dlist" id="drawerGames"></div>
     <div class="secthead" data-i18n="ui.help">Yardım</div>
     <div class="dlist">
+      <button type="button" class="ditem" data-go="settings"><span class="ic" id="dIcSettings"></span><span data-i18n="tab.settings">Ayarlar</span></button>
       <button type="button" class="ditem" data-detail="terms"><span class="ic" id="dIcHelp"></span><span data-i18n="ui.terms">Terimler ve roller</span></button>
     </div>
   </aside>
@@ -406,6 +429,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
           <button type="button" class="play-link-btn" id="editLinkBtn" title="Test bağlantısını düzenle" aria-label="Test bağlantısını düzenle" data-i18n-aria="play.editBtn" hidden>🔗</button>
         </div>
       </div>
+    </div>
+    <div class="card" id="v22StudioSummaryCard">
+      <div class="hd"><b id="v22StudioSummaryTitle">🎯 Doğrulanmış Teslim & 4 Boyutlu Kabul</b><span id="v22StudioSummarySub">Sürüm 3.2 (v22)</span></div>
+      <div id="v22StudioSummaryBody"></div>
     </div>
     <div class="card" id="readinessCard">
       <div class="hd"><b data-i18n="rdy.title">Mağazaya Hazırlık Durumu</b><span id="readinessSub">Play Store kontrol listesi</span></div>
@@ -481,6 +508,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       </div>
       <span class="chip sm dot onnavy" id="jarvisRunnerChip">…</span>
     </div>
+    <div class="j-decision-grid" id="jarvisDecisionGrid" aria-label="Jarvis 4 Karar Kartı"></div>
     <div class="jarvis-stream" id="jarvisChatList" role="log" aria-live="polite" aria-label="Jarvis sohbet akışı"></div>
     <div class="j-chips" id="jarvisChips" role="group" aria-label="Hızlı emir çipleri">
       <button type="button" class="j-chip" data-jchip="advance">🚀 <span data-i18n="jarvis.c1">Oyunu İlerlet</span></button>
@@ -504,7 +532,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
   </section>
 
   <section class="view" id="view-feed" hidden>
-    <div class="pagehead"><h1 data-i18n="feed.title">Ekip akışı</h1></div>
+    <div class="pagehead"><h1 data-i18n="feed.title">İşler & Akış</h1></div>
+    <div class="card" id="v22PipelineCard">
+      <div class="hd"><b id="v22PipeTitle">⚙️ Doğrulanmış Teslim 5 Adımlı İş Hattı</b><span id="v22PipeSub">Geliştirme → Test → İnceleme → Paketleme → Teslim</span></div>
+      <div id="v22PipeBody"></div>
+    </div>
     <div class="card" id="studioDigestFeed">
       <div class="hd"><b data-i18n="digest.title">📊 Haftalık Stüdyo Özeti</b><span data-i18n="digest.sub">Son 7 gün · Yönetici özeti</span></div>
       <div class="digest-list" id="digestFeedList"></div>
@@ -526,9 +558,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
   </section>
 
   <section class="view" id="view-store" hidden>
-    <div class="pagehead"><h1 data-i18n="store.title">Mağaza</h1><button class="act" id="storeAddBtn" type="button" data-i18n="store.addGame">+ Oyun ekle</button></div>
+    <div class="pagehead"><h1 data-i18n="store.title">Yayınlar</h1><button class="act" id="storeAddBtn" type="button" data-i18n="store.addGame">+ Oyun ekle</button></div>
     <div class="card" id="storeForm" hidden></div>
     <div class="grid2" id="storeStats"></div>
+    <div class="card" id="v22ReleaseGateCard">
+      <div class="hd"><b id="v22ReleaseTitle">📦 Yayın & Paket Kapısı Kuralları</b><span id="v22ReleaseSub">Doğrulanmış SHA-256 ve Mağaza Bağlantısı</span></div>
+      <div id="v22ReleaseBody"></div>
+    </div>
     <div class="secthead" data-i18n="store.gamesSub">Oyunlar · dokununca takip sayfası açılır</div>
     <div class="games" id="storeGames"></div>
     <div class="secthead" id="inboxHead">Gelen kutusu</div>
@@ -570,7 +606,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     </div>
     <div class="secthead" data-i18n="set.app">Uygulama</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.1 (v21) · Jarvis Tek Beyin Komuta Merkezi</span></div></div>
+      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.2 (v22) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi</span></div></div>
       <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b data-i18n="set.apk">Android kurulum dosyası</b><span data-i18n="set.apkSub">Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/latest/download/oryvona-panel.apk" download rel="noopener" data-i18n="ui.download">İndir</a></div>
       <div class="item"><span class="ic" id="icHelp"></span><div class="tx"><b data-i18n="ui.terms">Terimler ve roller</b><span data-i18n="set.termsSub">Claude, OpenAI, Gemini ve süreç adımları</span></div><button class="act" type="button" data-detail="terms" data-i18n="ui.open">Aç</button></div>
     </div>
@@ -602,12 +638,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
 </div>
 
 <nav class="tabs" role="tablist" aria-label="Bölümler">
-  <button role="tab" data-view="home" aria-selected="true"><span class="pill" id="tabHome"></span><span data-i18n="tab.home">Özet</span></button>
+  <button role="tab" data-view="home" aria-selected="true"><span class="pill" id="tabHome"></span><span data-i18n="tab.home">Stüdyo</span></button>
+  <button role="tab" data-view="feed"><span class="pill" id="tabFeed"></span><span data-i18n="tab.feed">İşler</span></button>
+  <button role="tab" data-view="tests"><span class="pill" id="tabTests"></span><span data-i18n="tab.tests">Test</span></button>
+  <button role="tab" data-view="store"><span class="pill" id="tabStore"></span><span data-i18n="tab.store">Yayınlar</span><span class="badge" id="storeBadge" hidden></span></button>
   <button role="tab" data-view="jarvis"><span class="pill" id="tabJarvis"></span><span data-i18n="tab.jarvis">Jarvis</span></button>
-  <button role="tab" data-view="feed"><span class="pill" id="tabFeed"></span><span data-i18n="tab.feed">Akış</span></button>
-  <button role="tab" data-view="tests"><span class="pill" id="tabTests"></span><span data-i18n="tab.tests">Testler</span></button>
-  <button role="tab" data-view="store"><span class="pill" id="tabStore"></span><span data-i18n="tab.store">Mağaza</span><span class="badge" id="storeBadge" hidden></span></button>
-  <button role="tab" data-view="settings"><span class="pill" id="tabSettings"></span><span data-i18n="tab.settings">Ayarlar</span></button>
 </nav>
 
 <div id="gate" hidden>
@@ -650,13 +685,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
     star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="m12 3 2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.4l-5.7 3.1 1.2-6.4L2.8 9.7l6.4-.8z"/></svg>',
     link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
     out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5"/><path d="M14 8l4 4-4 4M18 12H9"/></svg>'};
-  for(const [id,ic] of [["menuBtn","menu"],["dIcHelp","help"],["refreshBtn","refresh"],["backBtn","back"],["gameBack","back"],["icNow","bolt"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icLang","globe"],["icTheme","moon"],["icLive","bolt"],["icRunner","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabJarvis","jarvis"],["tabFeed","list"],["tabTests","check"],["tabStore","store"],["tabSettings","gear"]]){if($(id))$(id).innerHTML=I[ic];}
+  for(const [id,ic] of [["menuBtn","menu"],["dIcHelp","help"],["dIcSettings","gear"],["refreshBtn","refresh"],["settingsTopBtn","gear"],["backBtn","back"],["gameBack","back"],["icNow","bolt"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icLang","globe"],["icTheme","moon"],["icLive","bolt"],["icRunner","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabJarvis","jarvis"],["tabFeed","list"],["tabTests","check"],["tabStore","store"],["tabSettings","gear"]]){if($(id))$(id).innerHTML=I[ic];}
 
   // ---------- language (TR default, EN) ----------
   const L={};
   L.tr={
     ui:{menu:"Menü",pickGame:"Oyun seç",brand:"Oryvona Komuta Merkezi",studio:"Stüdyo Komuta Merkezi",refresh:"Yenile",games:"Oyunlar",help:"Yardım",terms:"Terimler ve roller",waiting:"Bekleme",comment:"Yorum",work:"İş",all:"Hepsi",cloudTest:"Bulut testi",back:"Geri",edit:"Düzenle",download:"İndir",open:"Aç",noData:"Veri yok",none:"Henüz yok",save:"Kaydet",cancel:"Vazgeç",add:"Ekle",delete:"Sil",close:"Kapat",yes:"Evet",you:"sen",owner:"sahip",connecting:"Bağlanıyor…",loginNeeded:"Giriş gerekli",connErr:"Bağlantı hatası",live:v=>"Canlı · "+v,lastMove:v=>"Son hareket "+v,optional:"isteğe bağlı"},
-    tab:{home:"Özet",jarvis:"Jarvis",feed:"Akış",tests:"Testler",store:"Mağaza",settings:"Ayarlar"},
+    tab:{home:"Stüdyo",jarvis:"Jarvis",feed:"İşler",tests:"Test",store:"Yayınlar",settings:"Ayarlar"},
     jarvis:{
       title:"Jarvis · Tek Beyin Komuta",
       sub:"Emirlerini kalıcı kuyruğa kaydet; mevcut iş akışını merkezden yönet",
@@ -703,7 +738,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     verb:{claim:"işe başladı",release:"sırayı devretti",resume:"devam etti",run:"otomatik kontrol",note:"not bıraktı"},
     stageSt:{PASS:"Geçti",PARTIAL:"Kısmi",ACTIVE:"Sürüyor",BLOCKED:"Engel",PENDING:"Sırada"},
     ago:{now:"az önce",m:v=>v+" dk önce",h:v=>v+" sa önce",d:v=>v+" gün önce"},
-    feed:{more:n=>`Daha fazla göster (${n})`,title:"Ekip akışı",week:"Bu hafta",records:"Kayıtlar",notes:"Notlar",empty:"Henüz akış kaydı yok.",emptyFilter:"Bu süzgeçte kayıt yok.",last7:"son 7 gün",turns:"Tur",turnsSub:"sıra el değiştirdi",runsSub:n=>`${n} tanesi sorunsuz`,noRuns:"koşu yok",workTime:"çalışma süresi",reviewTime:"inceleme süresi",today:"Bugün",hm:(h,m)=>`${h} sa ${m} dk`,min:m=>`${m} dk`,hr:h=>`${h} sa`,worked:v=>v+" çalıştı",waitFor:v=>"Bekleme: "+v,nowLabel:"şimdi"},
+    feed:{more:n=>`Daha fazla göster (${n})`,title:"İşler & Akış",week:"Bu hafta",records:"Kayıtlar",notes:"Notlar",empty:"Henüz akış kaydı yok.",emptyFilter:"Bu süzgeçte kayıt yok.",last7:"son 7 gün",turns:"Tur",turnsSub:"sıra el değiştirdi",runsSub:n=>`${n} tanesi sorunsuz`,noRuns:"koşu yok",workTime:"çalışma süresi",reviewTime:"inceleme süresi",today:"Bugün",hm:(h,m)=>`${h} sa ${m} dk`,min:m=>`${m} dk`,hr:h=>`${h} sa`,worked:v=>v+" çalıştı",waitFor:v=>"Bekleme: "+v,nowLabel:"şimdi"},
     tests:{title:"Testler",code:"Kod testleri",browser:"Tarayıcı testleri",natural:"Gerçek oynanış",lifecycle:"Sekme / Turu bitir",allPassed:"Hepsi geçti",missing:"Eksik var",waiting:"Bekleniyor",pass:"Geçti",blocked:"Engel",fail:"Hata",blockedSub:"Altyapı sınırı, oyun hatası değil",failSub:"Gerçek bir sorun bulundu",notRun:"Henüz koşmadı",runLog:"Detaylı test raporu: ",openReport:"Son test raporunu aç ›",noRun:"Henüz bulut testi yapılmadı.",noPipe:"Bu oyunun otomatik testleri henüz bağlı değil.",history:"Test geçmişi",noHistory:"Test geçmişi yok.",rowCode:"Kod",rowBrowser:"Tarayıcı",rowNatural:"Oynanış",rowLife:"Sekme / çıkış",cellPass:"geçti",cellBlocked:"engel",cellFail:"hata",cellNone:"koşmadı",lastRun:"Son test notu: "},
     gemini:{title:"Gemini İncelemesi",sub:"Bağımsız kalite kontrol · sırayı etkilemez, ikinci görüş sunar",pass:"Geçti",fail:"Sorun Buldu",unverified:"Kanıt Bekliyor",blocked:"Durduruldu",matchYes:"OpenAI ile aynı fikirde",matchNo:"OpenAI'dan farklı görüşte",matchUnknown:"OpenAI kararı bekleniyor",none:"Henüz Gemini incelemesi yok.",err:v=>"Durum: "+v,dur:v=>v+" sn sürdü",geminiSaid:v=>`Gemini'nin ilk değerlendirmesi: ${v}`,source:{gemini:"Doğrudan inceleme",'runner-override':"Eksik kanıt nedeniyle beklemeye alındı",'runner-fallback':"Teknik eksiklik nedeniyle tamamlanamadı"},task:"İncelenen iş: "},
     cmd:{title:"Komut Kutusu",sub:"Görevini yaz veya sesle söyle, doğrudan Jarvis'e Gönder'e dokun",ph:"Yapılmasını istediğin görevi veya inceleme notunu kısaca yaz…",
@@ -724,7 +759,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       sent:"Gönderildi · Jarvis 1-2 saniye içinde yanıtlayacak",
       approvedSent:"✅ Onayınız kaydedildi ve ekip akışına iletildi.",
       stoppedSent:"⏹️ Durdurma komutu gönderildi.",
-      fail:"Gönderilemedi: ",needText:"Önce görevi yaz, sesle söyle veya üstteki hazır tuşlardan birine dokun.",confirmStop:"Çalışan iş kesilsin ve sıradaki komutlar iptal edilsin mi?",recent:"Son komutlar",none:"Henüz komut gönderilmedi.",notTable:"Komut kutusu bağlantısı hazırlanıyor.",demo:"Örnek görünümde komut listeye eklendi.",st:{queued:"sırada",running:"çalışıyor",done:"tamamlandı",failed:"sorun oluştu",cancelled:"iptal edildi"},act:{jarvis_ask:"Jarvis Komutu",claude_do:"Claude'a Görev",gemini_review:"Gemini İncelemesi",approve:"Deniz Onayı",stop:"Durdurma"}},
+      fail:"Gönderilemedi: ",needText:"Önce görevi yaz, sesle söyle veya üstteki hazır tuşlardan birine dokun.",confirmStop:"Çalışan proje iş hattı duraklatılsın mı?",confirmCancelTask:"Yalnız bu tek görevi iptal etmek istiyor musun? (Projedeki diğer işler etkilenmez)",recent:"Son komutlar",none:"Henüz komut gönderilmedi.",notTable:"Komut kutusu bağlantısı hazırlanıyor.",demo:"Örnek görünümde komut listeye eklendi.",st:{queued:"sırada",running:"çalışıyor",done:"tamamlandı",failed:"sorun oluştu",cancelled:"iptal edildi"},act:{jarvis_ask:"Jarvis Komutu",claude_do:"Claude'a Görev",gemini_review:"Gemini İncelemesi",approve:"Deniz Onayı",stop:"Durdurma"}},
     play:{webTitle:"Oyunu aç",apkTitle:"APK'yı indir",playTitle:"Play testini aç",addTitle:"Test bağlantısı ekle",noneTitle:"Oyunu aç",
       webSub:v=>`${v} · web sürümünü açar`,apkSub:v=>`${v} · son APK'yı indirir`,playSub:v=>`${v} · Google Play testini açar`,
       noneOwner:v=>`${v} · henüz bağlantı yok · eklemek için dokun`,noneMember:v=>`${v} · henüz test sürümü yok`,
@@ -739,7 +774,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`Yapılan her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI otomatik geçişi",on:"etkin",off:"kapalı",wakeSub:v=>`Claude çalışmasını bitirince OpenAI kendiliğinden devreye girer. Son hareket: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Claude görev geldiğinde otomatik veya Komut Kutusu ile çalışır.",repo:"Proje bağlantısı: ",openRepo:"Proje sayfasını aç ›",lastPush:v=>` · son güncelleme ${v}`,openCommit:"Son değişikliği gör ›",last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
       workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar"},
     terms:[["Jarvis","Tek beyin komuta asistanı. Doğrudan seninle konuşur, durum kartını okur ve arka plan işlerini kredi yakmadan yönetir."],["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Doğrudan Jarvis'e sesle, yazıyla veya ekran görüntüsüyle emir vermeni sağlayan alan."]],
-    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.1 (v21) · Jarvis Tek Beyin Komuta Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Jarvis, Claude, OpenAI ve süreç adımları",
+    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.2 (v22) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Jarvis, Claude, OpenAI ve süreç adımları",
       demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · ${src}`,ghSignal:"Canlı senkronizasyon aktif",noDataYet:"Henüz veri yok",
       pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
     pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
@@ -751,8 +786,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     stage:{development:"Geliştirme",closed_testing:"Kapalı test",open_testing:"Açık test",production:"Yayında",paused:"Durduruldu"},
     track:{internal:"İç test",alpha:"Kapalı test",beta:"Açık test",production:"Yayın"},
     trackSt:{completed:"tamamlandı",inProgress:"aşamalı yayında",halted:"durduruldu",draft:"taslak"},
-    store:{title:"Mağaza",addGame:"+ Oyun ekle",gamesSub:"Oyunlar · dokununca takip sayfası açılır",inbox:"Gelen kutusu",unread:"Okunmamış",unmatched:"Eşleşmeyen",noGames:"Henüz mağaza oyunu yok. Sahip \"Oyun ekle\" ile ekler.",noMail:"Bu süzgeçte e-posta yok.",mailWaiting:"Gmail bağlanınca e-postalar burada toplanır.",
-      gmail:"Gmail",play:"Play Console",connected:"bağlı",notConnected:"kurulum bekliyor",syncErr:"hata",lastSync:v=>"son eşitleme "+v,neverSync:"henüz eşitlenmedi",unreadMail:"Okunmamış e-posta",last30d:"Son 30 gün",noSubject:"(Konu başlığı yok)",newReviews:"Yeni yorum",reviews:"Yorumlar",avg:"ortalama",noReviews:"Henüz yorum yok",reviewsLocked:"Yorumlar açık teste geçince gelir",lastEvent:"Son hareket",
+    store:{title:"Yayınlar",addGame:"+ Oyun ekle",gamesSub:"Oyunlar · dokununca takip sayfası açılır",inbox:"Gelen kutusu",unread:"Okunmamış",unmatched:"Eşleşmeyen",noGames:"Henüz mağaza oyunu yok. Sahip \"Oyun ekle\" ile ekler.",noMail:"Bu süzgeçte e-posta yok.",mailWaiting:"Gmail bağlanınca e-postalar burada toplanır.",
+      gmail:"Gmail",play:"Play Console",connected:"bağlı",notConnected:"henüz bağlı değil",syncErr:"hata",lastSync:v=>"son eşitleme "+v,neverSync:"henüz bağlı değil",unreadMail:"Okunmamış e-posta",last30d:"Son 30 gün",noSubject:"(Konu başlığı yok)",newReviews:"Yeni yorum",reviews:"Yorumlar",avg:"ortalama",noReviews:"Henüz yorum yok",reviewsLocked:"Yorumlar açık teste geçince gelir",lastEvent:"Son hareket",
       openGmail:"Gmail'de aç",markRead:"Okundu",markUnread:"Okunmadı yap",assign:"Oyuna bağla",noGame:"— oyun yok —",seen:"Görüldü",newTag:"Yeni",reply:"Geliştirici yanıtı",
       tracks:"Mağaza durumu",noTracks:"Play Console bağlanınca test/yayın kanalları burada görünür.",versions:"sürüm",rollout:v=>`%${v} kullanıcıya`,emptyTrack:"boş",
       notes:"Ekip notları",notePh:"Not yaz… (ör. testçi geri bildirimi, yapılacak)",noNotes:"Henüz not yok.",events:"Olaylar",noEvents:"Henüz olay yok.",mailFor:"Bu oyunun e-postaları",links:"Bağlantılar",storeLink:"Play Store sayfası",consoleLink:"Play Console",pkg:"Paket",syncedAt:v=>"Play eşitlemesi "+v,
@@ -761,7 +796,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   };
   L.en={
     ui:{menu:"Menu",pickGame:"Pick a game",brand:"Oryvona Command Center",studio:"Studio Command Center",refresh:"Refresh",games:"Games",help:"Help",terms:"Terms and roles",waiting:"Waiting",comment:"Comment",work:"Action",all:"All",cloudTest:"Cloud test",back:"Back",edit:"Edit",download:"Download",open:"Open",noData:"No data",none:"None yet",save:"Save",cancel:"Cancel",add:"Add",delete:"Delete",close:"Close",yes:"Yes",you:"you",owner:"owner",connecting:"Connecting…",loginNeeded:"Sign-in needed",connErr:"Connection error",live:v=>"Live · "+v,lastMove:v=>"Last activity "+v,optional:"optional"},
-    tab:{home:"Overview",jarvis:"Jarvis",feed:"Activity",tests:"Tests",store:"Store",settings:"Settings"},
+    tab:{home:"Studio",jarvis:"Jarvis",feed:"Jobs",tests:"Test",store:"Releases",settings:"Settings"},
     jarvis:{
       title:"Jarvis · Single-Brain Command",
       sub:"Save commands durably; coordinate the existing workflow without extra paid APIs",
@@ -808,7 +843,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     verb:{claim:"started work",release:"handed over the turn",resume:"resumed",run:"automatic check",note:"left a note"},
     stageSt:{PASS:"Passed",PARTIAL:"Partial",ACTIVE:"Active",BLOCKED:"Blocked",PENDING:"Queued"},
     ago:{now:"just now",m:v=>v+" min ago",h:v=>v+" h ago",d:v=>v+" d ago"},
-    feed:{more:n=>`Show more (${n})`,title:"Team activity",week:"This week",records:"Records",notes:"Notes",empty:"No activity yet.",emptyFilter:"No records for this filter.",last7:"last 7 days",turns:"Turns",turnsSub:"hand-overs",runsSub:n=>`${n} clean`,noRuns:"no runs",workTime:"working time",reviewTime:"review time",today:"Today",hm:(h,m)=>`${h} h ${m} min`,min:m=>`${m} min`,hr:h=>`${h} h`,worked:v=>v+" worked",waitFor:v=>"Waiting: "+v,nowLabel:"now"},
+    feed:{more:n=>`Show more (${n})`,title:"Jobs & Activity",week:"This week",records:"Records",notes:"Notes",empty:"No activity yet.",emptyFilter:"No records for this filter.",last7:"last 7 days",turns:"Turns",turnsSub:"hand-overs",runsSub:n=>`${n} clean`,noRuns:"no runs",workTime:"working time",reviewTime:"review time",today:"Today",hm:(h,m)=>`${h} h ${m} min`,min:m=>`${m} min`,hr:h=>`${h} h`,worked:v=>v+" worked",waitFor:v=>"Waiting: "+v,nowLabel:"now"},
     tests:{title:"Tests",code:"Code tests",browser:"Browser tests",natural:"Real gameplay",lifecycle:"Tab switch / finish run",allPassed:"All passed",missing:"Some missing",waiting:"Waiting",pass:"Passed",blocked:"Blocked",fail:"Failed",blockedSub:"Infrastructure limit, not a game bug",failSub:"A real problem was found",notRun:"Not run yet",runLog:"Detailed test report: ",openReport:"Open latest test report ›",noRun:"No cloud test run yet.",noPipe:"This game's automated tests are not linked yet.",history:"Test history",noHistory:"Test history.",rowCode:"Code",rowBrowser:"Browser",rowNatural:"Gameplay",rowLife:"Tab / quit",cellPass:"passed",cellBlocked:"blocked",cellFail:"failed",cellNone:"not run",lastRun:"Latest test note: "},
     gemini:{title:"Gemini Review",sub:"Independent quality review · never changes the turn, offers a second opinion",pass:"Passed",fail:"Found Issues",unverified:"Awaiting Evidence",blocked:"Blocked",matchYes:"Agrees with OpenAI",matchNo:"Differs from OpenAI",matchUnknown:"Waiting for OpenAI's verdict",none:"No Gemini review yet.",err:v=>"Status: "+v,dur:v=>v+" s",geminiSaid:v=>`Gemini's initial verdict: ${v}`,source:{gemini:"Direct review",'runner-override':"Held: missing evidence",'runner-fallback':"Incomplete due to technical limit"},task:"Reviewed work: "},
     cmd:{title:"Command Box",sub:"Write or dictate a task and tap Send to dispatch to Jarvis",ph:"Briefly describe the task or review note…",
@@ -829,7 +864,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       sent:"Saved; waiting for confirmed delivery and runner results",
       approvedSent:"✅ Approval recorded and sent to the team.",
       stoppedSent:"⏹️ Stop command sent.",
-      fail:"Could not send: ",needText:"Write the task first or tap a preset chip above.",confirmStop:"Interrupt the running job and cancel queued commands?",recent:"Recent commands",none:"No commands sent yet.",notTable:"Command box connection is being prepared.",demo:"Command added to local preview list.",st:{queued:"queued",running:"running",done:"completed",failed:"issue",cancelled:"cancelled"},act:{jarvis_ask:"Jarvis Command",claude_do:"Task for Claude",gemini_review:"Gemini Review",approve:"Owner Approval",stop:"Stop"}},
+      fail:"Could not send: ",needText:"Write the task first or tap a preset chip above.",confirmStop:"Pause the active project workflow?",confirmCancelTask:"Cancel only this single task? (Other project jobs are unaffected)",recent:"Recent commands",none:"No commands sent yet.",notTable:"Command box connection is being prepared.",demo:"Command added to local preview list.",st:{queued:"queued",running:"running",done:"completed",failed:"issue",cancelled:"cancelled"},act:{jarvis_ask:"Jarvis Command",claude_do:"Task for Claude",gemini_review:"Gemini Review",approve:"Owner Approval",stop:"Stop"}},
     play:{webTitle:"Open game",apkTitle:"Download APK",playTitle:"Open Play test",addTitle:"Add test link",noneTitle:"Open game",
       webSub:v=>`${v} · opens the web build`,apkSub:v=>`${v} · downloads the latest APK`,playSub:v=>`${v} · opens the Google Play test`,
       noneOwner:v=>`${v} · no link yet · tap to add`,noneMember:v=>`${v} · no test build yet`,
@@ -844,7 +879,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI auto-handoff",on:"enabled",off:"off",wakeSub:v=>`When Claude finishes, OpenAI steps in automatically. Last activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"Claude runs automatically on new tasks or via the Command Box.",repo:"Project link: ",openRepo:"Open project page ›",lastPush:v=>` · last update ${v}`,openCommit:"View latest change ›",last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
       workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes"},
     terms:[["Jarvis","Single-brain command assistant. Talks directly with you, reads the status card, and orchestrates background tasks without wasting credits."],["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Send voice, text, or annotated screenshot commands directly to Jarvis."]],
-    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.1 (v21) · Jarvis Single-Brain Command Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Jarvis, Claude, OpenAI and workflow steps",
+    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.2 (v22) · Verified Delivery & Jarvis Studio Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Jarvis, Claude, OpenAI and workflow steps",
       demoView:"Sample view",notSignedIn:"Not signed in",ownerRole:"Studio owner",memberRole:"Team member",liveInfo:(t,src)=>`Last update ${t} · ${src}`,ghSignal:"Live sync active",noDataYet:"No data yet",
       pushOn:"On",pushOff:"Turn on",pushDemo:"Off in the sample view",pushUnsup:"This browser does not support it",pushDenied:"Notification permission is off; enable it in the phone's app settings",pushActive:"This device receives notifications. If they arrive as \"Chrome\": open phone Settings → Apps → Oryvona → Notifications.",pushIdle:"Alerts you even when the app is closed",pushSaveErr:"Could not save: ",pushAsking:"Asking for permission…",pushClosed:"The permission box closed; tap Turn on again and choose Allow.",pushFail:"Could not enable: ",pushSending:"Sending…",pushSendFail:"Could not send: ",pushSent:n=>`Test sent · ${n} device(s). It arrives within seconds.`},
     pref:{mine:"When the turn comes to me (final test)",blocked:"When a blocker is recorded",turns:"On every hand-over (Claude ↔ OpenAI)",runs:"When a cloud test finishes",store:"Store: new review, mail, status change"},
@@ -856,8 +891,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     stage:{development:"In development",closed_testing:"Kapalı test",open_testing:"Open testing",production:"Live",paused:"Paused"},
     track:{internal:"Internal testing",alpha:"Closed testing",beta:"Open testing",production:"Production"},
     trackSt:{completed:"completed",inProgress:"staged rollout",halted:"halted",draft:"draft"},
-    store:{title:"Store",addGame:"+ Add game",gamesSub:"Games · tap to open its tracking page",inbox:"Inbox",unread:"Unread",unmatched:"Unmatched",noGames:"No store games yet. The owner adds one with \"Add game\".",noMail:"No e-mail for this filter.",mailWaiting:"E-mails collect here once Gmail is connected.",
-      gmail:"Gmail",play:"Play Console",connected:"connected",notConnected:"setup pending",syncErr:"error",lastSync:v=>"last sync "+v,neverSync:"never synced",unreadMail:"Unread e-mail",last30d:"Last 30 days",noSubject:"(No subject)",newReviews:"New reviews",reviews:"Reviews",avg:"average",noReviews:"No reviews yet",reviewsLocked:"Reviews arrive once the game is in open testing",lastEvent:"Last activity",
+    store:{title:"Releases",addGame:"+ Add game",gamesSub:"Games · tap to open its tracking page",inbox:"Inbox",unread:"Unread",unmatched:"Unmatched",noGames:"No store games yet. The owner adds one with \"Add game\".",noMail:"No e-mail for this filter.",mailWaiting:"E-mails collect here once Gmail is connected.",
+      gmail:"Gmail",play:"Play Console",connected:"connected",notConnected:"not connected yet",syncErr:"error",lastSync:v=>"last sync "+v,neverSync:"not connected yet",unreadMail:"Unread e-mail",last30d:"Last 30 days",noSubject:"(No subject)",newReviews:"New reviews",reviews:"Reviews",avg:"average",noReviews:"No reviews yet",reviewsLocked:"Reviews arrive once the game is in open testing",lastEvent:"Last activity",
       openGmail:"Open in Gmail",markRead:"Mark read",markUnread:"Mark unread",assign:"Link to game",noGame:"— no game —",seen:"Seen",newTag:"New",reply:"Developer reply",
       tracks:"Store status",noTracks:"Test/release tracks appear here once Play Console is connected.",versions:"version",rollout:v=>`to ${v}% of users`,emptyTrack:"empty",
       notes:"Team notes",notePh:"Write a note… (e.g. tester feedback, to-do)",noNotes:"No notes yet.",events:"Events",noEvents:"No events yet.",mailFor:"This game's e-mails",links:"Links",storeLink:"Play Store page",consoleLink:"Play Console",pkg:"Package",syncedAt:v=>"Play sync "+v,
@@ -1148,6 +1183,105 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if($("digestFeedList"))$("digestFeedList").innerHTML=html;
   }
 
+  // ---------- v22 Verified Delivery & 4-Dimensional Acceptance Contracts ----------
+  const V22_GAME_CONTRACTS={
+    koza:{
+      technical_qa:"PARTIAL (Koru 100ms engel)",device_qa:"PENDING (Dokunmatik & telefon)",product_acceptance:"OPEN (C02 sürüyor)",publication:"BLOCKED_PRODUCT (APK kapalı)",
+      recipe_id:"koza-web-k01-2",apk_allowed:false,character_map_lock:true,
+      readyTr:"K01 SIMPLE RUN web oynatıcısı (SHA: 6f5fcf0d…) + Kod 99/99, Tarayıcı 45/45, Oynanış 33/33, Lumi 18/18",
+      waitingTr:"Koru örneklem zamanlaması, dokunmatik sürükleme kanıtı ve Deniz fiziksel telefon testi",
+      ownerTr:"Fiziksel telefon/tarayıcı son testi tamamlanmadan APK üretilmez.",
+      nextTaskTr:"C02 Kart seçimi, tekrar oyna ve Koru/dokunmatik kanıt doğrulaması",
+      pkgTr:"play/koza/k01.html · 16.9 KB · APK üretimi kilitli"
+    },
+    "charm-drop":{
+      technical_qa:"RECORDED_PASS (10/10 paket)",device_qa:"PENDING (Fiziksel telefon)",product_acceptance:"RECORDED_PASS_WITH_LIMITS (C21 kabul)",publication:"BLOCKED_PRODUCT (APK kapalı)",
+      recipe_id:"charm-drop-web-c21",apk_allowed:false,character_map_lock:true,
+      readyTr:"C21 kabul edilen web paketi (SHA: 0c51bf12…) + 10/10 standart/sunum/müşteri kontrolü",
+      waitingTr:"C22 müşteri görünürlüğü görevinin uygulanması ve Deniz fiziksel telefon onayı",
+      ownerTr:"C21 telefon deneyimi onayı; C22 yalnız hazırlık görevidir, tamamlanmış sürüm sayılmaz.",
+      nextTaskTr:"C22 müşteri görünürlüğü uygulamasını doğrula ve telefon kabulüne sun",
+      pkgTr:"play/charm-drop/index.html · 16.52 MB · APK üretimi kilitli"
+    },
+    "forge-run":{
+      technical_qa:"RECORDED_PASS (7/7 paket · 64 kod)",device_qa:"DEVICE_PENDING (FR25J telefon testi)",product_acceptance:"OPEN (DT Forest dikey dilim)",publication:"INTERNAL_TEST_ONLY",
+      recipe_id:"forge-run-dt-forest-fr25j",apk_allowed:true,character_map_lock:true,
+      readyTr:"ForgeRun-DT-Forest-Test-0.9.43-FR25J.apk (SHA: 94505e0e… · versionCode 47 · com.forgerun.dtslicetest)",
+      waitingTr:"FR25J APK paketinin gerçek Android telefonda kurulum ve koşu doğrulaması",
+      ownerTr:"FR25J APK'sını telefonda test edip onay veya düzeltme notu ver (Eski BuildAndroid tarifi engellendi).",
+      nextTaskTr:"FR25J DT_Forest sahne ve mobil dokunmatik koşu doğrulaması",
+      pkgTr:"ForgeRun-DT-Forest-Test-0.9.43-FR25J.apk · 45.28 MB · DT tarifi sabit"
+    },
+    aeryo:{
+      technical_qa:"RECORDED_PASS (8/8 içerik + 8/8 paket)",device_qa:"DEVICE_PENDING (v1.2.0 telefon testi)",product_acceptance:"OPEN (300 bölüm)",publication:"READY_FOR_CLOSED_TEST",
+      recipe_id:"aeryo-1.2.0-10004-300levels",apk_allowed:true,character_map_lock:true,
+      readyTr:"Web 1.2.0 (SHA: c73f207e…), APK (SHA: fa2235c2…) ve Play Store AAB (SHA: 8f866879…)",
+      waitingTr:"v1.2.0 (10004 · 300 bölüm) APK'sının fiziksel telefonda son kontrolü",
+      ownerTr:"Telefona yalnız APK kurulur (.aab doğrudan telefona kurulmaz; Play Console içindir).",
+      nextTaskTr:"v1.2.0 300 bölüm telefon testi ve kapalı test kanalına geçiş",
+      pkgTr:"Web (879 KB) + APK (25.56 MB · telefon) + AAB (24.48 MB · mağaza)"
+    },
+    tupsper:{
+      technical_qa:"UNVERIFIED (Kaynak bekleniyor)",device_qa:"UNVERIFIED",product_acceptance:"SOURCE_PENDING",publication:"BLOCKED_SOURCE",
+      recipe_id:"tupsper-cloud-boxing-pending",apk_allowed:false,character_map_lock:true,
+      readyTr:"5. resmi oyun merkez kaydı ve durum kartı hazır (Buluttaki boks projesi)",
+      waitingTr:"Buluttaki boks oyununun gerçek repo/kaynak ve doğrulanmış build bağlantısı",
+      ownerTr:"Bulut boks kaynak/repo adresini bağla (Tuckspire bulmaca APK'sı kesinlikle Tupsper'e bağlanmaz).",
+      nextTaskTr:"Tupsper bulut boks repo ve ilk doğrulanmış paket bağlantısı",
+      pkgTr:"Kaynak bekleniyor · Tuckspire (bulmaca) ayrı arşivde izole"
+    }
+  };
+  function renderV22StudioCards(){
+    const cur=current||"koza";const sp=gameMeta(cur);const c=V22_GAME_CONTRACTS[cur]||V22_GAME_CONTRACTS.koza;
+    const st=(cur===current&&status)?status:allStatus[cur];const hs=(st&&st.handoff&&st.handoff.status)||"READY_WORK";
+    const lockBadge=c.character_map_lock?(lang==="tr"?"🔒 Karakter, Harita ve Oyun Yönü Kilitli":"🔒 Character, Map & Direction Locked"):"";
+    if($("v22StudioSummarySub"))$("v22StudioSummarySub").textContent=`${sp.name} · ${c.recipe_id}`;
+    if($("v22StudioSummaryBody")){
+      $("v22StudioSummaryBody").innerHTML=`<div class="v22-exec-grid">
+        <div class="v22-exec-row"><span class="k">✅ ${lang==="tr"?"Hazır Olan Ne?":"What is Ready?"}</span><span class="v">${esc(c.readyTr)}</span></div>
+        <div class="v22-exec-row"><span class="k">⏳ ${lang==="tr"?"Bekleyen Ne?":"What is Pending?"}</span><span class="v">${esc(c.waitingTr)}</span></div>
+        <div class="v22-exec-row"><span class="k">👤 ${lang==="tr"?"Bana Düşen Ne?":"My Action"}</span><span class="v">${esc(c.ownerTr)}</span></div>
+      </div>
+      <div class="v22-gate-grid">
+        <div class="v22-gate-item"><span class="gk">${lang==="tr"?"1. Teknik Kontrol":"1. Technical QA"}</span><span class="gv">${esc(c.technical_qa)}</span></div>
+        <div class="v22-gate-item"><span class="gk">${lang==="tr"?"2. Telefon / Cihaz Testi":"2. Device QA"}</span><span class="gv">${esc(c.device_qa)}</span></div>
+        <div class="v22-gate-item"><span class="gk">${lang==="tr"?"3. Ürün Kabulü":"3. Product Gate"}</span><span class="gv">${esc(c.product_acceptance)}</span></div>
+        <div class="v22-gate-item"><span class="gk">${lang==="tr"?"4. Yayın Durumu":"4. Publication Gate"}</span><span class="gv">${esc(c.publication)}</span></div>
+      </div>
+      <div class="detail" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><span>${esc(lockBadge)}</span><span>${lang==="tr"?"Ek model/API harcaması: 0 TL":"Extra API spend: $0"}</span></div>`;
+    }
+    if($("v22PipeBody")){
+      const stepIdx=cur==="tupsper"?0:hs==="CLAUDE_WORKING"||hs==="READY_CLAUDE"?0:hs==="WORK_WORKING"||hs==="READY_WORK"?2:hs==="USER_TEST_READY"?4:1;
+      const steps=[
+        [lang==="tr"?"1. Geliştirme":"1. Develop","Claude Code"],
+        [lang==="tr"?"2. Test":"2. Test","Bulut / Kanıt"],
+        [lang==="tr"?"3. İnceleme":"3. Review","OpenAI & Gemini"],
+        [lang==="tr"?"4. Paketleme":"4. Package",c.recipe_id],
+        [lang==="tr"?"5. Teslim":"5. Deliver","Deniz Onayı"]
+      ];
+      $("v22PipeBody").innerHTML=`<div class="v22-pipe">${steps.map(([lbl,sub],idx)=>{
+        const cls=cur==="tupsper"?(idx===0?"blocked":""):(idx<stepIdx?"done":idx===stepIdx?"active":"");
+        return `<div class="v22-pipe-step ${cls}"><b>${esc(lbl)}</b><small>${esc(sub)}</small></div>`;
+      }).join("")}</div><div class="detail" style="margin-top:6px">${esc(sp.name)} · ${lang==="tr"?"Tek aktif yazıcı kilidi + fence token koruması aktif · Maks 2 otomatik düzeltme":"Single active writer lock + fence token active · Max 2 auto-corrections"}</div>`;
+    }
+    if($("v22ReleaseBody")){
+      const playSt=playConnected()?(lang==="tr"?"Play Console bağlı":"Play Console connected"):(lang==="tr"?"Mağaza metrikleri: Henüz bağlı değil":"Store metrics: Not connected yet");
+      $("v22ReleaseBody").innerHTML=`<div class="v22-exec-grid">
+        <div class="v22-exec-row"><span class="k">📦 ${esc(sp.name)}</span><span class="v">${esc(c.pkgTr)}</span></div>
+        <div class="v22-exec-row"><span class="k">🛡️ ${lang==="tr"?"Yayın Kuralı":"Release Rule"}</span><span class="v">${esc(c.ownerTr)}</span></div>
+        <div class="v22-exec-row"><span class="k">📊 ${lang==="tr"?"Mağaza Veri":"Store Data"}</span><span class="v">${esc(playSt)}</span></div>
+      </div>`;
+    }
+    if($("jarvisDecisionGrid")){
+      const turnTxt=st&&st.handoff?turnLabel(turnInfo(st.handoff.status)):(cur==="tupsper"?(lang==="tr"?"Kaynak Bekleniyor":"Source Pending"):(lang==="tr"?"DJ-KABIN Hazır":"DJ-KABIN Ready"));
+      $("jarvisDecisionGrid").innerHTML=`
+        <div class="j-dec-card"><span class="jk">1. ${lang==="tr"?"Şimdi Ne Oluyor?":"What is Happening?"}</span><span class="jv">${esc(sp.name)} · ${esc(turnTxt)}</span><span class="js">${esc(c.technical_qa)}</span></div>
+        <div class="j-dec-card"><span class="jk">2. ${lang==="tr"?"Sıradaki Doğru İş":"Next Right Task"}</span><span class="jv">${esc(c.nextTaskTr)}</span><span class="js">${esc(c.recipe_id)}</span></div>
+        <div class="j-dec-card"><span class="jk">3. ${lang==="tr"?"Test Paketi":"Test Package"}</span><span class="jv">${esc(c.pkgTr)}</span><span class="js">${esc(lockBadge)}</span></div>
+        <div class="j-dec-card"><span class="jk">4. ${lang==="tr"?"Senden Gereken":"Needed From You"}</span><span class="jv">${esc(c.ownerTr)}</span><span class="js">${esc(c.publication)}</span></div>`;
+    }
+  }
+
   // ---------- state ----------
   let status=null,feedDocs=[],runsDocs=[],projects=[],current=null,session=null,team=[],isOwner=false,feedFilter="all",demo=false,allStatus={};
   let shadow=null,commands=[]; // Faz 1: son Gemini gölge incelemesi + Komut Kutusu satırları (commands===null → tablo yok)
@@ -1181,7 +1315,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const p=projects.find(x=>x.id===cur);if($("topTitle"))$("topTitle").textContent=p?p.name:cm.name;
   }
   function showView(v){if(!VIEWS.includes(v))v="home";view=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===tabOf(v))));window.scrollTo({top:0});
-    renderGameBar();
+    renderGameBar();renderV22StudioCards();
     if(v==="games")renderGames();if(v==="jarvis")renderJarvis();if(v==="feed"){renderDigest();renderWeek();renderFeedList();}if(v==="tests")renderTestsBody();if(v==="settings")renderSettings();if(v==="store")renderStore();if(v==="game")renderGame();document.dispatchEvent(new CustomEvent("oryvona:view-change",{detail:{view:v,id:current}}));}
   function turnChip(s){const h=s?.handoff||{};const t=turnInfo(h.status);const cls=h.status==="BLOCKED"?"bad":h.status==="USER_TEST_READY"?"deniz":t.who||"";return {cls,text:s?.handoff?turnLabel(t):T("games.notLinked")};}
   function renderDrawer(){ensureStudioCatalog();$("drawerUser").textContent=session?.user?.email||T("ui.studio");
@@ -1192,6 +1326,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function closeDrawer(){if(window.OryvonaNativeShell)window.OryvonaNativeShell.close("drawer");else{$("drawer").hidden=true;document.body.style.overflow="";}}
   $("drawerClose").addEventListener("click",closeDrawer);
   $("menuBtn").addEventListener("click",openDrawer);$("titleBtn").addEventListener("click",openDrawer);$("drawerScrim").addEventListener("click",closeDrawer);
+  $("settingsTopBtn")?.addEventListener("click",()=>{history.pushState({view:"settings"},"");showView("settings");});
   $("drawer").addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){closeDrawer();const navigate=()=>{history.pushState({view:g.dataset.go},"");showView(g.dataset.go);};if(window.OryvonaNativeShell?.isClosing())window.OryvonaNativeShell.afterClose(navigate);else navigate();return;}if(e.target.closest("[data-game]")||e.target.closest("[data-detail]"))closeDrawer();});
   document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b){history.pushState({view:b.dataset.view},"");showView(b.dataset.view);}});
   function fillDetail(key){detailKey=key;const d=DETAILS[key];if(!d)return;$("detailTitle").textContent=T("det."+key);$("detailBody").innerHTML=d();if(key==="qa")notifyTestsRendered("detailBody");if(key==="auto")renderTimeline("tl3",72);}
@@ -1200,8 +1335,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
   $("backBtn").addEventListener("click",()=>history.back());$("gameBack").addEventListener("click",()=>history.back());
   addEventListener("popstate",e=>{if(window.OryvonaNativeShell?.handlePopState(e))return;const s=e.state||{view:"home"};if(s.view==="detail"&&s.key)fillDetail(s.key);if(s.view==="game")gameId=s.game||gameId;showView(s.view||"home");});
   history.replaceState({view:"home"},"");
-  function refreshOpen(){if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="jarvis")renderJarvis();if(view==="tests")renderTestsBody();if(view==="feed"){renderDigest();renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();if(view==="store")renderStore();if(view==="game")renderGame();}
-  function rerenderAll(){freshness();renderGameBar();renderDigest();if(status)renderHome(status);else applyStatus(null);renderTimeline("tl",24);refreshOpen();renderStoreBadge();renderGemini();renderCmd();renderJarvis();renderReadiness();updatePlayButtonUI(current);renderRunner();}
+  function refreshOpen(){renderV22StudioCards();if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="jarvis")renderJarvis();if(view==="tests")renderTestsBody();if(view==="feed"){renderDigest();renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();if(view==="store")renderStore();if(view==="game")renderGame();}
+  function rerenderAll(){freshness();renderGameBar();renderDigest();renderV22StudioCards();if(status)renderHome(status);else applyStatus(null);renderTimeline("tl",24);refreshOpen();renderStoreBadge();renderGemini();renderCmd();renderJarvis();renderReadiness();updatePlayButtonUI(current);renderRunner();}
 
   // ---------- games list ----------
   function renderGames(){ensureStudioCatalog();const Ls=$("gamesList");if(!projects.length){Ls.innerHTML=emptyMsg();return;}
@@ -1288,7 +1423,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const wn=latestTeamNote(s);$("cardWork").hidden=!wn;
     if(wn){if($("cardWorkLabel"))$("cardWorkLabel").textContent=wn.labelTr||Hm.workNote;$("cWork").textContent=humanText(wn.titleTr||Hm.note)+" · "+ago(wn.at);$("cWorkS").textContent=summarizeText(wn.textTr,wn.actor,"note").summary;}
     ensureStudioCatalog();
-    renderGameBar();updatePlayButtonUI(current);renderReadiness();renderDigest();
+    renderGameBar();updatePlayButtonUI(current);renderReadiness();renderDigest();renderV22StudioCards();
     allStatus[current]=s;}
   // A game that has no project_status row yet (its automation is not connected): say so honestly and clear every card,
   // so nothing from the previously selected game stays on screen.
@@ -1300,7 +1435,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     for(const [v,s,i] of [["cTurn","cTurnS","icTurn"],["cStage","cStageS","icStage"],["cQa","cQaS","icQa"],["cAuto","cAutoS","icAuto"]]){$(v).textContent="—";$(s).textContent="";$(i).className="ic";}
     if(sp.buildVer){$("cStage").textContent=sp.buildVer;$("cStageS").textContent=locOf(sp,true);$("icStage").className="ic good";}
     $("ring").innerHTML="";$("cardWork").hidden=true;
-    ensureStudioCatalog();renderGameBar();updatePlayButtonUI(current);renderReadiness();renderDigest();}
+    ensureStudioCatalog();renderGameBar();updatePlayButtonUI(current);renderReadiness();renderDigest();renderV22StudioCards();}
   // timeline
   function segments(hours){const now=Date.now(),start=now-hours*3600e3;const ev=feedDocs.map(d=>d.data()).filter(e=>["claim","release","resume"].includes(e.kind)).sort((a,b)=>new Date(a.at)-new Date(b.at));const segs=[];let cur=null;
     for(const e of ev){const t=new Date(e.at).getTime();if(e.kind==="claim"){if(cur&&cur.kind==="wait"){cur.end=t;segs.push(cur);}cur={kind:"work",actor:e.actor,start:t,text:summarizeText(e.textTr||e.text,e.actor,"claim").summary};}
@@ -1588,6 +1723,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
   function renderJarvis(){
     renderCommandOutbox();
+    renderV22StudioCards();
     const J=S().jarvis,C=S().cmd;const cur=current||"koza";const sp=gameMeta(cur);
     if($("jarvisSub"))$("jarvisSub").textContent=J.subGame?J.subGame(sp.name):J.sub;
     if($("jarvisComposer"))$("jarvisComposer").hidden=!isOwner;
@@ -1611,8 +1747,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
       const stCls=c.status==="done"?"good":c.status==="failed"?"bad":c.status==="running"?"info":"warn";
       out+=`<div class="j-msg jarvis"><span class="j-who">✨ Jarvis · ${esc(ago(c.finished_at||c.created_at))}</span><div class="j-txt">${esc(reply)}</div><div class="j-meta">${rBadge}<span class="chip sm ${stCls}">${esc(C.st[c.status]||c.status)}</span>${stopBtn}</div></div>`;
     }
+    const nearBottom=!stream.dataset.initialized||(stream.scrollHeight-stream.scrollTop-stream.clientHeight<120);
     stream.innerHTML=out;
-    requestAnimationFrame(()=>{try{stream.scrollTop=stream.scrollHeight;}catch{}});
+    stream.dataset.initialized="1";
+    if(nearBottom)requestAnimationFrame(()=>{try{stream.scrollTop=stream.scrollHeight;}catch{}});
   }
 
   // ---------- Görsel Ekleme + Dokunmatik Kırmızı İşaretleme ----------
@@ -1840,14 +1978,24 @@ textarea{width:100%;min-height:80px;resize:vertical}
   }
   async function dispatchContextualCmd(action,btnEl){
     const C=S().cmd;
-    if(action==="stop"&&!confirm(C.confirmStop))return;
+    const singleCmdId=btnEl?.dataset?.cmdId||null;
+    if(action==="stop"&&!confirm(singleCmdId?(C.confirmCancelTask||C.confirmStop):C.confirmStop))return;
     const cur=current||"koza";const projObj=projects.find(x=>x.id===cur)||gameMeta(cur);
     const defaultTxt=action==="approve"
       ?`[${projObj.name}] Son sürümü ve durumu kontrol ettim; onaylıyorum.`
-      :`[${projObj.name}] Çalışan görevi ve sıradaki işlemleri durdur.`;
-    const resultPayload={target_game:cur,note_tr:action==="approve"?"Deniz kart üzerinden onay verdi.":"Deniz kart üzerinden durdurma komutu verdi."};
+      :(singleCmdId?`[${projObj.name}] Tek görev iptali: #${singleCmdId}`:`[${projObj.name}] Çalışan görevi ve sıradaki işlemleri durdur.`);
+    const resultPayload=action==="approve"
+      ?{target_game:cur,operation:"approve_candidate",note_tr:"Deniz kart üzerinden onay verdi."}
+      :(singleCmdId
+        ?{target_game:cur,operation:"cancel_task",cancel_task_id:singleCmdId,note_tr:`Deniz yalnızca #${singleCmdId} görevini iptal etti.`}
+        :{target_game:cur,operation:"pause_project",note_tr:"Deniz proje kuyruğunu duraklatma komutu verdi."});
     if(demo){
-      if(action==="stop"){commands=(commands||[]).map(c=>(c.status==="running"||c.status==="queued")?{...c,status:"cancelled"}:c);}
+      if(action==="stop"){
+        commands=(commands||[]).map(c=>{
+          if(singleCmdId)return c.id===singleCmdId?{...c,status:"cancelled"}:c;
+          return (c.status==="running"||c.status==="queued")?{...c,status:"cancelled"}:c;
+        });
+      }
       commands=[{id:"ctx"+Date.now(),project_id:"koza",action,text:defaultTxt,status:action==="approve"?"done":"queued",created_at:new Date().toISOString(),runner:null,result:resultPayload},...(commands||[])];
       renderCmd();renderJarvis();
       if($("cmdMsg"))$("cmdMsg").textContent=action==="approve"?C.approvedSent:C.stoppedSent;

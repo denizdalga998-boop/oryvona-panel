@@ -1,6 +1,6 @@
-// v21: durable commands live in IndexedDB. Shell updates never erase that queue or existing game caches.
-const CACHE = 'oryvona-panel-v21';
-// Game payloads did not change in v21: retain the v20 on-demand cache instead of forcing a download.
+// v22: durable commands live in IndexedDB. Shell updates never erase that queue or existing game caches.
+const CACHE = 'oryvona-panel-v22';
+// Game payloads did not change in v22: retain the v20 on-demand cache instead of forcing a download.
 const GAME_CACHE = 'oryvona-games-v20';
 const SCOPE = new URL('./', self.registration.scope);
 const SHELL = ['./','./index.html','./config.js','./command-outbox.js','./vendor/supabase-2.45.4.min.js','./manifest.json','./native-shell.css','./native-shell.js','./game-lab.css','./game-lab.js','./data/game-builds.json','./logo.webp','./logo.png','./icon-192.png','./icon-512.png','./icon-512-maskable.png','./badge-96.png'];
