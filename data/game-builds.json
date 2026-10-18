@@ -333,13 +333,13 @@
       "name": "Tuckspire",
       "version": "0.26 (code 26 · Kapalı Test)",
       "versionCode": 26,
-      "runtime": "Android + Web (games.oryvona.tuckspire)",
-      "platform": "Android Closed Test / Web",
-      "entry": null,
+      "runtime": "Single-file HTML + Android (games.oryvona.tuckspire)",
+      "platform": "Web / Android Closed Test",
+      "entry": "play/tupsper/index.html?v=25",
       "artifact": {
-        "sha256": "4d5088c0689499065e539e73bba17373748e6f0b9ac1463968f6812ccc6a69a5",
-        "file": null,
-        "bytes": 5412890
+        "sha256": "ce0b8436da43059a41848fdf414062308c879a6dd0cba850d88ebbe5a223c163",
+        "file": "play/tupsper/index.html",
+        "bytes": 886790
       },
       "v22Gates": {
         "technicalQa": "RECORDED_PASS (120 bölüm + 108 Serbest Kutu)",
