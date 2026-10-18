@@ -1,40 +1,36 @@
-﻿# Oryvona Games Paneli
+# Oryvona Games Paneli — v21 / Sürüm 3.1
 
-v19 mobil stüdyo paneli: oyun seçici, dinamik başlık, TR/EN arayüzü, sahip hesabıyla komut gönderimi ve gerçek oyun sürümlerini inceleme ekranı.
+Jarvis komuta sekmesi, beş resmi oyun ve bağlantı kesilmelerine dayanıklı emir teslimi. v20'nin dört hızlı emri, sesli/görsel girişi, kompakt başlığı, ölçülen `--topbar-h` değeri ve oyun hapları korunur.
 
-## Yayın yapısı
+## Emir teslimi
 
-Bu klasör GitHub Pages yayın köküdür. `index.html`, `config.js`, `native-shell.*`, `game-lab.*`, `sw.js`, `manifest.json`, `vendor/`, `data/`, `play/`, ikonlar ve `.nojekyll` birlikte korunmalıdır. Manifest ve kurulum kapsamı `/oryvona-panel/` yoluna ayarlıdır; başka bir alt yola taşınırsa bu ayarlar da güncellenmelidir.
+Canlı sahip hesabının gönderdiği emir, ağ isteğinden önce IndexedDB'ye kaydedilir. Başarı mesajı bu yerel yazma işlemi tamamlandıktan sonra gösterilir. Ağ kopması veya belirsiz cevapta aynı komut UUID'si tekrar kullanılır; sunucudaki mevcut kayıt doğrulanır, üzerine yazılmaz. Tekrarlar geçici hatalarda gecikmeli yapılır; yetki ve kalıcı hatalar açıkça gösterilir. Hesap değişince eski hesabın emirleri görünmez ve gönderilmez.
 
-`data/game-builds.json` gerçek kaynak ve paket dosyalarının sürüm, boyut, SHA-256 ve tarihli kabul kayıtlarını taşır. Kaynak snapshot'ı kopyalanmıştır; asıl oyun projeleri bu panel değişikliğiyle düzenlenmemiştir.
+Emir başına 8 MB, bekleyen kuyrukta 40 MB/100 emir sınırı vardır. Teslim edilmiş kayıtların görsel verisi yerelden çıkarılır; makbuzlar 50 adet/24 saat ile sınırlıdır. Depolama kullanılamıyorsa başarı iddia edilmez ve giriş korunur. Kullanıcı tarayıcı verilerini temizlerse yerel kuyruk silinebilir. Sunucuya henüz ulaşmamış emirler için uygulama yeniden açıldığında/bağlantı geldiğinde ve sahip rolü doğrulandığında teslim devam eder. Mobil işletim sisteminin kapattığı uygulamada sürekli arka plan çalışma garantisi verilmez.
 
-| Oyun | Paneldeki giriş | Durum |
-|---|---|---|
-| KOZA | `play/koza/k01.html?panel=1` | K01 pilotu; zorunlu QA kabulü tamamlanmadı. |
-| Charm Drop | `play/charm-drop/index.html` | C21 müşteri görünürlüğü düzeltmesi kabul edildi. C22 hazırlanmış görevdir; oynanabilir sürüme uygulanmadı. |
-| AERYO | `play/aeryo/index.html` | Gerçek 1.2.0 web oyuncusu; Android sürüm kodu 10004. Fiziksel telefon testi bekliyor. |
-| Forge Run | Web oynatıcısı yok | 0.9.43 / FR25J Android test paketinin sürüm, sahne ve QA kayıtları gösterilir. |
+Sunucu tarafından alınmış emirler telefon bağlantısından bağımsız olarak DJ-KABIN runner'ında işlenir. Runner koşullu sahiplenme ve yerel sonuç günlüğü kullanır; cevap kaybolduğunda aynı işlemi yeniden çalıştırmak yerine sonucu uzlaştırır. Yarım kalmış, etkisi belirsiz geliştirme işi `needs_review` ile devredilir.
 
-Forge Run APK'sı yayın dosyalarında bulunmaz. Dosya standart GitHub dosya sınırını aşar ve Android test APK'sıdır; bir web sürümü gibi gösterilmez. AERYO Android APK/AAB dosyaları da bu web yayınına eklenmemiştir.
+## Dört hızlı emir
 
-## Oynatma ve çevrimdışı kullanım
+- **Oyunu İlerlet:** Seçili oyun için gerçek Claude görev kuyruğu. CLI kapalıysa yürütülmüş veya tamamlanmış sayılmaz.
+- **Paneli Geliştir:** Görev seçili oyunun klasörüne değil sabit panel çalışma köküne gider.
+- **Durum Özeti Ver:** Yalnız ilgili oyunun kök durum kartı okunur; model çağrısı yoktur.
+- **Test Et & Yayına Al:** Hafif kart kontrolünden sonra gerçek test/yayın işi Claude kuyruğuna kaydedilir. Kart kontrolü build testi veya yapılmış yayın değildir; yayın durumu `NOT_RUN` kalır.
 
-Oyun ancak kullanıcı oynatma düğmesine bastığında aynı uygulama içindeki çerçeveye yüklenir. Panel düğmesi veya cihazın Geri eylemi oynatıcıyı kapatır; çerçeve kaldırılır. Oyunun kendi kayıtları tarayıcının yerel depolamasını kullanır. Tarayıcı verilerini temizlemek bu kayıtları silebilir.
+v21 ekstra ücretli Gemini/dış API yolunu kaldırır. Boşta AI çağrısı yapılmaz. Mevcut Claude CLI çalışması açıkça etkinleştirilmemişse görevler oturum kuyruğunda bekler. Görünür pencere, oyun, Unity veya ses başlatılmaz.
 
-KOZA'nın güncel K01 girişi kendi kayıt alanını ve mevcut çevrimdışı bulut uyarlamasını kullanır. Kopyalanmış eski `cloud.js` dosyasına eklenen `panel=1` koruması, eski giriş kullanıldığında da bulut API isteği, kuyruk veya yoklama başlatmaz. Oynanış kodu değiştirilmemiştir. Başka bir sunucu API'sine sahte başarılı bulut sonucu gönderilmez.
+## Beş oyun
 
-Service worker uygulama kabuğunu önbelleğe alır. Oyun dosyaları yalnızca kullanılırken alınır; önceden açılmamış oyun veya varlıkların çevrimdışı hazır olduğu iddia edilmez. Depolama kotası ve tarayıcının önbelleği boşaltması çevrimdışı kullanılabilirliği etkileyebilir. Supabase gibi başka kaynaklardan gelen canlı hesap verileri bu service worker tarafından önbelleğe alınmaz.
+KOZA, Charm Drop, Forge Run ve AERYO'nun önceki yayın dosyaları korunur. Tupsper beşinci resmi bulut boks projesidir; kontrol edilen yerel konumda ve bağlı hesabın repo metadata'sında kaynak bulunmadığından `SOURCE_PENDING` olarak kayıtlıdır. Doğrulanmış sürüm, oynatıcı, repo veya QA sonucu uydurulmaz.
 
-Oyunlar güvenilen birinci taraf içeriktir ve yerel kayıtlar için panel ile aynı kaynakta çalışır. Çerçevenin tam ekran izni kapalıdır; bu yapı, kötü amaçlı üçüncü taraf koduna karşı ayrı bir güvenlik sınırı olarak kullanılmamalıdır.
+`data/game-builds.json` önceki sürümlerin tarihli build/QA kayıtlarını ve Tupsper'in kaynak bekleyen durumunu taşır. Oyun paketleri v21 görevinde yeniden incelenmemiştir. KOZA/Charm/AERYO oynatıcı girişleri ve Forge inceleme ekranı korunur; bu sürümde oyun başlatma testi yapılmaz.
 
-## Canlı hesap ve doğrulama
+## Kota ve disk sınırı
 
-Canlı durum ve komut gönderimi için Ayarlar'dan sahip hesabıyla giriş gerekir. Demo verileri canlı runner sonucu değildir. Mevcut Supabase bağlantısı, kimlik doğrulama ve komut API sözleşmeleri korunmuştur; `config.js` yalnızca tarayıcıya açık istemci yapılandırmasını içerir. Service-role veya özel sunucu anahtarı yayın dosyalarına konmamalıdır.
+`npm run sync` yalnız `tools/shell-public-files.json` listesindeki küçük uygulama dosyalarını eşitler. `play/`, `node_modules`, `Library`, `Temp`, oyun kaynakları ve build paketleri okunmaz/taranmaz/kopyalanmaz. `public-files.json` içindeki eski oyun yolu kayıtları yalnız provenance olarak korunur.
 
-“Sessiz doğrulama”, yetkili runner'a mevcut dosya ve paket bütünlüğünü kontrol etmesi için komut gönderir. Bu işlem oyun, ses veya görünür pencere başlatmamalıdır. Sonuç bir dosya/sürüm doğrulamasıdır; oynanış, görsel kalite, dokunmatik, dinleme veya fiziksel telefon kabulü yerine geçmez.
+`npm test` hafif statik kontrol, küçük fixture testleri, kalıcı kuyruk testleri ve izole runner testlerini çalıştırır. Hiçbir gerçek model, oyun, tarayıcı, Unity veya ses başlatmaz. Runtime kart kontrolü yalnız kök `DURUM-KARTI.json` dosyasının en çok 64 KB'ını okur. Eski ağır `artifact_validation` talebi açık nedenle reddedilir.
 
-## Kanıt sınırları
+Service worker uygulama kabuğunu `oryvona-panel-v21` içinde saklar; IndexedDB kuyruğunu ve önceki oyun önbelleğini silmez. Canlı Supabase hesap yanıtlarını önbelleğe almaz. Oyunlar kullanıldıkça mevcut on-demand önbelleğe alınır; tüm paketler önceden indirilmez.
 
-QA satırları ilgili sürümde kaydedilen sonuçlardır. Panelin yeniden yayınlanması bu testlerin yeniden çalıştırıldığı anlamına gelmez. KOZA'nın Koru/dokunmatik kabulü, Charm Drop'un tam ürün ve son kullanıcı kabulü, AERYO'nun telefon testi ve Forge Run'ın açık QA maddeleri ilgili kayıtlarda ayrı gösterilir. Bilinmeyen veya çalıştırılmamış kontroller başarılı sayılmaz.
-
-Kaynak çalışma paketindeki `tools/check-public.cjs`, bağımlılıksız bir statik yayın kontrolüdür: dosya varlığı, JavaScript sözdizimi, kaynak hash'leri, boyut sınırı ve tanınan gizli anahtar biçimlerini denetler. Oyunları veya tarayıcıyı çalıştırmaz. Bu kontrol bütün olası sırları, çalışma zamanı davranışını veya cihaz uyumluluğunu kanıtlamaz.
+Yayın kökü ve manifest kapsamı `/oryvona-panel/` olarak korunmalıdır. `config.js` yalnız tarayıcıya açık istemci yapılandırmasıdır; özel servis anahtarları yayınlanmamalıdır. Oyun çerçeveleri güvenilen birinci taraf içeriktir, kötü amaçlı üçüncü taraf koduna karşı izolasyon sınırı değildir.

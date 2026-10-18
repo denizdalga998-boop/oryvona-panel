@@ -2,7 +2,7 @@
   "id": "/oryvona-panel/",
   "name": "Oryvona Games Paneli",
   "short_name": "Oryvona",
-  "description": "Oryvona v20 · Jarvis tek beyin komuta merkezi ve gerçek oyun testleri",
+  "description": "Oryvona v21 · 5 oyun, Jarvis kalıcı emir kuyruğu ve hafif durum kartları",
   "start_url": "/oryvona-panel/",
   "scope": "/oryvona-panel/",
   "display": "standalone",

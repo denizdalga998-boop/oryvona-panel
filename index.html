@@ -14,9 +14,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Lora:ital,wght@1,500;1,600&display=swap">
 <script src="vendor/supabase-2.45.4.min.js"></script>
 <script src="config.js"></script>
+<script src="command-outbox.js"></script>
 <script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{}));}</script>
 <style>
-/* Oryvona Games Paneli v3.0 (v20) — Jarvis single-brain command center, dark navy app shell, real game links, honest data, TR/EN. */
+/* Oryvona Games Paneli v3.1 (v21) — Jarvis single-brain command center, dark navy app shell, real game links, honest data, TR/EN. */
 :root{
   --bg:#f2f3f9; --surface:#ffffff; --surface-2:#edeef7; --line:rgba(24,22,58,.08); --line-2:rgba(24,22,58,.15);
   --fg:#13122b; --fg-2:#565475; --fg-3:#8886a6;
@@ -475,7 +476,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         <span class="jb-ic" aria-hidden="true">✨</span>
         <div class="jb-tx">
           <b data-i18n="jarvis.title">Jarvis · Tek Beyin Komuta</b>
-          <span id="jarvisSub" data-i18n="jarvis.sub">Doğrudan Gemini ile konuş; arka plan işlerini kredi yakmadan yönetsin</span>
+          <span id="jarvisSub" data-i18n="jarvis.sub">Emirlerini kalıcı kuyruğa kaydet; mevcut iş akışını merkezden yönet</span>
         </div>
       </div>
       <span class="chip sm dot onnavy" id="jarvisRunnerChip">…</span>
@@ -487,6 +488,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       <button type="button" class="j-chip" data-jchip="summary">📊 <span data-i18n="jarvis.c3">Durum Özeti Ver</span></button>
       <button type="button" class="j-chip" data-jchip="test_publish">🧪 <span data-i18n="jarvis.c4">Test Et & Yayına Al</span></button>
     </div>
+    <section id="jarvisOutbox" class="card" aria-live="polite" hidden></section>
     <div class="j-composer" id="jarvisComposer">
       <div class="cmd-tools">
         <button type="button" class="tool-btn" id="jarvisVoiceBtn"><span>🎙️</span><span id="jarvisVoiceLbl" data-i18n="cmd.voice">Sesle Yaz</span></button>
@@ -568,7 +570,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     </div>
     <div class="secthead" data-i18n="set.app">Uygulama</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.0 (v20) · Jarvis Tek Beyin Komuta Merkezi</span></div></div>
+      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.1 (v21) · Jarvis Tek Beyin Komuta Merkezi</span></div></div>
       <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b data-i18n="set.apk">Android kurulum dosyası</b><span data-i18n="set.apkSub">Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/latest/download/oryvona-panel.apk" download rel="noopener" data-i18n="ui.download">İndir</a></div>
       <div class="item"><span class="ic" id="icHelp"></span><div class="tx"><b data-i18n="ui.terms">Terimler ve roller</b><span data-i18n="set.termsSub">Claude, OpenAI, Gemini ve süreç adımları</span></div><button class="act" type="button" data-detail="terms" data-i18n="ui.open">Aç</button></div>
     </div>
@@ -657,18 +659,18 @@ textarea{width:100%;min-height:80px;resize:vertical}
     tab:{home:"Özet",jarvis:"Jarvis",feed:"Akış",tests:"Testler",store:"Mağaza",settings:"Ayarlar"},
     jarvis:{
       title:"Jarvis · Tek Beyin Komuta",
-      sub:"Doğrudan Gemini ile konuş; arka plan işlerini kredi yakmadan yönetsin",
-      subGame:g=>`${g} · Doğrudan Jarvis (Gemini) ile konuş; kredi yakmadan yönetsin`,
+      sub:"Emirlerini kalıcı kuyruğa kaydet; mevcut iş akışını merkezden yönet",
+      subGame:g=>`${g} · Jarvis komut kuyruğu · Ek ücretli API yok`,
       c1:"Oyunu İlerlet",c2:"Paneli Geliştir",c3:"Durum Özeti Ver",c4:"Test Et & Yayına Al",
       ph:"Jarvis'e emrini yaz (Örn: Charm Drop'u ilerletelim)…",
       welcome:(g,w)=>`Merhaba Deniz! Şu an seçili oyun: ${g}. ${w} Farklı yapay zeka modları seçmene gerek yok; üstteki 4 hızlı emir çipinden birine dokunabilir veya aşağıdan doğrudan bana yazabilirsin.`,
-      sent:"⚡ Emrin Jarvis'e iletildi · 1-2 saniye içinde yanıtlanacak…",
-      thinking:"Jarvis durumu okuyor ve yanıtlıyor…",
+      sent:"Emir telefona kaydedildi. Bağlantı ve sahip oturumu hazır olduğunda aynı kimlikle teslim edilecek.",
+      thinking:"Emir kuyrukta; sunucu/çalıştırıcı sonucu bekleniyor…",
       routed:{
-        claude_do:"🤖 Arka planda Claude görevlendirildi",
-        background_validate:"🧪 Arka plan paket doğrulaması başlatıldı",
+        claude_do:"🤖 Claude iş kuyruğu",claude_queued:"🤖 Claude oturum kuyruğu · henüz çalışmadı",claude_executed:"🤖 Claude sonucu",status_card_validation:"📋 Yalnız durum kartı kontrolü",durum_karti_okundu:"📋 Kök kart okundu · model yok",
+        background_validate:"🧪 Durum kartı kontrolü · yayın görevi ayrı",
         gemini_review:"🔍 Bağımsız kalite incelemesi başlatıldı",
-        summary_only:"⚡ Sıfır kredi israfı · Anlık durum kartı yanıtı"
+        summary_only:"⚡ Yerel durum kartı · Model çağrısı yok"
       },
       chipPrompts:{
         advance:g=>`${g} oyununu sıradaki öncelikli adımla ilerletelim ve durumu özetle.`,
@@ -677,7 +679,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         test_publish:g=>`${g} oyununun son paketini arka planda doğrula, test durumunu kontrol et ve yayına hazırlık özetini ver.`
       }
     },
-    games:{sub:"Stüdyodaki 4 oyunumuz · dokununca komuta paneli açılır",noStatus:"Henüz durum verisi yok",notLinked:"Panele bağlı değil",noProjects:"Henüz proje yok.",allGames:"Tüm oyunlar (4)"},
+    games:{sub:"Stüdyodaki 5 oyunumuz · dokununca komuta paneli açılır",noStatus:"Henüz durum verisi yok",notLinked:"Panele bağlı değil",noProjects:"Henüz proje yok.",allGames:"Tüm oyunlar (5)"},
     home:{whatNow:"Şimdi ne yapmalıyım?",whatNowMap:{
         USER_TEST_READY:"Sıra sende: Oyunu telefonunda deneyip son onayını verebilirsin.",
         BLOCKED:"Teknik bir sınır var: Komut Kutusu'ndan ekibe yeni yönlendirme verebilirsin.",
@@ -736,8 +738,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     det:{turn:"Sıra kimde",stage:"Oyun nerede",qa:"Son bulut testi",auto:"Otomasyon",worknote:"OpenAI'dan son not",gemini:"Gemini İncelemesi",terms:"Terimler ve roller",noTask:"Aktif görev yok",taskCode:(id,t)=>`Görev: ${id} · ${t}. tur`,lock:(who,at)=>` · ${who} çalışıyor (${at})`,lockFree:" · şu an kimse çalışmıyor",
       pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`Yapılan her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI otomatik geçişi",on:"etkin",off:"kapalı",wakeSub:v=>`Claude çalışmasını bitirince OpenAI kendiliğinden devreye girer. Son hareket: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Claude görev geldiğinde otomatik veya Komut Kutusu ile çalışır.",repo:"Proje bağlantısı: ",openRepo:"Proje sayfasını aç ›",lastPush:v=>` · son güncelleme ${v}`,openCommit:"Son değişikliği gör ›",last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
       workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar"},
-    terms:[["Jarvis (Gemini)","Tek beyin komuta asistanı. Doğrudan seninle konuşur, durum kartını okur ve arka plan işlerini kredi yakmadan yönetir."],["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Doğrudan Jarvis'e sesle, yazıyla veya ekran görüntüsüyle emir vermeni sağlayan alan."]],
-    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.0 (v20) · Jarvis Tek Beyin Komuta Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Jarvis, Claude, OpenAI ve süreç adımları",
+    terms:[["Jarvis","Tek beyin komuta asistanı. Doğrudan seninle konuşur, durum kartını okur ve arka plan işlerini kredi yakmadan yönetir."],["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Doğrudan Jarvis'e sesle, yazıyla veya ekran görüntüsüyle emir vermeni sağlayan alan."]],
+    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.1 (v21) · Jarvis Tek Beyin Komuta Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Jarvis, Claude, OpenAI ve süreç adımları",
       demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · ${src}`,ghSignal:"Canlı senkronizasyon aktif",noDataYet:"Henüz veri yok",
       pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
     pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
@@ -762,18 +764,18 @@ textarea{width:100%;min-height:80px;resize:vertical}
     tab:{home:"Overview",jarvis:"Jarvis",feed:"Activity",tests:"Tests",store:"Store",settings:"Settings"},
     jarvis:{
       title:"Jarvis · Single-Brain Command",
-      sub:"Talk directly to Gemini; it orchestrates background tasks without wasting credits",
-      subGame:g=>`${g} · Talk directly to Jarvis (Gemini); zero idle credit waste`,
+      sub:"Save commands durably; coordinate the existing workflow without extra paid APIs",
+      subGame:g=>`${g} · Jarvis command queue; no idle AI calls`,
       c1:"Oyunu İlerlet",c2:"Paneli Geliştir",c3:"Durum Özeti Ver",c4:"Test Et & Yayına Al",
       ph:"Write your command to Jarvis (e.g. Let's advance Charm Drop)…",
       welcome:(g,w)=>`Hello Deniz! Active game: ${g}. ${w} No need to pick AI modes; tap one of the 4 quick chips above or type directly below.`,
-      sent:"⚡ Command sent to Jarvis · reply arriving in 1–2 seconds…",
-      thinking:"Jarvis is reading the status card and replying…",
+      sent:"Saved on this device; delivery resumes when connected and signed in as the owner.",
+      thinking:"Queued; waiting for the runner result…",
       routed:{
-        claude_do:"🤖 Dispatched background task to Claude",
-        background_validate:"🧪 Started background build validation",
+        claude_do:"🤖 Claude task queue",claude_queued:"🤖 Queued for Claude; not executed yet",claude_executed:"🤖 Claude result",status_card_validation:"📋 Status-card check only",durum_karti_okundu:"📋 Root card read; no model",
+        background_validate:"🧪 Status-card check; publishing is a separate task",
         gemini_review:"🔍 Started independent quality review",
-        summary_only:"⚡ Zero credit waste · Instant status card reply"
+        summary_only:"⚡ Local status card; no model call"
       },
       chipPrompts:{
         advance:g=>`${g} oyununu sıradaki öncelikli adımla ilerletelim ve durumu özetle.`,
@@ -782,7 +784,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         test_publish:g=>`${g} oyununun son paketini arka planda doğrula, test durumunu kontrol et ve yayına hazırlık özetini ver.`
       }
     },
-    games:{sub:"4 studio games · tap to open its command panel",noStatus:"No status data yet",notLinked:"Not linked to the panel",noProjects:"No projects yet.",allGames:"All games (4)"},
+    games:{sub:"5 studio games · tap to open its command panel",noStatus:"No status data yet",notLinked:"Not linked to the panel",noProjects:"No projects yet.",allGames:"All games (5)"},
     home:{whatNow:"What should I do now?",whatNowMap:{
         USER_TEST_READY:"Your turn: Try the game on your phone and give final approval.",
         BLOCKED:"Technical limit: You can guide the team from the Command Box below.",
@@ -824,7 +826,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       targetPickedClaude:"Target: Jarvis (Single-Brain Command) · Tap Send ➤ to dispatch.",
       targetPickedGemini:"Target: Jarvis (Single-Brain Command) · Tap Send ➤ to dispatch.",
       claude:"Claude Does It",gemini:"Gemini Reviews",approve:"Approve",stop:"Stop",
-      sent:"Sent · Jarvis will reply within 1–2 seconds",
+      sent:"Saved; waiting for confirmed delivery and runner results",
       approvedSent:"✅ Approval recorded and sent to the team.",
       stoppedSent:"⏹️ Stop command sent.",
       fail:"Could not send: ",needText:"Write the task first or tap a preset chip above.",confirmStop:"Interrupt the running job and cancel queued commands?",recent:"Recent commands",none:"No commands sent yet.",notTable:"Command box connection is being prepared.",demo:"Command added to local preview list.",st:{queued:"queued",running:"running",done:"completed",failed:"issue",cancelled:"cancelled"},act:{jarvis_ask:"Jarvis Command",claude_do:"Task for Claude",gemini_review:"Gemini Review",approve:"Owner Approval",stop:"Stop"}},
@@ -841,8 +843,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     det:{turn:"Whose turn",stage:"Where the game is",qa:"Last cloud test",auto:"Automation",worknote:"Latest note from OpenAI",gemini:"Gemini Review",terms:"Terms and roles",noTask:"No active task",taskCode:(id,t)=>`Task: ${id} · round ${t}`,lock:(who,at)=>` · ${who} working (${at})`,lockFree:" · no one working right now",
       pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI auto-handoff",on:"enabled",off:"off",wakeSub:v=>`When Claude finishes, OpenAI steps in automatically. Last activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"Claude runs automatically on new tasks or via the Command Box.",repo:"Project link: ",openRepo:"Open project page ›",lastPush:v=>` · last update ${v}`,openCommit:"View latest change ›",last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
       workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes"},
-    terms:[["Jarvis (Gemini)","Single-brain command assistant. Talks directly with you, reads the status card, and orchestrates background tasks without wasting credits."],["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Send voice, text, or annotated screenshot commands directly to Jarvis."]],
-    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.0 (v20) · Jarvis Single-Brain Command Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Jarvis, Claude, OpenAI and workflow steps",
+    terms:[["Jarvis","Single-brain command assistant. Talks directly with you, reads the status card, and orchestrates background tasks without wasting credits."],["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Send voice, text, or annotated screenshot commands directly to Jarvis."]],
+    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.1 (v21) · Jarvis Single-Brain Command Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Jarvis, Claude, OpenAI and workflow steps",
       demoView:"Sample view",notSignedIn:"Not signed in",ownerRole:"Studio owner",memberRole:"Team member",liveInfo:(t,src)=>`Last update ${t} · ${src}`,ghSignal:"Live sync active",noDataYet:"No data yet",
       pushOn:"On",pushOff:"Turn on",pushDemo:"Off in the sample view",pushUnsup:"This browser does not support it",pushDenied:"Notification permission is off; enable it in the phone's app settings",pushActive:"This device receives notifications. If they arrive as \"Chrome\": open phone Settings → Apps → Oryvona → Notifications.",pushIdle:"Alerts you even when the app is closed",pushSaveErr:"Could not save: ",pushAsking:"Asking for permission…",pushClosed:"The permission box closed; tap Turn on again and choose Allow.",pushFail:"Could not enable: ",pushSending:"Sending…",pushSendFail:"Could not send: ",pushSent:n=>`Test sent · ${n} device(s). It arrives within seconds.`},
     pref:{mine:"When the turn comes to me (final test)",blocked:"When a blocker is recorded",turns:"On every hand-over (Claude ↔ OpenAI)",runs:"When a cloud test finishes",store:"Store: new review, mail, status change"},
@@ -977,14 +979,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
   const termsHtml=()=>`<dl style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 16px;margin:0;font-size:.95rem">${S().terms.map(([k,v])=>`<dt style="font-weight:900;color:var(--brand-ink)">${esc(k)}</dt><dd style="margin:0;color:var(--fg-2)">${esc(v)}</dd>`).join("")}</dl>`;
   const emptyMsg=k=>`<div class="empty">${esc(k?T(k):T("ui.noData"))}</div>`;
 
-  // ---------- studio catalog (the 4 real games) ----------
+  // ---------- studio catalog (the 5 official games) ----------
   // The catalog holds facts only: name, platform and where the source code lives. It never invents test numbers, versions or links;
   // those come from project_status / store_games / store_status. Sample data lives in demoPresets() and is used by #demo only.
   const STUDIO_PROJECTS=[
     {id:"koza",name:"KOZA",code:"K01",sort_order:1,locState:"active",platform:"web",buildVer:"K01 SIMPLE RUN · k01-2",localPath:"D:\\ORYVONA_MERKEZ\\KOZA",locTr:"DJ-KABIN · Aktif · K01 SIMPLE RUN",locEn:"DJ-KABIN · Active · K01 SIMPLE RUN",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
     {id:"charm-drop",name:"Charm Drop",code:"CD1",sort_order:2,locState:"active",platform:"web",buildVer:"C21 · C22 hazırlık",localPath:"D:\\ORYVONA_MERKEZ\\Charm-Drop",locTr:"DJ-KABIN · Aktif · C21",locEn:"DJ-KABIN · Active · C21",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
     {id:"forge-run",name:"Forge Run",code:"FR1",sort_order:3,locState:"active",platform:"apk",buildVer:"0.9.43 · FR25J",localPath:"D:\\ORYVONA_MERKEZ\\Forge-Run",locTr:"DJ-KABIN · Aktif · 0.9.43 (FR25J)",locEn:"DJ-KABIN · Active · 0.9.43 (FR25J)",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
-    {id:"aeryo",name:"AERYO",code:"AE1",sort_order:4,locState:"active",platform:"apk",buildVer:"v1.2.0 (10004 · 300levels)",localPath:"D:\\ORYVONA_MERKEZ\\AERYO",locTr:"DJ-KABIN · Aktif · v1.2.0 (10004)",locEn:"DJ-KABIN · Active · v1.2.0 (10004)",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"}
+    {id:"aeryo",name:"AERYO",code:"AE1",sort_order:4,locState:"active",platform:"apk",buildVer:"v1.2.0 (10004 · 300levels)",localPath:"D:\\ORYVONA_MERKEZ\\AERYO",locTr:"DJ-KABIN · Aktif · v1.2.0 (10004)",locEn:"DJ-KABIN · Active · v1.2.0 (10004)",locShortTr:"DJ-KABIN · Aktif",locShortEn:"DJ-KABIN · Active"},
+    {id:"tupsper",name:"Tupsper",code:"TP1",sort_order:5,locState:"transfer",platform:"cloud",buildVer:null,localPath:"D:\\ORYVONA_MERKEZ\\Tupsper",locTr:"Merkez kaydı hazır · Bulut kaynağı bekleniyor",locEn:"Registered · Cloud source pending",locShortTr:"Kaynak bekleniyor",locShortEn:"Source pending"}
   ];
   let dbProjectIds=new Set();   // ids that exist in the `projects` table (the only valid targets of store_games.project_id)
   const gameMeta=id=>{
@@ -1293,6 +1296,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     renderNowCard();
     $("heroV").textContent=sp.buildVer?(locOf(sp,true)+" · "+sp.buildVer):Hm.noPipeTitle;
     $("heroS").textContent=sp.locState==="transfer"?Hm.noPipeTransfer:(sp.buildVer?(lang==="tr"?`${sp.name} kaynak dosyaları ve son sürümü (${sp.buildVer}) DJ-KABIN (${sp.localPath||"D:\\ORYVONA_MERKEZ"}) altında aktif. Otomatik bulut test hattı henüz bağlanmadı.`:`${sp.name} source files and latest build (${sp.buildVer}) are active on DJ-KABIN (${sp.localPath||"D:\\ORYVONA_MERKEZ"}). Automated cloud test pipeline is not connected yet.`):Hm.noPipeActive);
+    if(sp.id==="tupsper"){$("heroV").textContent="Tupsper · "+(lang==="tr"?"Kaynak bekleniyor":"Source pending");$("heroS").textContent=lang==="tr"?"Buluttaki boks oyununun merkez kaydı hazır. Kaynak/repo ve build doğrulanmadı; durum kartından izleniyor.":"The cloud boxing game is registered. Source/repository and build remain unverified; the root status card tracks the handoff.";}
     for(const [v,s,i] of [["cTurn","cTurnS","icTurn"],["cStage","cStageS","icStage"],["cQa","cQaS","icQa"],["cAuto","cAutoS","icAuto"]]){$(v).textContent="—";$(s).textContent="";$(i).className="ic";}
     if(sp.buildVer){$("cStage").textContent=sp.buildVer;$("cStageS").textContent=locOf(sp,true);$("icStage").className="ic good";}
     $("ring").innerHTML="";$("cardWork").hidden=true;
@@ -1583,6 +1587,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       return `<div class="cmdrow"><div class="tx"><b>${esc(actLbl)}</b>${c.text?`<span class="s">${esc(humanText(String(c.text)).slice(0,180))}</span>`:""}${th}<span class="s">${esc(ago(c.created_at))}${note?" · "+esc(note):""}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${stopBtn}<span class="chip sm ${cls}">${esc(C.st[c.status]||c.status)}</span></div></div>`;}).join("");}
 
   function renderJarvis(){
+    renderCommandOutbox();
     const J=S().jarvis,C=S().cmd;const cur=current||"koza";const sp=gameMeta(cur);
     if($("jarvisSub"))$("jarvisSub").textContent=J.subGame?J.subGame(sp.name):J.sub;
     if($("jarvisComposer"))$("jarvisComposer").hidden=!isOwner;
@@ -1593,14 +1598,14 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const hs=st&&st.handoff&&st.handoff.status;const M=S().home.whatNowMap||{};
     const whatNow=(hs&&M[hs])||(st?M.default:M.nodata)||"";
     const rows=Array.isArray(commands)?commands.map(normCmd).filter(c=>(c.target||"koza")===cur).slice(0,12).reverse():[];
-    let out=`<div class="j-msg jarvis"><span class="j-who">✨ Jarvis (Gemini) · ${esc(sp.name)}</span><div class="j-txt">${esc(J.welcome(sp.name,whatNow))}</div><div class="j-meta"><span class="j-badge">${esc(J.routed.summary_only)}</span></div></div>`;
+    let out=`<div class="j-msg jarvis"><span class="j-who">✨ Jarvis · ${esc(sp.name)}</span><div class="j-txt">${esc(J.welcome(sp.name,whatNow))}</div><div class="j-meta"><span class="j-badge">${esc(J.routed.summary_only)}</span></div></div>`;
     for(const c of rows){
       if(c.text){
         const th=c.att_thumb&&String(c.att_thumb).startsWith("data:image/")?`<img class="cmd-thumb" src="${esc(c.att_thumb)}" alt="${esc(c.att_name||"")}">`:(c.att_name?`<span class="chip sm">📸 ${esc(c.att_name)}</span>`:"");
         out+=`<div class="j-msg user"><span class="j-who">Deniz · ${esc(ago(c.created_at))}</span><div class="j-txt">${esc(c.text)}</div>${th}</div>`;
       }
       const pending=c.status==="queued"||c.status==="running";
-      const reply=pending?J.thinking:humanText(String(c.jarvis_reply||c.note||(C.st[c.status]||c.status)));
+      const reply=humanText(String(c.jarvis_reply||c.note||(pending?J.thinking:(C.st[c.status]||c.status))));
       const rBadge=c.routed_action&&J.routed[c.routed_action]?`<span class="j-badge">${esc(J.routed[c.routed_action])}</span>`:"";
       const stopBtn=(pending&&isOwner)?`<button type="button" class="ctx-btn stop" data-ctx-cmd="stop" data-cmd-id="${esc(c.id)}" style="padding:4px 9px;font-size:.72rem">⏹️ ${esc(C.stop)}</button>`:"";
       const stCls=c.status==="done"?"good":c.status==="failed"?"bad":c.status==="running"?"info":"warn";
@@ -1783,16 +1788,55 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
 
   // ---------- Jarvis Tek Beyin + Komut Kutusu ----------
-  // Deniz talks directly to Jarvis (Gemini) without picking between AI modes.
+  // Deniz talks directly to Jarvis without picking between AI modes.
   let cmdTarget="gemini_review";
   function setCmdTarget(t){
     cmdTarget=t==="gemini_review"?"gemini_review":"claude_do";
     document.querySelectorAll("#cmdTargetSeg button[data-target]").forEach(b=>{b.setAttribute("aria-pressed",String(b.dataset.target===cmdTarget));});
   }
+  let commandOutbox=null,outboxState={items:[],error:null};
+  const deliveredOutboxIds=new Set();
+  const commandIdentity=()=>({authenticated:!!session,userId:session?.user?.id||"",email:session?.user?.email||"",isOwner,demo});
+  const queuedMessage=()=>lang==="tr"?"Emir bu cihaza güvenle kaydedildi; bağlantı ve sahip oturumu hazır olunca teslim edilecek.":"Saved on this device; delivery resumes when connected and signed in as the owner.";
+  function renderCommandOutbox(){
+    const node=$("jarvisOutbox");if(!node)return;
+    const rows=(outboxState.items||[]).filter(x=>!["delivered","cancelled"].includes(x.state));
+    node.hidden=!isOwner||(!rows.length&&!outboxState.error);if(node.hidden)return;
+    const names=lang==="tr"?{queued:"Cihazda kayıtlı",sending:"Teslim ediliyor",retry:"Bağlantı bekliyor",auth:"Sahip oturumu gerekli",failed:"Teslim edilemedi",paused:"Duraklatıldı"}:{queued:"Saved on device",sending:"Delivering",retry:"Waiting for connection",auth:"Owner sign-in needed",failed:"Delivery failed",paused:"Paused"};
+    node.innerHTML='<h2 style="margin:0;font-size:1rem">'+(lang==="tr"?"Kalıcı emir kuyruğu":"Durable command queue")+'</h2>'+(outboxState.error?'<p class="detail" role="alert">'+esc(outboxState.error)+'</p>':'')+rows.slice(0,20).map(x=>'<div class="block"><b>'+esc(gameMeta(x.game).name)+' · '+esc(names[x.state]||x.state)+'</b><span class="d">'+esc(x.text.slice(0,220))+'</span>'+(x.error?'<span class="d">'+esc(x.error)+'</span>':'')+'<div class="cmdrow">'+(['failed','auth','retry'].includes(x.state)?'<button type="button" class="btn" data-outbox-retry="'+esc(x.id)+'">'+(lang==="tr"?'Yeniden dene':'Retry')+'</button>':'')+(x.state!=="sending"?'<button type="button" class="btn ghost" data-outbox-cancel="'+esc(x.id)+'">'+(lang==="tr"?'Yerel emri iptal et':'Cancel local command')+'</button>':'')+'</div></div>').join('');
+  }
+  function initCommandOutbox(){
+    if(!window.OryvonaCommandOutbox)return;
+    commandOutbox=window.OryvonaCommandOutbox.create({getContext:commandIdentity,transport:async(row,{signal}={})=>{
+      const who=commandIdentity();
+      if(!sb||!who.authenticated||!who.isOwner||who.demo||who.email.toLowerCase()!==row.created_by)return{error:{status:401,message:"Sahip oturumu değişti; emir saklanıyor."}};
+      let query=sb.from("commands").insert(row).select("id,status,created_at");if(signal&&query.abortSignal)query=query.abortSignal(signal);
+      const response=await query.single();
+      if(response.error?.code==="23505"){
+        let lookup=sb.from("commands").select("id,action,text,created_by,created_at,status,result").eq("id",row.id);if(signal&&lookup.abortSignal)lookup=lookup.abortSignal(signal);
+        const found=await lookup.maybeSingle(),record=found.data,r=record?.result||{},want=row.result;
+        if(!found.error&&record&&record.created_by===row.created_by&&record.action===row.action&&record.text===row.text&&r.target_game===want.target_game&&r.operation===want.operation&&r.client_request_id===row.id)return{id:record.id,status:record.status,created_at:record.created_at,error:null};
+        return{error:found.error||{status:409,code:"ID_CONFLICT",message:"Mevcut komut kimliği doğrulanamadı; yeni iş üretilmedi."}};
+      }
+      return response.error?{error:response.error}:{...response.data,error:null};
+    }});
+    commandOutbox.subscribe(state=>{
+      outboxState=state;let delivered=false;
+      for(const item of state.items){
+        if(item.state==="delivered"&&!deliveredOutboxIds.has(item.id)){deliveredOutboxIds.add(item.id);delivered=true;}
+        if(["cancelled","failed"].includes(item.state))commands=(commands||[]).map(c=>c.id===item.id?{...c,status:item.state,note:item.error}:c);
+      }
+      renderCommandOutbox();if(view==="jarvis")renderJarvis();
+      document.dispatchEvent(new CustomEvent("oryvona:validation-change",{detail:{id:current}}));
+      if(delivered&&current&&session&&!demo)loadExtras(current);
+    });
+  }
+  document.addEventListener("click",async e=>{const retry=e.target.closest("[data-outbox-retry]"),cancel=e.target.closest("[data-outbox-cancel]");if(!retry&&!cancel)return;const button=retry||cancel;button.disabled=true;const r=retry?await commandOutbox?.retry(button.dataset.outboxRetry):await commandOutbox?.cancel(button.dataset.outboxCancel);if(r?.error)$("jarvisMsg").textContent=r.error;button.disabled=false;});
   async function insertCommand(action,text,result,options={}){
-    const query=sb.from("commands").insert({project_id:"koza",action,text,created_by:(session?.user?.email||"").toLowerCase(),status:"queued",result});
-    if(options.returnRecord){const {data,error}=await query.select("id,created_at,status").single();return{error,id:data?.id||null,created_at:data?.created_at,status:data?.status};}
-    const {error}=await query;return error;
+    if(!commandOutbox){const error={message:lang==="tr"?"Kalıcı kuyruk yüklenemedi; emir gönderilmedi.":"Durable queue is unavailable; command was not sent."};return options.returnRecord?{error}:error;}
+    const saved=await commandOutbox.enqueue({action,text,result});
+    const answer=saved.ok?{...saved,error:null}:{error:{message:saved.error||"Emir kaydedilemedi."}};
+    return options.returnRecord?answer:answer.error;
   }
   async function dispatchContextualCmd(action,btnEl){
     const C=S().cmd;
@@ -1802,7 +1846,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       ?`[${projObj.name}] Son sürümü ve durumu kontrol ettim; onaylıyorum.`
       :`[${projObj.name}] Çalışan görevi ve sıradaki işlemleri durdur.`;
     const resultPayload={target_game:cur,note_tr:action==="approve"?"Deniz kart üzerinden onay verdi.":"Deniz kart üzerinden durdurma komutu verdi."};
-    if(demo||!sb){
+    if(demo){
       if(action==="stop"){commands=(commands||[]).map(c=>(c.status==="running"||c.status==="queued")?{...c,status:"cancelled"}:c);}
       commands=[{id:"ctx"+Date.now(),project_id:"koza",action,text:defaultTxt,status:action==="approve"?"done":"queued",created_at:new Date().toISOString(),runner:null,result:resultPayload},...(commands||[])];
       renderCmd();renderJarvis();
@@ -1810,11 +1854,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
       return;
     }
     if(btnEl)btnEl.disabled=true;
-    const error=await insertCommand(action,defaultTxt,resultPayload);
+    const record=await insertCommand(action,defaultTxt,resultPayload,{returnRecord:true});const error=record.error;
     if(btnEl)btnEl.disabled=false;
     if(error){if($("cmdMsg"))$("cmdMsg").textContent=C.fail+error.message;return;}
-    if($("cmdMsg"))$("cmdMsg").textContent=action==="approve"?C.approvedSent:C.stoppedSent;
-    loadExtras(current);
+    if($("cmdMsg"))$("cmdMsg").textContent=queuedMessage();
+    renderCommandOutbox();
   }
   document.addEventListener("click",e=>{
     const ctxBtn=e.target.closest("button[data-ctx-cmd]");
@@ -1825,7 +1869,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const t=document.createElement("canvas");t.width=w;t.height=h;t.getContext("2d").drawImage(cv,0,0,w,h);
     return t.toDataURL("image/jpeg",0.6);
   }
+  let jarvisSubmitting=false;
   async function dispatchJarvisCommand(rawText,chipKey,opts={}){
+    if(jarvisSubmitting)return false;
     const C=S().cmd,J=S().jarvis;
     const cur=current||"koza";const projObj=projects.find(x=>x.id===cur)||gameMeta(cur);
     let text=String(rawText||"").trim();
@@ -1842,18 +1888,17 @@ textarea{width:100%;min-height:80px;resize:vertical}
     }
     const sendText=(cur!=="koza"&&projObj&&!text.startsWith("["))?`[${projObj.name}] ${text}`:text;
     const routed=chipKey==="advance"||chipKey==="panel"?"claude_do":chipKey==="test_publish"?"background_validate":"summary_only";
-    const result={operation:"jarvis_ask",chip:chipKey||"custom",target_game:cur,...(attachment?{attachment}:{})};
-    if(demo||!sb){
+    const result={operation:"jarvis_ask",chip:chipKey||"custom",target_game:cur,task_scope:chipKey==="panel"?"panel":"game",...(attachment?{attachment}:{})};
+    if(demo){
       const st=(cur===current&&status)?status:allStatus[cur];
       const demoReply=`${projObj.name}: ${st&&st.summaryTr?humanText(st.summaryTr):"D:\\ORYVONA_MERKEZ\\" + (projObj.folder||projObj.name) + " klasöründe hazır."} ${routed==="claude_do"?"Arka planda geliştirme görevi kuyruğa alındı.":routed==="background_validate"?"Arka plan paket ve bütünlük doğrulaması başlatıldı.":"Sıfır kredi israfıyla durum kartından yanıtlandı."}`;
       commands=[{id:"jv"+Date.now(),project_id:"koza",action:"gemini_review",text:sendText,status:"done",created_at:new Date().toISOString(),finished_at:new Date().toISOString(),runner:"DJ-KABIN:jarvis",result:{...result,routed_action:routed,jarvis_reply:demoReply,note_tr:demoReply}},...(commands||[])];
       renderCmd();renderJarvis();if(msgEl)msgEl.textContent=J.sent;clearAttachment();return true;
     }
-    const btn=$(opts.btnId||"jarvisSendBtn");if(btn)btn.disabled=true;if(msgEl)msgEl.textContent=C.sending;
-    const error=await insertCommand("gemini_review",sendText,result);
-    if(btn)btn.disabled=false;
+    const btn=$(opts.btnId||"jarvisSendBtn");jarvisSubmitting=true;if(btn)btn.disabled=true;if(msgEl)msgEl.textContent=C.sending;
+    let record;try{record=await insertCommand("gemini_review",sendText,result,{returnRecord:true});}catch(error){record={error:{message:error.message||String(error)}};}finally{jarvisSubmitting=false;if(btn)btn.disabled=false;}const error=record.error;
     if(error){if(msgEl)msgEl.textContent=C.fail+error.message;return false;}
-    if(msgEl)msgEl.textContent=J.sent;clearAttachment();loadExtras(cur);return true;
+    if(msgEl)msgEl.textContent=queuedMessage();clearAttachment();renderCommandOutbox();return true;
   }
   $("jarvisChips")?.addEventListener("click",async e=>{
     const b=e.target.closest("button[data-jchip]");if(!b||!isOwner)return;
@@ -1912,7 +1957,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(demo||!sb){const presets=demoPresets();feedDocs=(presets.feed[id]||[]).map(r=>asDoc(r));runsDocs=(presets.runs[id]||[]).map(r=>asDoc(r));applyStatus({data:allStatus[id]||presets.status[id]||null});renderTimeline("tl",24);renderJarvis();return;}
     if(channel){sb.removeChannel(channel);channel=null;}loadAll(id);
     channel=sb.channel("panel-"+id).on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"shadow_reviews",filter:"project_id=eq."+id},()=>loadExtras(id)).on("postgres_changes",{event:"*",schema:"public",table:"commands",filter:"project_id=eq.koza"},()=>loadExtras(id)).subscribe();}
-  async function loadTeam(){const {data,error}=await sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(error){console.warn(error);return;}team=data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>m.email===me&&m.role==="owner");updatePlayButtonUI(current);renderCmd();renderJarvis();renderReadiness();if(view==="settings")renderSettings();if(view==="store")renderStore();if(view==="game")renderGame();}
+  async function loadTeam(){const {data,error}=await sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(error){console.warn(error);return;}team=data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>String(m.email||"").toLowerCase()===me&&m.role==="owner");commandOutbox?.resume();updatePlayButtonUI(current);renderCmd();renderJarvis();renderReadiness();if(view==="settings")renderSettings();if(view==="store")renderStore();if(view==="game")renderGame();}
   function pendingInvite(){const m=location.hash.match(/davet=([a-f0-9]+)/);if(m){try{localStorage.setItem("oryvona.invite",m[1]);}catch{}history.replaceState({view:"home"},"",location.pathname);}try{return localStorage.getItem("oryvona.invite");}catch{return null;}}
   async function redeemIfPending(){const t=pendingInvite();if(!t||!session)return;const {error}=await sb.rpc("redeem_invite",{invite_token:t});try{localStorage.removeItem("oryvona.invite");}catch{}
     if(error){$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("gate.inviteBad");$("banner").hidden=false;$("banner").textContent=S().gate.inviteFail(error.message);return false;}return true;}
@@ -1952,30 +1997,31 @@ textarea{width:100%;min-height:80px;resize:vertical}
   window.OryvonaPanel=Object.freeze({
     getContext:()=>({projectId:current,locale:lang,isOwner,authenticated:!!session,demo}),
     getRunnerStatus:()=>{const {on,r}=runnerState();return{online:!!on,lastSeen:r?.lastSeen||null};},
-    getBuildValidation(gameId){const id=gameId||current;const row=(commands||[]).map(normCmd).find(c=>c.operation==="background_validate"&&(c.target||"koza")===id);return row?{id:row.id,status:row.status,created_at:row.created_at,finished_at:row.finished_at,note:row.note||"",validation:row.validation?JSON.parse(JSON.stringify(row.validation)):null}:null;},
+    getBuildValidation(gameId){const id=gameId||current;const local=(outboxState.items||[]).filter(c=>c.state!=="delivered").filter(c=>c.operation==="background_validate"&&c.game===id).map(c=>({id:c.id,target:c.game,operation:c.operation,status:["cancelled","failed"].includes(c.state)?c.state:"queued",created_at:c.created_at,note:c.error||""}));const row=[...(commands||[]).map(normCmd).filter(c=>c.operation==="background_validate"&&(c.target||"koza")===id),...local.filter(c=>!(commands||[]).some(x=>x.id===c.id))].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)))[0];return row?{id:row.id,status:row.status,created_at:row.created_at,finished_at:row.finished_at,note:row.note||"",validation:row.validation?JSON.parse(JSON.stringify(row.validation)):null}:null;},
     openTests(gameId){if(gameId&&projects.some(p=>p.id===gameId))select(gameId);history.pushState({view:"tests"},"");showView("tests");return this.getContext();},
     async enqueueBuildValidation(gameId){
       if(!isOwner||!session||!sb||demo)return{ok:false,id:null,error:lang==="tr"?"Bu işlem için sahip hesabıyla giriş yapmalısın.":"Sign in as the owner to request validation."};
       const id=gameId||current;if(!STUDIO_PROJECTS.some(p=>p.id===id))return{ok:false,id:null,error:lang==="tr"?"Geçersiz oyun.":"Unknown game."};
-      const text="Yalnız mevcut kaynak ve APK/AAB dosyalarının sürüm, boyut ve bütünlük bilgilerini arka planda doğrula. Oyunu, sesi veya görünür pencereyi başlatma. Sonucu gerçek dosya kanıtıyla kaydet.";
-      try{const record=await insertCommand("gemini_review",text,{operation:"background_validate",mode:"artifact_validation",target_game:id},{returnRecord:true});if(record.error)return{ok:false,id:null,error:record.error.message};if(current===id){commands=[{id:record.id,action:"gemini_review",status:record.status||"queued",created_at:record.created_at,operation:"background_validate",target:id},...(commands||[])];renderCmd();document.dispatchEvent(new CustomEvent("oryvona:validation-change",{detail:{id}}));loadExtras(id);}return{ok:true,id:record.id,error:null};}catch(error){return{ok:false,id:null,error:error.message||String(error)};}
+      const text="Yalnız oyunun kök DURUM-KARTI.json dosyasını sınırlandırılmış okuma ile doğrula. Kaynak/build, play, Library, Temp veya node_modules tarama. Model, oyun, ses veya görünür pencere başlatma. Bu kontrol oynanış veya paket kabulü değildir.";
+      try{const record=await insertCommand("gemini_review",text,{operation:"background_validate",mode:"status_card_validation",target_game:id},{returnRecord:true});if(record.error)return{ok:false,id:null,error:record.error.message};if(current===id){commands=[{id:record.id,action:"gemini_review",status:record.status||"queued",created_at:record.created_at,operation:"background_validate",target:id},...(commands||[])];renderCmd();document.dispatchEvent(new CustomEvent("oryvona:validation-change",{detail:{id}}));loadExtras(id);}return{ok:true,id:record.id,error:null};}catch(error){return{ok:false,id:null,error:error.message||String(error)};}
     }
   });
   document.dispatchEvent(new CustomEvent("oryvona:ready",{detail:window.OryvonaPanel.getContext()}));
 
   // Measure the real header height so scroll-padding / scroll-margin always match it (no hard-coded 138px).
   function watchTopbar(){const tb=$("topbar");if(!tb)return;const set=()=>document.documentElement.style.setProperty("--topbar-h",Math.round(tb.getBoundingClientRect().height)+"px");set();if("ResizeObserver" in window)new ResizeObserver(set).observe(tb);else addEventListener("resize",set);}
-  applyLang();watchTopbar();
+  initCommandOutbox();applyLang();watchTopbar();
   (async()=>{
     if(location.hash==="#demo"){startDemo();return;}
     if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("gate.noConfig");return;}
     sb=window.supabase.createClient(CFG.url,CFG.anonKey,{auth:{flowType:"implicit",detectSessionInUrl:true,persistSession:true,autoRefreshToken:true},realtime:{params:{eventsPerSecond:5}}});
     sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"&&location.hash.includes("access_token"))history.replaceState({view:"home"},"",location.pathname);});
     if(pendingInvite())$("gateText").textContent=T("gate.invited");
-    const apply=s=>{session=s;const signedIn=!!s;$("gate").hidden=signedIn;if(signedIn)start();else stop();};
+    const apply=s=>{const changed=session?.user?.id!==s?.user?.id||session?.user?.email!==s?.user?.email;if(changed){isOwner=false;stop();}session=s;const signedIn=!!s;$("gate").hidden=signedIn;commandOutbox?.snapshot();if(signedIn)start();else stop();};
     const {data:{session:s0}}=await sb.auth.getSession();apply(s0);
-    sb.auth.onAuthStateChange((_e,s)=>{if(!!s!==!!session)apply(s);});
-    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&current&&!demo){loadAll(current);loadStore();}});
+    sb.auth.onAuthStateChange((_e,s)=>{if(s?.user?.id!==session?.user?.id||s?.user?.email!==session?.user?.email||!!s!==!!session)apply(s);else session=s;});
+    addEventListener("online",()=>{if(!sb||!session||demo)return;if(!current||!projects.length)start();else{loadTeam();loadAll(current);}});
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&session&&!demo){if(!current||!projects.length)start();else{loadTeam();loadAll(current);loadStore();}}});
     setInterval(()=>{freshness();if(status)renderHome(status);renderTimeline("tl",24);renderRunner();},60000);
   })();
 })();

@@ -1,10 +1,11 @@
-// v20: cache the app shell, never live account data. Games are cached only as they are played.
-const CACHE = 'oryvona-panel-v20';
+// v21: durable commands live in IndexedDB. Shell updates never erase that queue or existing game caches.
+const CACHE = 'oryvona-panel-v21';
+// Game payloads did not change in v21: retain the v20 on-demand cache instead of forcing a download.
 const GAME_CACHE = 'oryvona-games-v20';
 const SCOPE = new URL('./', self.registration.scope);
-const SHELL = ['./','./index.html','./config.js','./vendor/supabase-2.45.4.min.js','./manifest.json','./native-shell.css','./native-shell.js','./game-lab.css','./game-lab.js','./data/game-builds.json','./logo.webp','./logo.png','./icon-192.png','./icon-512.png','./icon-512-maskable.png','./badge-96.png'];
+const SHELL = ['./','./index.html','./config.js','./command-outbox.js','./vendor/supabase-2.45.4.min.js','./manifest.json','./native-shell.css','./native-shell.js','./game-lab.css','./game-lab.js','./data/game-builds.json','./logo.webp','./logo.png','./icon-192.png','./icon-512.png','./icon-512-maskable.png','./badge-96.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
-self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>(key.startsWith('oryvona-panel-')||key.startsWith('oryvona-games-'))&&key!==CACHE&&key!==GAME_CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
+self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('oryvona-panel-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
 async function remember(cacheName,request,response){
   if(!response.ok || response.type==='opaque')return;

@@ -284,6 +284,29 @@
         "world": "GREEN FRONTIER / Forest",
         "planned": 24
       }
+    },
+    {
+      "id": "tupsper",
+      "name": "Tupsper",
+      "version": "Kaynak bağlantısı bekleniyor",
+      "runtime": "Bulut boks projesi · doğrulanmış oynatıcı yok",
+      "platform": "Cloud source pending",
+      "entry": null,
+      "artifact": null,
+      "levels": {
+        "implemented": null
+      },
+      "scenes": [],
+      "qa": {
+        "status": "SOURCE_PENDING",
+        "observedAt": "2026-10-18",
+        "physicalPhone": "NOT_RUN",
+        "touch": "NOT_RUN",
+        "source": "Owner request and metadata-only discovery",
+        "freshness": "Owner declaration and metadata-only discovery; no source/build or gameplay test",
+        "summary": "Cloud boxing game registered; source repository, version and playable build remain unverified."
+      },
+      "acceptance": "NOT_RUN; source binding pending"
     }
   ],
   "schemaVersion": 1
