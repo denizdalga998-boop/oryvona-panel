@@ -4,6 +4,10 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
+  var MALE = /\b(?:ahmet|tolga|male|erkek|man)\b|tr-tr-x-(?:tmc|mfm|efm)|tr-tr-x-.*-male|argon-male/i;
+  var FEMALE = /\b(?:emel|seda|yelda|filiz|female|kad[ıi]n|woman)\b/i;
+  function isMaleVoice(v) { return !!v && MALE.test(String(v.name || '') + ' ' + String(v.voiceURI || '')); }
+
   function create(options) {
     options = options || {};
     if (typeof options.getAccountKey !== 'function') throw new TypeError('getAccountKey is required');
@@ -87,9 +91,15 @@
         return /^tr(?:-|$)/.test(lang) && (!localOnly || item.localService === true);
       }).sort(function (a, b) {
         function rank(item) {
+          var name = String(item.name || '') + ' ' + String(item.voiceURI || '');
           var score = String(item.lang || '').toLowerCase().replace(/_/g, '-') === 'tr-tr' ? 8 : 0;
           if (item.localService === true) score += 20;
-          if (/natural|doğal|enhanced|premium/i.test(String(item.name || ''))) score += 4;
+          if (/natural|doğal|enhanced|premium|neural/i.test(name)) score += 12;
+          // ARGON: a deep male Turkish voice first (Edge "Ahmet Online (Natural)", Windows "Tolga", Android male voices);
+          // the Google network voice (the robotic "Translate" sound) last.
+          if (MALE.test(name)) score += 60;
+          if (/google/i.test(name) && item.localService !== true) score -= 40;
+          if (FEMALE.test(name)) score -= 25;
           if (item.default === true) score += 1;
           return score;
         }
@@ -226,8 +236,10 @@
       activeSpeechId = input.id;
       current.lang = 'tr-TR';
       current.voice = voice;
-      current.rate = 0.94;
-      current.pitch = 1;
+      // ARGON tonu: tok ve akıcı (≈ pitch −6 %, rate +8 %). Only a female/unknown fallback voice is pulled lower, so it never
+      // sounds thin; a real male voice keeps its natural timbre.
+      if (options.tone === 'argon') { current.rate = 1.04; current.pitch = isMaleVoice(voice) ? 0.94 : 0.8; }
+      else { current.rate = 0.94; current.pitch = 1; }
       current.volume = 1.0; // ARGON: tarayıcının izin verdiği en yüksek ve net seviye (kısık kalmaz)
       function valid() { return epoch === speechEpoch && utterance === current && accountCurrent(account); }
       current.onstart = function () {

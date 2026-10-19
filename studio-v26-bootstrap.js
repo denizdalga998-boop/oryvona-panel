@@ -63,7 +63,7 @@
       data=window.OryvonaStudioDataV26.create({panel:scopedPanel,bridge,document});
       // Browser-native Turkish voices only: local voices preferred. Remote browser voices are labelled;
       // no paid service, API key or model endpoint is configured. Audio remains opt-in.
-      voice=window.OryvonaJarvisVoice.create({getAccountKey:()=>bridge?.getAccountKey()||null,localOnly:false,measureInput:true});
+      voice=window.OryvonaJarvisVoice.create({getAccountKey:()=>bridge?.getAccountKey()||null,localOnly:false,measureInput:true,tone:'argon'});
       decisions=window.OryvonaStudioDecisionsV26.create({host:host(),getAccountKey:()=>bridge?.getAccountKey()||null,getSnapshot:()=>data.getSnapshot()});
       const feedback=payload=>decisions.record({...payload,kind:'feedback'});
       const approve=payload=>decisions.record({...payload,kind:'accept'});
