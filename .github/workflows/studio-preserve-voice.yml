@@ -1,0 +1,45 @@
+name: Studio preserved voice asset
+on:
+  push:
+    branches: [ceo/studio-flow-20261020]
+    paths: [.github/workflows/studio-preserve-voice.yml]
+permissions:
+  contents: write
+jobs:
+  preserve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Transfer existing verified sample as text chunks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64,hashlib,json,os,pathlib,urllib.request
+          branch="ceo/studio-flow-20261020"
+          assert os.environ["GITHUB_REF_NAME"]==branch
+          raw=pathlib.Path("voice/argon-m2-v1.wav").read_bytes()
+          assert len(raw)==900128
+          assert hashlib.sha256(raw).hexdigest()=="53842598806c9f6819952db9d50fcb4df83b560bb1c6ae0f0785d2501721a274"
+          base="https://api.github.com/repos/"+os.environ["GITHUB_REPOSITORY"]
+          def api(method,path,value=None):
+              data=None if value is None else json.dumps(value).encode()
+              req=urllib.request.Request(base+path,data=data,method=method,headers={"Authorization":"Bearer "+os.environ["GH_TOKEN"],"Accept":"application/vnd.github+json","Content-Type":"application/json"})
+              with urllib.request.urlopen(req) as response:return json.load(response)
+          parent=os.environ["GITHUB_SHA"]
+          commit=api("GET","/git/commits/"+parent)
+          encoded=base64.b64encode(raw).decode()
+          tree=[]
+          for n,start in enumerate(range(0,len(encoded),100000)):
+              blob=api("POST","/git/blobs",{"encoding":"utf-8","content":encoded[start:start+100000]})
+              tree.append({"path":".studio-staging/voice-part-%02d.txt"%n,"mode":"100644","type":"blob","sha":blob["sha"]})
+          built=api("POST","/git/trees",{"base_tree":commit["tree"]["sha"],"tree":tree})
+          saved=api("POST","/git/commits",{"message":"Stage already published voice bytes for reproducible studio package","tree":built["sha"],"parents":[parent]})
+          current=api("GET","/git/ref/heads/"+branch)
+          assert current["object"]["sha"]==parent
+          api("PATCH","/git/refs/heads/"+branch,{"sha":saved["sha"],"force":False})
+          print("VOICE_ASSET_STAGED",len(raw),"parts",len(tree))
+          PY
