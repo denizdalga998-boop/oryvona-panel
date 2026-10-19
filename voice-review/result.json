@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "kind": "voice-only-live-audition",
+  "publishedCommit": "19eab1f19f33e8aa41b865d2d2e9b2e7cb126180",
+  "pagesRun": 39329586711,
+  "pagesConclusion": "success",
+  "renderRun": 39328677054,
+  "renderConclusion": "success",
+  "transferRun": 39329037451,
+  "tests": {
+    "browserVm": 17,
+    "cloudPureContracts": 3,
+    "failed": 0
+  },
+  "voice": {
+    "preset": "M2",
+    "language": "tr",
+    "seconds": 10.205034013605442,
+    "bytes": 900128,
+    "sha256": "53842598806c9f6819952db9d50fcb4df83b560bb1c6ae0f0785d2501721a274"
+  },
+  "paidApiSpend": 0,
+  "deviceModelDownload": false,
+  "actualPhoneListening": "NOT_RUN",
+  "dynamicChatVoiceChanged": false,
+  "apkChanged": false,
+  "localDaemonChanged": false,
+  "changed": [
+    "index.html",
+    "jarvis-voice-audition.js",
+    "jarvis-voice.js",
+    "sw.js",
+    "voice/README.md",
+    "voice/SUPERTONIC-MODEL-LICENSE.txt",
+    "voice/argon-m2-v1.json",
+    "voice/argon-m2-v1.wav"
+  ],
+  "notes": [
+    "Full-close/reopen online to request new web assets.",
+    "Look for Erkek ses denemesi V1 in Jarvis and press Dinle.",
+    "Existing CEO candidate remains uninstalled and must merge later web changes."
+  ]
+}
