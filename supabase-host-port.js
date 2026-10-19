@@ -18,7 +18,11 @@
       status: row.status === 'cancelled' ? 'cancelled' : row.status === 'failed' ? 'failed' : row.status === 'done' ? 'completed' : row.status === 'running' ? 'running' : receipt ? 'claimed' : 'recorded',
       cancel_requested: row.status === 'cancelled', worker_id: receipt?.workerId || null, receipt, note_tr: String(r.note_tr || '').slice(0, 600),
       ...(r.execution && r.execution.projectId ? { workspace_label: 'izole çalışma klasörü' } : {}),
-      created_at: row.created_at, updated_at: r.received_at || row.finished_at || row.started_at || row.created_at };
+      created_at: row.created_at,
+      finished_at: row.finished_at || null,
+      stage: typeof r.execution?.stage === 'string' ? r.execution.stage : null,
+      steps: Array.isArray(r.execution?.stages) ? r.execution.stages.slice(0,6).map(s=>({id:String(s.id||'').slice(0,40),title:String(s.title_tr||'').slice(0,100),status:String(s.status||'').slice(0,40),detail:String(s.detail_tr||'').slice(0,300)})) : [],
+      updated_at: r.execution?.updatedAt || row.finished_at || r.received_at || row.started_at || row.created_at };
   }
   const PROVIDER_SUFFIX = { auth_required: ' · Claude girişi bekleniyor', quota_wait: ' · Claude kotası bekleniyor', missing: ' · Claude aracı bulunamadı', auth_method_rejected: ' · Claude giriş türü reddedildi', cli_incompatible: ' · Claude aracı uyumsuz' };
   function providerSuffix(state) { return Object.prototype.hasOwnProperty.call(PROVIDER_SUFFIX, state) ? PROVIDER_SUFFIX[state] : ' · AI işçisi hazır değil'; }
@@ -71,6 +75,22 @@
       if (operation === 'listIntents') {
         const result = await client.from('commands').select(COLUMNS).eq('project_id','koza').eq('created_by', context.email).eq('result->>owner_id', context.userId).eq('result->>operation','studio_v24_intent').order('created_at',{ascending:false}).limit(Math.min(50,Math.max(1,payload.limit || 50)));
         return { data: result.data?.map(rowToIntent) || [], error: result.error };
+      }
+      if (operation === 'askArchive') {
+        // ARGON KARA KUTU: a read-only history question. DJ-KABIN answers it from its local FTS5 archive; it never becomes a job.
+        if (!UUID.test(payload.requestId || '') || typeof payload.text !== 'string' || !payload.text.trim() || payload.text.length > 500) throw failure('PAYLOAD_MISMATCH', 'Soru 1–500 karakter olmalı.');
+        const hash = await digest(new TextEncoder().encode(canonical({ text: payload.text, operation: 'argon_archive_query' })));
+        await guard(payload);
+        const row = await insert({ id: payload.requestId, project_id: 'koza', action: 'gemini_review', text: payload.text, status: 'queued', created_by: context.email, runner: LANE,
+          result: { operation: 'argon_archive_query', transport: 'commands-isolated-v24', owner_id: context.userId, client_request_id: payload.requestId, payload_hash: hash } }, context);
+        await guard(payload); return { data: { requestId: row.id, status: row.status }, error: null };
+      }
+      if (operation === 'getArchiveAnswer') {
+        if (!UUID.test(payload.requestId || '')) throw failure('PAYLOAD_MISMATCH', 'Soru kimliği geçersiz.');
+        const row = await find(payload.requestId, context);
+        if (!row || row.result?.operation !== 'argon_archive_query') return { data: { status: 'missing' }, error: null };
+        const r = row.result || {};
+        return { data: { status: row.status, answer_tr: String(r.answer_tr || '').slice(0, 1500), hits: Array.isArray(r.hits) ? r.hits.slice(0, 5).map(h => ({ at: String(h?.at || '').slice(0, 40), title: String(h?.title || '').slice(0, 160), snippet: String(h?.snippet || '').slice(0, 400) })) : [] }, error: null };
       }
       if (operation === 'cancelIntent') {
         if (!UUID.test(payload.requestId || '')) throw failure('PAYLOAD_MISMATCH','İptal kimliği geçersiz.');

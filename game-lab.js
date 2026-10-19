@@ -18,7 +18,8 @@
   })[id] || '';
   function row(label, value) { return `<div class="lab-row"><span>${esc(label)}</span><strong>${esc(value ?? text('Bilinmiyor','Unknown'))}</strong></div>`; }
   function gateRow(g) {
-    const gates = g.v22Gates;
+    const raw = g.v22Gates;
+    const gates = raw && {...raw, technical_qa:raw.technicalQa??raw.technical_qa, device_qa:raw.deviceQa??raw.device_qa, product_acceptance:raw.productAcceptance??raw.product_acceptance, recipe_id:raw.recipeId??raw.recipe_id, character_map_lock:raw.characterMapLock??raw.character_map_lock};
     if (!gates) return '';
     return row(text('Teknik QA','Technical QA'), gates.technical_qa)
       + row(text('Telefon / Cihaz Testi','Phone / Device QA'), gates.device_qa)
@@ -51,6 +52,7 @@
     return `<div class="lab-validation"><b>${esc(label)}</b>${count}${note ? `<p>${esc(note)}</p>` : ''}${checks.length ? `<details><summary>${text('Dosya kontrol ayrıntıları','File check details')} (${checks.length})</summary><ul>${checks.map(c=>`<li>${esc(c.name || c.id || c.label)} · ${esc(c.status || (c.ok === true ? 'PASS' : c.ok === false ? 'FAIL' : 'UNKNOWN'))}</li>`).join('')}</ul></details>` : ''}<small>${text('Bu kontrol oynanış kabulü değildir.','This check is not gameplay acceptance.')}</small></div>`;
   }
   function render() {
+    if(document.body.classList.contains("oryvona-v26"))return;
     const visibleView=document.getElementById("view-tests");if(document.hidden||!visibleView||visibleView.hidden)return;
     const target = document.getElementById('testsBody');
     if (!target) return;

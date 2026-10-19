@@ -1,14 +1,14 @@
 {
   "id": "/oryvona-panel/",
-  "name": "Oryvona Games Paneli",
-  "short_name": "Oryvona",
-  "description": "ORYVONA v25 — bağımsız Jarvis komuta dünyası ve izole proje oturumları",
+  "name": "ORYVONA ARGON",
+  "short_name": "ARGON",
+  "description": "ORYVONA v26 — tüm stüdyo komuta merkezi, dört modlu Argon Orb ve Türkçe sesli asistan",
   "start_url": "/oryvona-panel/",
   "scope": "/oryvona-panel/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#12112e",
-  "theme_color": "#12112e",
+  "background_color": "#040a16",
+  "theme_color": "#040a16",
   "lang": "tr",
   "icons": [
     {

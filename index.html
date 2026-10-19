@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#12112e">
+<meta name="theme-color" content="#040a16">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Oryvona Games Paneli</title>
+<title>ORYVONA ARGON</title>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="game-lab.css">
+<link rel="stylesheet" href="game-lab.css?v=26">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Lora:ital,wght@1,500;1,600&display=swap">
-<script src="vendor/supabase-2.45.4.min.js"></script>
-<script src="config.js"></script>
-<script src="command-outbox.js"></script>
+<script src="vendor/supabase-2.45.4.min.js?v=26"></script>
+<script src="config.js?v=26"></script>
+<script src="command-outbox.js?v=26"></script>
 <script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{}));}</script>
 <style>
-/* Oryvona Games Paneli v3.5 (v25) — Doğrulanmış Teslim & Jarvis Stüdyo Merkezi, dark navy app shell, real game links, honest data, TR/EN. */
+/* Oryvona Games Paneli v3.6 (v26) — Doğrulanmış Teslim & Argon Stüdyo Merkezi, dark navy app shell, real game links, honest data, TR/EN. */
 :root{
   --bg:#f2f3f9; --surface:#ffffff; --surface-2:#edeef7; --line:rgba(24,22,58,.08); --line-2:rgba(24,22,58,.15);
   --fg:#13122b; --fg-2:#565475; --fg-3:#8886a6;
@@ -364,11 +364,15 @@ textarea{width:100%;min-height:80px;resize:vertical}
 /* Keep short game names readable beside the three compact header actions. */
 @media (max-width:420px){.app-head #topLocChip{display:none}}
 </style>
-<link rel="stylesheet" href="native-shell.css">
-<link rel="stylesheet" href="jarvis-world.css?v=25">
-<link rel="stylesheet" href="jarvis-v23-shell.css?v=25">
+<link rel="stylesheet" href="native-shell.css?v=26">
+<link rel="stylesheet" href="jarvis-world.css?v=26">
+<link rel="stylesheet" href="jarvis-v23-shell.css?v=26">
+<link rel="stylesheet" href="studio-v26.css?v=26">
+<link rel="stylesheet" href="studio-integration-v26.css?v=26">
+<script src="studio-facade-v26.js?v=26"></script>
+<script src="studio-decisions-v26.js?v=26"></script>
 </head>
-<body>
+<body class="oryvona-v26">
 <header class="app-shell-top" id="topbar">
   <div class="app-top-inner">
     <div class="app-head">
@@ -399,7 +403,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   </aside>
 </div>
 
-<main>
+<main class="wrap">
   <div id="banner" class="banner" hidden></div>
 
   <section class="view" id="view-games" hidden>
@@ -409,6 +413,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   </section>
 
   <section class="view" id="view-home">
+    <div id="v26Legacy-home" hidden inert aria-hidden="true">
     <div class="now-card info" id="nowAction">
       <span class="ic" id="icNow"></span>
       <div class="tx">
@@ -435,7 +440,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       </div>
     </div>
     <div class="card" id="v22StudioSummaryCard">
-      <div class="hd"><b id="v22StudioSummaryTitle">🎯 Doğrulanmış Teslim & 4 Boyutlu Kabul</b><span id="v22StudioSummarySub">Sürüm 3.5 (v25)</span></div>
+      <div class="hd"><b id="v22StudioSummaryTitle">🎯 Doğrulanmış Teslim & 4 Boyutlu Kabul</b><span id="v22StudioSummarySub">Sürüm 3.6 (v26)</span></div>
       <div id="v22StudioSummaryBody"></div>
     </div>
     <div class="card" id="readinessCard">
@@ -499,6 +504,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
       <div class="secthead" data-i18n="cmd.recent">Son komutlar</div>
       <div id="cmdList"></div>
     </div>
+  
+    </div>
+    <div id="studioWorld-home"></div>
   </section>
 
   <section class="view jarvis-shell" id="view-jarvis" hidden>
@@ -508,14 +516,14 @@ textarea{width:100%;min-height:80px;resize:vertical}
       <div class="jb-left">
         <span class="jb-ic" aria-hidden="true">✨</span>
         <div class="jb-tx">
-          <b data-i18n="jarvis.title">Jarvis · Tek Beyin Komuta</b>
+          <b data-i18n="jarvis.title">Argon · Tek Beyin Komuta</b>
           <span id="jarvisSub" data-i18n="jarvis.sub">Emirlerini kalıcı kuyruğa kaydet; mevcut iş akışını merkezden yönet</span>
         </div>
       </div>
       <span class="chip sm dot onnavy" id="jarvisRunnerChip">…</span>
     </div>
-    <div class="j-decision-grid" id="jarvisDecisionGrid" aria-label="Jarvis 4 Karar Kartı"></div>
-    <div class="jarvis-stream" id="jarvisChatList" role="log" aria-live="polite" aria-label="Jarvis sohbet akışı"></div>
+    <div class="j-decision-grid" id="jarvisDecisionGrid" aria-label="Argon 4 Karar Kartı"></div>
+    <div class="jarvis-stream" id="jarvisChatList" role="log" aria-live="polite" aria-label="Argon sohbet akışı"></div>
     <div class="j-chips" id="jarvisChips" role="group" aria-label="Hızlı emir çipleri">
       <button type="button" class="j-chip" data-jchip="advance">🚀 <span data-i18n="jarvis.c1">Oyunu İlerlet</span></button>
       <button type="button" class="j-chip" data-jchip="panel">✨ <span data-i18n="jarvis.c2">Paneli Geliştir</span></button>
@@ -530,18 +538,19 @@ textarea{width:100%;min-height:80px;resize:vertical}
       </div>
       <div class="detail" id="jarvisAttBadge" hidden></div>
       <div class="j-input-row">
-        <textarea id="jarvisInput" rows="2" maxlength="2000" data-i18n-ph="jarvis.ph" placeholder="Jarvis'e emrini yaz (Örn: Charm Drop'u ilerletelim)…"></textarea>
+        <textarea id="jarvisInput" rows="2" maxlength="2000" data-i18n-ph="jarvis.ph" placeholder="Argon'e emrini yaz (Örn: Charm Drop'u ilerletelim)…"></textarea>
         <button type="button" class="cmd-send-btn" id="jarvisSendBtn"><span data-i18n="cmd.send">Gönder</span> <span class="arr">➤</span></button>
       </div>
       <div class="detail" id="jarvisMsg" style="min-height:1.2em"></div>
     </div>
   
     </div>
-    <p id="jarvisV23BootMessage" role="status">Jarvis yükleniyor…</p>
+    <p id="jarvisV23BootMessage" role="status">Argon yükleniyor…</p>
     <div id="jarvisWorld"></div>
 </section>
 
   <section class="view" id="view-feed" hidden>
+    <div id="v26Legacy-feed" hidden inert aria-hidden="true">
     <div class="pagehead"><h1 data-i18n="feed.title">İşler & Akış</h1></div>
     <div class="card" id="v22PipelineCard">
       <div class="hd"><b id="v22PipeTitle">⚙️ Doğrulanmış Teslim 5 Adımlı İş Hattı</b><span id="v22PipeSub">Geliştirme → Test → İnceleme → Paketleme → Teslim</span></div>
@@ -560,14 +569,25 @@ textarea{width:100%;min-height:80px;resize:vertical}
     <div class="secthead" data-i18n="feed.records">Kayıtlar</div>
     <div class="filters" id="feedFilters"><button aria-pressed="true" data-f="all" data-i18n="ui.all">Hepsi</button><button data-f="work">OpenAI</button><button data-f="claude">Claude</button><button data-f="gemini">Gemini</button><button data-f="note" data-i18n="feed.notes">Notlar</button></div>
     <div class="card"><div class="feed" id="feedList"><div class="empty">Henüz akış kaydı yok.</div></div></div>
+  
+    </div>
+    <div id="studioWorld-feed"></div>
   </section>
 
   <section class="view" id="view-tests" hidden>
+    <div id="v26Legacy-tests" hidden inert aria-hidden="true">
     <div class="pagehead"><h1 data-i18n="tests.title">Testler</h1></div>
     <div class="card" id="testsBody"></div>
+  
+    </div>
+    <div id="studioWorld-tests"></div>
   </section>
 
   <section class="view" id="view-store" hidden>
+    <div id="studioWorld-store"></div>
+    <details id="v26StoreCompatibility" class="sv-compat">
+      <summary>Mağaza yönetimi ve gelen kutusu</summary>
+      <div id="v26Legacy-store" hidden inert aria-hidden="true">
     <div class="pagehead"><h1 data-i18n="store.title">Yayınlar</h1><button class="act" id="storeAddBtn" type="button" data-i18n="store.addGame">+ Oyun ekle</button></div>
     <div class="card" id="storeForm" hidden></div>
     <div class="grid2" id="storeStats"></div>
@@ -580,6 +600,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
     <div class="secthead" id="inboxHead">Gelen kutusu</div>
     <div class="filters" id="mailFilters"><button aria-pressed="true" data-f="all" data-i18n="ui.all">Hepsi</button><button data-f="unread" data-i18n="store.unread">Okunmamış</button><button data-f="console" data-i18n="kind.console">Play Console</button><button data-f="review" data-i18n="kind.review">Yorum</button><button data-f="tester" data-i18n="kind.tester">Testçi</button><button data-f="support" data-i18n="kind.support">Destek</button><button data-f="none" data-i18n="store.unmatched">Eşleşmeyen</button></div>
     <div class="card"><div id="mailList"></div></div>
+  
+      </div>
+    </details>
   </section>
 
   <section class="view" id="view-game" hidden>
@@ -616,7 +639,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     </div>
     <div class="secthead" data-i18n="set.app">Uygulama</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>Oryvona Games Paneli</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.5 (v25) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi</span></div></div>
+      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>ORYVONA ARGON</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.6 (v26) · Doğrulanmış Teslim & Argon Stüdyo Merkezi</span></div></div>
       <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b data-i18n="set.apk">Android kurulum dosyası</b><span data-i18n="set.apkSub">Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/latest/download/oryvona-panel.apk" download rel="noopener" data-i18n="ui.download">İndir</a></div>
       <div class="item"><span class="ic" id="icHelp"></span><div class="tx"><b data-i18n="ui.terms">Terimler ve roller</b><span data-i18n="set.termsSub">Claude, OpenAI, Gemini ve süreç adımları</span></div><button class="act" type="button" data-detail="terms" data-i18n="ui.open">Aç</button></div>
     </div>
@@ -652,7 +675,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   <button role="tab" data-view="feed"><span class="pill" id="tabFeed"></span><span data-i18n="tab.feed">İşler</span></button>
   <button role="tab" data-view="tests"><span class="pill" id="tabTests"></span><span data-i18n="tab.tests">Test</span></button>
   <button role="tab" data-view="store"><span class="pill" id="tabStore"></span><span data-i18n="tab.store">Yayınlar</span><span class="badge" id="storeBadge" hidden></span></button>
-  <button role="tab" data-view="jarvis"><span class="pill" id="tabJarvis"></span><span data-i18n="tab.jarvis">Jarvis</span></button>
+  <button role="tab" data-view="jarvis"><span class="pill" id="tabJarvis"></span><span data-i18n="tab.jarvis">Argon</span></button>
 </nav>
 
 <div id="gate" hidden>
@@ -701,13 +724,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
   const L={};
   L.tr={
     ui:{menu:"Menü",pickGame:"Oyun seç",brand:"Oryvona Komuta Merkezi",studio:"Stüdyo Komuta Merkezi",refresh:"Yenile",games:"Oyunlar",help:"Yardım",terms:"Terimler ve roller",waiting:"Bekleme",comment:"Yorum",work:"İş",all:"Hepsi",cloudTest:"Bulut testi",back:"Geri",edit:"Düzenle",download:"İndir",open:"Aç",noData:"Veri yok",none:"Henüz yok",save:"Kaydet",cancel:"Vazgeç",add:"Ekle",delete:"Sil",close:"Kapat",yes:"Evet",you:"sen",owner:"sahip",connecting:"Bağlanıyor…",loginNeeded:"Giriş gerekli",connErr:"Bağlantı hatası",live:v=>"Canlı · "+v,lastMove:v=>"Son hareket "+v,optional:"isteğe bağlı"},
-    tab:{home:"Stüdyo",jarvis:"Jarvis",feed:"İşler",tests:"Test",store:"Yayınlar",settings:"Ayarlar"},
+    tab:{home:"Stüdyo",jarvis:"Argon",feed:"İşler",tests:"Test",store:"Yayınlar",settings:"Ayarlar"},
     jarvis:{
-      title:"Jarvis · Tek Beyin Komuta",
+      title:"Argon · Tek Beyin Komuta",
       sub:"Emirlerini kalıcı kuyruğa kaydet; mevcut iş akışını merkezden yönet",
-      subGame:g=>`${g} · Jarvis komut kuyruğu · Ek ücretli API yok`,
+      subGame:g=>`${g} · Argon komut kuyruğu · Ek ücretli API yok`,
       c1:"Oyunu İlerlet",c2:"Paneli Geliştir",c3:"Durum Özeti Ver",c4:"Test Et & Yayına Al",
-      ph:"Jarvis'e emrini yaz (Örn: Charm Drop'u ilerletelim)…",
+      ph:"Argon'e emrini yaz (Örn: Charm Drop'u ilerletelim)…",
       welcome:(g,w)=>`Merhaba Deniz! Şu an seçili oyun: ${g}. ${w} Farklı yapay zeka modları seçmene gerek yok; üstteki 4 hızlı emir çipinden birine dokunabilir veya aşağıdan doğrudan bana yazabilirsin.`,
       sent:"Emir telefona kaydedildi. Bağlantı ve sahip oturumu hazır olduğunda aynı kimlikle teslim edilecek.",
       thinking:"Emir kuyrukta; sunucu/çalıştırıcı sonucu bekleniyor…",
@@ -751,7 +774,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     feed:{more:n=>`Daha fazla göster (${n})`,title:"İşler & Akış",week:"Bu hafta",records:"Kayıtlar",notes:"Notlar",empty:"Henüz akış kaydı yok.",emptyFilter:"Bu süzgeçte kayıt yok.",last7:"son 7 gün",turns:"Tur",turnsSub:"sıra el değiştirdi",runsSub:n=>`${n} tanesi sorunsuz`,noRuns:"koşu yok",workTime:"çalışma süresi",reviewTime:"inceleme süresi",today:"Bugün",hm:(h,m)=>`${h} sa ${m} dk`,min:m=>`${m} dk`,hr:h=>`${h} sa`,worked:v=>v+" çalıştı",waitFor:v=>"Bekleme: "+v,nowLabel:"şimdi"},
     tests:{title:"Testler",code:"Kod testleri",browser:"Tarayıcı testleri",natural:"Gerçek oynanış",lifecycle:"Sekme / Turu bitir",allPassed:"Hepsi geçti",missing:"Eksik var",waiting:"Bekleniyor",pass:"Geçti",blocked:"Engel",fail:"Hata",blockedSub:"Altyapı sınırı, oyun hatası değil",failSub:"Gerçek bir sorun bulundu",notRun:"Henüz koşmadı",runLog:"Detaylı test raporu: ",openReport:"Son test raporunu aç ›",noRun:"Henüz bulut testi yapılmadı.",noPipe:"Bu oyunun otomatik testleri henüz bağlı değil.",history:"Test geçmişi",noHistory:"Test geçmişi yok.",rowCode:"Kod",rowBrowser:"Tarayıcı",rowNatural:"Oynanış",rowLife:"Sekme / çıkış",cellPass:"geçti",cellBlocked:"engel",cellFail:"hata",cellNone:"koşmadı",lastRun:"Son test notu: "},
     gemini:{title:"Gemini İncelemesi",sub:"Bağımsız kalite kontrol · sırayı etkilemez, ikinci görüş sunar",pass:"Geçti",fail:"Sorun Buldu",unverified:"Kanıt Bekliyor",blocked:"Durduruldu",matchYes:"OpenAI ile aynı fikirde",matchNo:"OpenAI'dan farklı görüşte",matchUnknown:"OpenAI kararı bekleniyor",none:"Henüz Gemini incelemesi yok.",err:v=>"Durum: "+v,dur:v=>v+" sn sürdü",geminiSaid:v=>`Gemini'nin ilk değerlendirmesi: ${v}`,source:{gemini:"Doğrudan inceleme",'runner-override':"Eksik kanıt nedeniyle beklemeye alındı",'runner-fallback':"Teknik eksiklik nedeniyle tamamlanamadı"},task:"İncelenen iş: "},
-    cmd:{title:"Komut Kutusu",sub:"Görevini yaz veya sesle söyle, doğrudan Jarvis'e Gönder'e dokun",ph:"Yapılmasını istediğin görevi veya inceleme notunu kısaca yaz…",
+    cmd:{title:"Komut Kutusu",sub:"Görevini yaz veya sesle söyle, doğrudan Argon'e Gönder'e dokun",ph:"Yapılmasını istediğin görevi veya inceleme notunu kısaca yaz…",
       p1:"🔍 Son durumu kontrol et",p2:"🛠️ Son hatayı düzelt",p3:"📱 Dokunmatik testi çalıştır",p4:"📦 Mağaza durumunu özetle",
       voice:"Sesle Yaz",voiceStop:"Dinliyor… (Durdur)",voiceUnsup:"Tarayıcınız doğrudan sesle yazmayı desteklemiyor; klavyedeki mikrofon tuşunu kullanabilirsiniz.",voiceDone:"Ses metne çevrildi · Gönder'e dokun.",
       attachImg:"Ekran Görüntüsü / Görsel Ekle",draw:"✏️ İşaretle",clearDraw:"↺ Temizle",removeImg:"✕ Kaldır",drawHint:"Görselin üzerine parmağınla dokunarak sorunlu yeri kırmızıyla işaretleyebilirsin.",imgReady:"📸 Görsel Kanıt Hazır",
@@ -763,13 +786,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
       },
       presetReady:"Hazır görev kutuya yazıldı; Gönder ➤ tuşuna dokun.",
       targetClaude:"Claude",verbClaude:"yapsın",targetGemini:"Gemini",verbGemini:"incelesin",send:"Gönder",sending:"Gönderiliyor…",autoReview:"Son teslim edilen çalışmayı kanıtlarıyla incele ve Türkçe yönetici özeti çıkar.",geminiNoPipe:"Bu oyunun inceleme hattı henüz bağlı değil; komut kaydedilir ama otomatik incelenmez.",
-      targetPickedClaude:"Hedef: Jarvis (Tek Beyin Komuta) · Göndermek için Gönder ➤ tuşuna dokun.",
-      targetPickedGemini:"Hedef: Jarvis (Tek Beyin Komuta) · Göndermek için Gönder ➤ tuşuna dokun.",
+      targetPickedClaude:"Hedef: Argon (Tek Beyin Komuta) · Göndermek için Gönder ➤ tuşuna dokun.",
+      targetPickedGemini:"Hedef: Argon (Tek Beyin Komuta) · Göndermek için Gönder ➤ tuşuna dokun.",
       claude:"Claude Yapsın",gemini:"Gemini İncelesin",approve:"Onayla",stop:"Durdur",
-      sent:"Gönderildi · Jarvis 1-2 saniye içinde yanıtlayacak",
+      sent:"Gönderildi · Argon 1-2 saniye içinde yanıtlayacak",
       approvedSent:"✅ Onayınız kaydedildi ve ekip akışına iletildi.",
       stoppedSent:"⏹️ Durdurma komutu gönderildi.",
-      fail:"Gönderilemedi: ",needText:"Önce görevi yaz, sesle söyle veya üstteki hazır tuşlardan birine dokun.",confirmStop:"Çalışan proje iş hattı duraklatılsın mı?",confirmCancelTask:"Yalnız bu tek görevi iptal etmek istiyor musun? (Projedeki diğer işler etkilenmez)",recent:"Son komutlar",none:"Henüz komut gönderilmedi.",notTable:"Komut kutusu bağlantısı hazırlanıyor.",demo:"Örnek görünümde komut listeye eklendi.",st:{queued:"sırada",running:"çalışıyor",done:"tamamlandı",failed:"sorun oluştu",cancelled:"iptal edildi"},act:{jarvis_ask:"Jarvis Komutu",claude_do:"Claude'a Görev",gemini_review:"Gemini İncelemesi",approve:"Deniz Onayı",stop:"Durdurma"}},
+      fail:"Gönderilemedi: ",needText:"Önce görevi yaz, sesle söyle veya üstteki hazır tuşlardan birine dokun.",confirmStop:"Çalışan proje iş hattı duraklatılsın mı?",confirmCancelTask:"Yalnız bu tek görevi iptal etmek istiyor musun? (Projedeki diğer işler etkilenmez)",recent:"Son komutlar",none:"Henüz komut gönderilmedi.",notTable:"Komut kutusu bağlantısı hazırlanıyor.",demo:"Örnek görünümde komut listeye eklendi.",st:{queued:"sırada",running:"çalışıyor",done:"tamamlandı",failed:"sorun oluştu",cancelled:"iptal edildi"},act:{jarvis_ask:"Argon Komutu",claude_do:"Claude'a Görev",gemini_review:"Gemini İncelemesi",approve:"Deniz Onayı",stop:"Durdurma"}},
     play:{webTitle:"Oyunu aç",apkTitle:"APK'yı indir",playTitle:"Play testini aç",addTitle:"Test bağlantısı ekle",noneTitle:"Oyunu aç",
       webSub:v=>`${v} · web sürümünü açar`,apkSub:v=>`${v} · son APK'yı indirir`,playSub:v=>`${v} · Google Play testini açar`,
       noneOwner:v=>`${v} · henüz bağlantı yok · eklemek için dokun`,noneMember:v=>`${v} · henüz test sürümü yok`,
@@ -783,8 +806,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     det:{turn:"Sıra kimde",stage:"Oyun nerede",qa:"Son bulut testi",auto:"Otomasyon",worknote:"OpenAI'dan son not",gemini:"Gemini İncelemesi",terms:"Terimler ve roller",noTask:"Aktif görev yok",taskCode:(id,t)=>`Görev: ${id} · ${t}. tur`,lock:(who,at)=>` · ${who} çalışıyor (${at})`,lockFree:" · şu an kimse çalışmıyor",
       pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`Yapılan her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI otomatik geçişi",on:"etkin",off:"kapalı",wakeSub:v=>`Claude çalışmasını bitirince OpenAI kendiliğinden devreye girer. Son hareket: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Claude görev geldiğinde otomatik veya Komut Kutusu ile çalışır.",repo:"Proje bağlantısı: ",openRepo:"Proje sayfasını aç ›",lastPush:v=>` · son güncelleme ${v}`,openCommit:"Son değişikliği gör ›",last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
       workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar"},
-    terms:[["Jarvis","Tek beyin komuta asistanı. Doğrudan seninle konuşur, durum kartını okur ve arka plan işlerini kredi yakmadan yönetir."],["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Doğrudan Jarvis'e sesle, yazıyla veya ekran görüntüsüyle emir vermeni sağlayan alan."]],
-    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.5 (v25) · Doğrulanmış Teslim & Jarvis Stüdyo Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Jarvis, Claude, OpenAI ve süreç adımları",
+    terms:[["Argon","Tek beyin komuta asistanı. Doğrudan seninle konuşur, durum kartını okur ve arka plan işlerini kredi yakmadan yönetir."],["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Doğrudan Argon'e sesle, yazıyla veya ekran görüntüsüyle emir vermeni sağlayan alan."]],
+    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.6 (v26) · Doğrulanmış Teslim & Argon Stüdyo Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Argon, Claude, OpenAI ve süreç adımları",
       demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · ${src}`,ghSignal:"Canlı senkronizasyon aktif",noDataYet:"Henüz veri yok",
       pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
     pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
@@ -806,13 +829,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
   };
   L.en={
     ui:{menu:"Menu",pickGame:"Pick a game",brand:"Oryvona Command Center",studio:"Studio Command Center",refresh:"Refresh",games:"Games",help:"Help",terms:"Terms and roles",waiting:"Waiting",comment:"Comment",work:"Action",all:"All",cloudTest:"Cloud test",back:"Back",edit:"Edit",download:"Download",open:"Open",noData:"No data",none:"None yet",save:"Save",cancel:"Cancel",add:"Add",delete:"Delete",close:"Close",yes:"Yes",you:"you",owner:"owner",connecting:"Connecting…",loginNeeded:"Sign-in needed",connErr:"Connection error",live:v=>"Live · "+v,lastMove:v=>"Last activity "+v,optional:"optional"},
-    tab:{home:"Studio",jarvis:"Jarvis",feed:"Jobs",tests:"Test",store:"Releases",settings:"Settings"},
+    tab:{home:"Studio",jarvis:"Argon",feed:"Jobs",tests:"Test",store:"Releases",settings:"Settings"},
     jarvis:{
-      title:"Jarvis · Single-Brain Command",
+      title:"Argon · Single-Brain Command",
       sub:"Save commands durably; coordinate the existing workflow without extra paid APIs",
-      subGame:g=>`${g} · Jarvis command queue; no idle AI calls`,
+      subGame:g=>`${g} · Argon command queue; no idle AI calls`,
       c1:"Oyunu İlerlet",c2:"Paneli Geliştir",c3:"Durum Özeti Ver",c4:"Test Et & Yayına Al",
-      ph:"Write your command to Jarvis (e.g. Let's advance Charm Drop)…",
+      ph:"Write your command to Argon (e.g. Let's advance Charm Drop)…",
       welcome:(g,w)=>`Hello Deniz! Active game: ${g}. ${w} No need to pick AI modes; tap one of the 4 quick chips above or type directly below.`,
       sent:"Saved on this device; delivery resumes when connected and signed in as the owner.",
       thinking:"Queued; waiting for the runner result…",
@@ -856,7 +879,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     feed:{more:n=>`Show more (${n})`,title:"Jobs & Activity",week:"This week",records:"Records",notes:"Notes",empty:"No activity yet.",emptyFilter:"No records for this filter.",last7:"last 7 days",turns:"Turns",turnsSub:"hand-overs",runsSub:n=>`${n} clean`,noRuns:"no runs",workTime:"working time",reviewTime:"review time",today:"Today",hm:(h,m)=>`${h} h ${m} min`,min:m=>`${m} min`,hr:h=>`${h} h`,worked:v=>v+" worked",waitFor:v=>"Waiting: "+v,nowLabel:"now"},
     tests:{title:"Tests",code:"Code tests",browser:"Browser tests",natural:"Real gameplay",lifecycle:"Tab switch / finish run",allPassed:"All passed",missing:"Some missing",waiting:"Waiting",pass:"Passed",blocked:"Blocked",fail:"Failed",blockedSub:"Infrastructure limit, not a game bug",failSub:"A real problem was found",notRun:"Not run yet",runLog:"Detailed test report: ",openReport:"Open latest test report ›",noRun:"No cloud test run yet.",noPipe:"This game's automated tests are not linked yet.",history:"Test history",noHistory:"Test history.",rowCode:"Code",rowBrowser:"Browser",rowNatural:"Gameplay",rowLife:"Tab / quit",cellPass:"passed",cellBlocked:"blocked",cellFail:"failed",cellNone:"not run",lastRun:"Latest test note: "},
     gemini:{title:"Gemini Review",sub:"Independent quality review · never changes the turn, offers a second opinion",pass:"Passed",fail:"Found Issues",unverified:"Awaiting Evidence",blocked:"Blocked",matchYes:"Agrees with OpenAI",matchNo:"Differs from OpenAI",matchUnknown:"Waiting for OpenAI's verdict",none:"No Gemini review yet.",err:v=>"Status: "+v,dur:v=>v+" s",geminiSaid:v=>`Gemini's initial verdict: ${v}`,source:{gemini:"Direct review",'runner-override':"Held: missing evidence",'runner-fallback':"Incomplete due to technical limit"},task:"Reviewed work: "},
-    cmd:{title:"Command Box",sub:"Write or dictate a task and tap Send to dispatch to Jarvis",ph:"Briefly describe the task or review note…",
+    cmd:{title:"Command Box",sub:"Write or dictate a task and tap Send to dispatch to Argon",ph:"Briefly describe the task or review note…",
       p1:"🔍 Check latest status",p2:"🛠️ Fix latest issue",p3:"📱 Run touch test",p4:"📦 Summarize store status",
       voice:"Voice Dictate",voiceStop:"Listening… (Stop)",voiceUnsup:"Voice recognition is not supported in this browser; use your keyboard mic.",voiceDone:"Voice transcribed · tap Send.",
       attachImg:"Attach Screenshot / Image",draw:"✏️ Mark",clearDraw:"↺ Clear",removeImg:"✕ Remove",drawHint:"Touch and drag on the image to circle the issue in red.",imgReady:"📸 Visual Evidence Ready",
@@ -868,13 +891,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
       },
       presetReady:"Preset written to the box; tap Send ➤.",
       targetClaude:"Claude",verbClaude:"does it",targetGemini:"Gemini",verbGemini:"reviews",send:"Send",sending:"Sending…",autoReview:"Son teslim edilen çalışmayı kanıtlarıyla incele ve Türkçe yönetici özeti çıkar.",geminiNoPipe:"This game's review pipeline is not linked yet; the command is saved but not reviewed automatically.",
-      targetPickedClaude:"Target: Jarvis (Single-Brain Command) · Tap Send ➤ to dispatch.",
-      targetPickedGemini:"Target: Jarvis (Single-Brain Command) · Tap Send ➤ to dispatch.",
+      targetPickedClaude:"Target: Argon (Single-Brain Command) · Tap Send ➤ to dispatch.",
+      targetPickedGemini:"Target: Argon (Single-Brain Command) · Tap Send ➤ to dispatch.",
       claude:"Claude Does It",gemini:"Gemini Reviews",approve:"Approve",stop:"Stop",
       sent:"Saved; waiting for confirmed delivery and runner results",
       approvedSent:"✅ Approval recorded and sent to the team.",
       stoppedSent:"⏹️ Stop command sent.",
-      fail:"Could not send: ",needText:"Write the task first or tap a preset chip above.",confirmStop:"Pause the active project workflow?",confirmCancelTask:"Cancel only this single task? (Other project jobs are unaffected)",recent:"Recent commands",none:"No commands sent yet.",notTable:"Command box connection is being prepared.",demo:"Command added to local preview list.",st:{queued:"queued",running:"running",done:"completed",failed:"issue",cancelled:"cancelled"},act:{jarvis_ask:"Jarvis Command",claude_do:"Task for Claude",gemini_review:"Gemini Review",approve:"Owner Approval",stop:"Stop"}},
+      fail:"Could not send: ",needText:"Write the task first or tap a preset chip above.",confirmStop:"Pause the active project workflow?",confirmCancelTask:"Cancel only this single task? (Other project jobs are unaffected)",recent:"Recent commands",none:"No commands sent yet.",notTable:"Command box connection is being prepared.",demo:"Command added to local preview list.",st:{queued:"queued",running:"running",done:"completed",failed:"issue",cancelled:"cancelled"},act:{jarvis_ask:"Argon Command",claude_do:"Task for Claude",gemini_review:"Gemini Review",approve:"Owner Approval",stop:"Stop"}},
     play:{webTitle:"Open game",apkTitle:"Download APK",playTitle:"Open Play test",addTitle:"Add test link",noneTitle:"Open game",
       webSub:v=>`${v} · opens the web build`,apkSub:v=>`${v} · downloads the latest APK`,playSub:v=>`${v} · opens the Google Play test`,
       noneOwner:v=>`${v} · no link yet · tap to add`,noneMember:v=>`${v} · no test build yet`,
@@ -888,8 +911,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     det:{turn:"Whose turn",stage:"Where the game is",qa:"Last cloud test",auto:"Automation",worknote:"Latest note from OpenAI",gemini:"Gemini Review",terms:"Terms and roles",noTask:"No active task",taskCode:(id,t)=>`Task: ${id} · round ${t}`,lock:(who,at)=>` · ${who} working (${at})`,lockFree:" · no one working right now",
       pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI auto-handoff",on:"enabled",off:"off",wakeSub:v=>`When Claude finishes, OpenAI steps in automatically. Last activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"Claude runs automatically on new tasks or via the Command Box.",repo:"Project link: ",openRepo:"Open project page ›",lastPush:v=>` · last update ${v}`,openCommit:"View latest change ›",last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
       workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes"},
-    terms:[["Jarvis","Single-brain command assistant. Talks directly with you, reads the status card, and orchestrates background tasks without wasting credits."],["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Send voice, text, or annotated screenshot commands directly to Jarvis."]],
-    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.5 (v25) · Verified Delivery & Jarvis Studio Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Jarvis, Claude, OpenAI and workflow steps",
+    terms:[["Argon","Single-brain command assistant. Talks directly with you, reads the status card, and orchestrates background tasks without wasting credits."],["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Send voice, text, or annotated screenshot commands directly to Argon."]],
+    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.6 (v26) · Verified Delivery & Argon Studio Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Argon, Claude, OpenAI and workflow steps",
       demoView:"Sample view",notSignedIn:"Not signed in",ownerRole:"Studio owner",memberRole:"Team member",liveInfo:(t,src)=>`Last update ${t} · ${src}`,ghSignal:"Live sync active",noDataYet:"No data yet",
       pushOn:"On",pushOff:"Turn on",pushDemo:"Off in the sample view",pushUnsup:"This browser does not support it",pushDenied:"Notification permission is off; enable it in the phone's app settings",pushActive:"This device receives notifications. If they arrive as \"Chrome\": open phone Settings → Apps → Oryvona → Notifications.",pushIdle:"Alerts you even when the app is closed",pushSaveErr:"Could not save: ",pushAsking:"Asking for permission…",pushClosed:"The permission box closed; tap Turn on again and choose Allow.",pushFail:"Could not enable: ",pushSending:"Sending…",pushSendFail:"Could not send: ",pushSent:n=>`Test sent · ${n} device(s). It arrives within seconds.`},
     pref:{mine:"When the turn comes to me (final test)",blocked:"When a blocker is recorded",turns:"On every hand-over (Claude ↔ OpenAI)",runs:"When a cloud test finishes",store:"Store: new review, mail, status change"},
@@ -1272,7 +1295,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       $("v22PipeBody").innerHTML=`<div class="v22-pipe">${steps.map(([lbl,sub],idx)=>{
         const cls=idx===stepIdx?"active":"";
         return `<div class="v22-pipe-step ${cls}"><b>${esc(lbl)}</b><small>${esc(sub)}</small></div>`;
-      }).join("")}</div><div class="detail" style="margin-top:6px">${esc(sp.name)} · ${lang==="tr"?"Canlı bağlantı ve işçi teslim kanıtı Jarvis ekranında doğrulanır":"Live connection and worker delivery receipts are verified in Jarvis"}</div>`;
+      }).join("")}</div><div class="detail" style="margin-top:6px">${esc(sp.name)} · ${lang==="tr"?"Canlı bağlantı ve işçi teslim kanıtı Argon ekranında doğrulanır":"Live connection and worker delivery receipts are verified in Argon"}</div>`;
     }
     if($("v22ReleaseBody")){
       const playSt=playConnected()?(lang==="tr"?"Play Console bağlı":"Play Console connected"):(lang==="tr"?"Mağaza metrikleri: Henüz bağlı değil":"Store metrics: Not connected yet");
@@ -1300,7 +1323,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
   // ---------- theme ----------
   const mq=matchMedia("(prefers-color-scheme: dark)");
-  const applyTheme=t=>{const dark=t==="dark"||(t==="system"&&mq.matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");document.querySelector('meta[name="theme-color"]').setAttribute("content",dark?"#0b0a1e":"#12112e");
+  const applyTheme=t=>{const dark=t==="dark"||(t==="system"&&mq.matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");document.querySelector('meta[name="theme-color"]').setAttribute("content",document.body.classList.contains("oryvona-v26")?"#040a16":dark?"#0b0a1e":"#12112e");
     document.querySelectorAll("#themeSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===t)));if(status)renderTimeline("tl",24);};
   const themePref=()=>{try{return localStorage.getItem("oryvona.theme")||"light";}catch{return"light";}};
   applyTheme(themePref());mq.addEventListener("change",()=>{if(themePref()==="system")applyTheme("system");});
@@ -1675,7 +1698,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(e.target.id==="inviteCopy"){const v=$("inviteLink").value;try{await navigator.clipboard.writeText(v);$("inviteMsg").textContent=Tm.copied;}catch{$("inviteLink").select();$("inviteMsg").textContent=Tm.copyManual;}}});
   const gateMsg=(t,bad)=>{const m=$("gateMsg");m.textContent=t;m.style.color=bad?"#ff9c9c":"#8fe3ad";};
 
-  // ---------- Gemini (gölge) kartı + Komut Kutusu + Jarvis Tek Beyin ----------
+  // ---------- Gemini (gölge) kartı + Komut Kutusu + Argon Tek Beyin ----------
   // Data: shadow_reviews (komut-runner writes) and commands (the owner writes, the runner updates).
   // The command list is a "lean" query: it never downloads attachment images, only a note, the target game and a tiny thumbnail.
   const CMD_COLS="id,project_id,action,text,status,created_by,created_at,started_at,finished_at,runner,note:result->>note_tr,jarvis_reply:result->>jarvis_reply,routed_action:result->>routed_action,chip:result->>chip,target:result->>target_game,att_name:result->attachment->>name,att_thumb:result->attachment->>thumb,operation:result->>operation,validation:result->validation";
@@ -1728,7 +1751,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       const th=c.att_thumb&&String(c.att_thumb).startsWith("data:image/")?`<img class="cmd-thumb" src="${esc(c.att_thumb)}" alt="${esc(c.att_name||"")}">`:(c.att_name?`<span class="chip sm">📸 ${esc(c.att_name)}</span>`:"");
       const canStop=c.status==="running"||c.status==="queued";
       const stopBtn=canStop?`<button type="button" class="ctx-btn stop" data-ctx-cmd="stop" data-cmd-id="${esc(c.id)}" style="padding:5px 10px;font-size:.75rem">⏹️ ${esc(C.stop)}</button>`:"";
-      const actLbl=c.operation==="jarvis_ask"?(C.act.jarvis_ask||"Jarvis Komutu"):c.operation==="background_validate"?(lang==="tr"?"Arka plan doğrulaması":"Background validation"):(C.act[c.action]||c.action);
+      const actLbl=c.operation==="jarvis_ask"?(C.act.jarvis_ask||"Argon Komutu"):c.operation==="background_validate"?(lang==="tr"?"Arka plan doğrulaması":"Background validation"):(C.act[c.action]||c.action);
       return `<div class="cmdrow"><div class="tx"><b>${esc(actLbl)}</b>${c.text?`<span class="s">${esc(humanText(String(c.text)).slice(0,180))}</span>`:""}${th}<span class="s">${esc(ago(c.created_at))}${note?" · "+esc(note):""}</span></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0">${stopBtn}<span class="chip sm ${cls}">${esc(C.st[c.status]||c.status)}</span></div></div>`;}).join("");}
 
   function renderJarvis(){if(window.__oryvonaJarvisV23Mounted)return;
@@ -1744,7 +1767,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const hs=st&&st.handoff&&st.handoff.status;const M=S().home.whatNowMap||{};
     const whatNow=(hs&&M[hs])||(st?M.default:M.nodata)||"";
     const rows=Array.isArray(commands)?commands.map(normCmd).filter(c=>(c.target||"koza")===cur).slice(0,12).reverse():[];
-    let out=`<div class="j-msg jarvis"><span class="j-who">✨ Jarvis · ${esc(sp.name)}</span><div class="j-txt">${esc(J.welcome(sp.name,whatNow))}</div><div class="j-meta"><span class="j-badge">${esc(J.routed.summary_only)}</span></div></div>`;
+    let out=`<div class="j-msg jarvis"><span class="j-who">✨ Argon · ${esc(sp.name)}</span><div class="j-txt">${esc(J.welcome(sp.name,whatNow))}</div><div class="j-meta"><span class="j-badge">${esc(J.routed.summary_only)}</span></div></div>`;
     for(const c of rows){
       if(c.text){
         const th=c.att_thumb&&String(c.att_thumb).startsWith("data:image/")?`<img class="cmd-thumb" src="${esc(c.att_thumb)}" alt="${esc(c.att_name||"")}">`:(c.att_name?`<span class="chip sm">📸 ${esc(c.att_name)}</span>`:"");
@@ -1755,7 +1778,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       const rBadge=c.routed_action&&J.routed[c.routed_action]?`<span class="j-badge">${esc(J.routed[c.routed_action])}</span>`:"";
       const stopBtn=(pending&&isOwner)?`<button type="button" class="ctx-btn stop" data-ctx-cmd="stop" data-cmd-id="${esc(c.id)}" style="padding:4px 9px;font-size:.72rem">⏹️ ${esc(C.stop)}</button>`:"";
       const stCls=c.status==="done"?"good":c.status==="failed"?"bad":c.status==="running"?"info":"warn";
-      out+=`<div class="j-msg jarvis"><span class="j-who">✨ Jarvis · ${esc(ago(c.finished_at||c.created_at))}</span><div class="j-txt">${esc(reply)}</div><div class="j-meta">${rBadge}<span class="chip sm ${stCls}">${esc(C.st[c.status]||c.status)}</span>${stopBtn}</div></div>`;
+      out+=`<div class="j-msg jarvis"><span class="j-who">✨ Argon · ${esc(ago(c.finished_at||c.created_at))}</span><div class="j-txt">${esc(reply)}</div><div class="j-meta">${rBadge}<span class="chip sm ${stCls}">${esc(C.st[c.status]||c.status)}</span>${stopBtn}</div></div>`;
     }
     const nearBottom=!stream.dataset.initialized||(stream.scrollHeight-stream.scrollTop-stream.clientHeight<120);
     stream.innerHTML=out;
@@ -1935,8 +1958,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
   });
 
 
-  // ---------- Jarvis Tek Beyin + Komut Kutusu ----------
-  // Deniz talks directly to Jarvis without picking between AI modes.
+  // ---------- Argon Tek Beyin + Komut Kutusu ----------
+  // Deniz talks directly to Argon without picking between AI modes.
   let cmdTarget="gemini_review";
   function setCmdTarget(t){
     cmdTarget=t==="gemini_review"?"gemini_review":"claude_do";
@@ -2155,17 +2178,45 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
   // v24 private port retains capability/heartbeat caching; every operation still rechecks owner.
   let studioHostClient=null,studioHostPort=null;
-  function announceStudioContext(){document.dispatchEvent(new CustomEvent("oryvona:studio-context-change"));}
+  function announceStudioContext(){studioReadFacadeV26?.contextChanged();document.dispatchEvent(new CustomEvent("oryvona:studio-context-change"));}
   window.OryvonaStudioHost=Object.freeze({
     context:()=>({...commandIdentity(),view,locale:lang}),
     async request(operation,payload){
+      if(operation==='recordArtifactDecision')return requestStudioDecisionV26(operation,payload);
       if(!sb||!window.OryvonaStudioHostPort)throw Object.assign(new Error("Canlı bağlantı bileşeni hazır değil."),{code:"UNAVAILABLE"});
       if(studioHostClient!==sb||!studioHostPort){studioHostClient=sb;studioHostPort=window.OryvonaStudioHostPort.create({client:sb,getContext:()=>({...commandIdentity(),view,locale:lang})});}
       return studioHostPort.request(operation,payload);
     }
   });
 
+  // Only this closure can obtain sb. Public facades return bounded, frozen data.
+  var studioReadFacadeV26=window.OryvonaStudioFacadeV26.create({
+    getClient:()=>sb,
+    getContext:()=>({authenticated:!!session,userId:session?.user?.id||'',isOwner,demo}),
+    getProjects:()=>STUDIO_PROJECTS,
+    document
+  });
+  let studioDecisionClientV26=null,studioDecisionPortV26=null;
+  function requestStudioDecisionV26(operation,payload){
+    if(!sb||!window.OryvonaStudioDecisionsV26)throw Object.assign(new Error('Paket kabul bağlantısı hazır değil.'),{code:'UNAVAILABLE'});
+    if(studioDecisionClientV26!==sb||!studioDecisionPortV26){
+      studioDecisionClientV26=sb;
+      studioDecisionPortV26=window.OryvonaStudioDecisionsV26.createHostPort({client:sb,getContext:()=>({authenticated:!!session,userId:session?.user?.id||'',isOwner,demo})});
+    }
+    return studioDecisionPortV26.request(operation,payload);
+  }
+  const studioV26PanelExtension=Object.freeze({
+    getStudioSnapshot:scopeKey=>studioReadFacadeV26.getSnapshot(scopeKey),
+    refreshStudioSnapshot:scopeKey=>studioReadFacadeV26.refresh(scopeKey),
+    subscribeStudioSnapshot:fn=>studioReadFacadeV26.subscribe(fn),
+    openStudioView(next){
+      if(!['home','feed','tests','store','jarvis'].includes(next))throw new Error('Geçersiz stüdyo görünümü.');
+      history.pushState({view:next},'');showView(next);return {view:next};
+    }
+  });
+
   window.OryvonaPanel=Object.freeze({
+    ...studioV26PanelExtension,
     getContext:()=>({projectId:current,view,locale:lang,isOwner,authenticated:!!session,demo}),
     getRunnerStatus:()=>{const {on,r}=runnerState();return{online:!!on,lastSeen:r?.lastSeen||null};},
     getBuildValidation(gameId){const id=gameId||current;const local=(outboxState.items||[]).filter(c=>c.state!=="delivered").filter(c=>c.operation==="background_validate"&&c.game===id).map(c=>({id:c.id,target:c.game,operation:c.operation,status:["cancelled","failed"].includes(c.state)?c.state:"queued",created_at:c.created_at,note:c.error||""}));const row=[...(commands||[]).map(normCmd).filter(c=>c.operation==="background_validate"&&(c.target||"koza")===id),...local.filter(c=>!(commands||[]).some(x=>x.id===c.id))].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)))[0];return row?{id:row.id,status:row.status,created_at:row.created_at,finished_at:row.finished_at,note:row.note||"",validation:row.validation?JSON.parse(JSON.stringify(row.validation)):null}:null;},
@@ -2199,12 +2250,23 @@ textarea{width:100%;min-height:80px;resize:vertical}
   })();
 })();
 </script>
-<script src="native-shell.js"></script>
-<script src="game-lab.js"></script>
-<script src="jarvis-energy.js?v=25"></script>
-<script src="jarvis-bridge.js?v=25"></script>
-<script src="supabase-host-port.js?v=25"></script>
-<script src="jarvis-world.js?v=25"></script>
-<script src="jarvis-v23-bootstrap.js?v=25"></script>
+
+
+
+
+
+
+
+<script src="native-shell.js?v=26"></script>
+<script src="game-lab.js?v=26"></script>
+<script src="jarvis-energy.js?v=26"></script>
+<script src="jarvis-bridge.js?v=26"></script>
+<script src="supabase-host-port.js?v=26"></script>
+<script src="studio-data-v26.js?v=26"></script>
+<script src="jarvis-brief.js?v=26"></script>
+<script src="jarvis-voice.js?v=26"></script>
+<script src="studio-world-v26.js?v=26"></script>
+<script src="jarvis-world.js?v=26"></script>
+<script src="studio-v26-bootstrap.js?v=26"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const editable = node => node instanceof Element && !!node.closest('input,textarea,select,[contenteditable="true"],[data-native-context],.jw-root');
+  const editable = node => node instanceof Element && !!node.closest('input,textarea,select,[contenteditable="true"],[data-native-context],.jw-root,.sv-root');
   document.addEventListener('contextmenu', event => { if (!editable(event.target)) event.preventDefault(); });
   document.addEventListener('selectstart', event => { if (!editable(event.target) && !event.target.closest?.('[data-selectable]')) event.preventDefault(); });
   let pressed = null;

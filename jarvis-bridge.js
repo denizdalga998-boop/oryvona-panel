@@ -146,7 +146,12 @@
           if (row.status === 'failed') { status = 'failed'; statusText = row.lastError || 'İstek gönderilemedi; metin cihazda saklanıyor'; }
         }
         messages.push({ id: 'intent-' + id, role: 'user', body: row.text || '', projectId, createdAt: row.createdAt || row.created_at, commandId: id, origin: { kind: 'local' } });
-        jobs.push({ id, projectId, title: (row.text || '').slice(0, 90), status, statusText, canCancel: !['completed', 'failed', 'cancelled'].includes(status), ...(remote && remote.worker_id ? { expert: remote.worker_id } : {}), ...(remote && remote.workspace_label ? { workspaceLabel: remote.workspace_label } : {}) });
+        jobs.push({ id, projectId, title: (row.text || '').slice(0, 90), status, statusText, canCancel: !['completed', 'failed', 'cancelled'].includes(status), ...(remote && remote.worker_id ? { expert: remote.worker_id } : {}), ...(remote && remote.workspace_label ? { workspaceLabel: remote.workspace_label } : {}),
+          createdAt: row.createdAt || row.created_at || null,
+          updatedAt: remote?.updated_at || null, finishedAt: remote?.finished_at || null,
+          receipt: remote?.receipt ? JSON.parse(JSON.stringify(remote.receipt)) : null,
+          stage: remote?.stage || null,
+          steps: Array.isArray(remote?.steps) ? remote.steps.map(s=>({...s})) : [] });
       }
       return { revision, accountKey: getAccountKey(), connection, messages, jobs, energyState: energy || (!online() ? 'offline' : authPaused ? 'blocked' : 'idle'), capabilities: { attachments: !!store && !!active && connectionInfo?.attachmentsAvailable === true && typeof createImageBitmap === 'function', speech: !!Speech, maxAttachments: MAX_FILES }, projects: PROJECTS.slice() };
     }
@@ -160,6 +165,23 @@
         refs.push({ id: saved.id, name: saved.name, mime: saved.mime, size: saved.size, sha256: saved.sha256, bucket: 'studio-v23-evidence', path: id + '/' + saved.sha256 + '.jpg' });
       }
       return refs.sort((a, b) => a.id.localeCompare(b.id));
+    }
+    /** ARGON KARA KUTU: ask DJ-KABIN's FTS5 archive a history question and wait (bounded) for its answer. Read-only; never a job. */
+    async function askArchive(payload) {
+      try {
+        requireAccountKey(payload && payload.accountKey);
+        await syncAccount(); const id = contextOwner(); if (!id || id !== ownerId) throw error('AUTH_REQUIRED', 'Sahip hesabınla giriş yap.');
+        const text = String(payload.text || '').trim(); if (!text || text.length > 500) throw error('TEXT_INVALID', 'Soruyu 1–500 karakterle yaz.');
+        const requestId = globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function' ? globalThis.crypto.randomUUID() : null; if (!requestId) throw error('UNAVAILABLE', 'Bu tarayıcı güvenli kimlik üretemiyor.');
+        await request('askArchive', { requestId, text }, id);
+        const deadline = now() + (Number(payload.timeoutMs) > 0 ? Number(payload.timeoutMs) : 25000), wait = ms => new Promise(r => setTimeout(r, ms));
+        while (now() < deadline) {
+          await wait(Number(payload.pollMs) > 0 ? Number(payload.pollMs) : 1500); requireAccountKey(payload.accountKey);
+          const answer = await request('getArchiveAnswer', { requestId }, id);
+          if (answer && (answer.status === 'done' || answer.status === 'failed')) return { ok: answer.status === 'done', answer_tr: String(answer.answer_tr || ''), hits: Array.isArray(answer.hits) ? answer.hits : [], requestId };
+        }
+        return { ok: false, timeout: true, requestId, answer_tr: 'DJ-KABIN kara kutudan henüz yanıt vermedi (çevrimdışı olabilir). Soru kayıtlı; iş emri oluşturulmadı.' };
+      } catch (e) { return { ok: false, code: e.code || 'ARCHIVE_FAILED', answer_tr: e.message || 'Kara kutuya ulaşılamadı. İş emri oluşturulmadı.' }; }
     }
     async function submitIntent(payload) {
       try {
@@ -254,7 +276,7 @@
     function resolveIntent(payload) {
       const scope = payload.scope, text = String(payload.text || '').normalize('NFKC').toLocaleLowerCase('tr-TR');
       const boundary = value => new RegExp('(?<![\\p{L}\\p{N}])(?:' + value + ')(?![\\p{L}\\p{N}])', 'u');
-      const aliases = { koza: boundary('koza'), 'charm-drop': boundary('charm[ -]?drop'), 'forge-run': boundary('forge[ -]?run'), aeryo: boundary('aeryo'), tupsper: boundary('tuckspire|tupsper'), 'oryvona-panel': boundary('oryvona[ -]?panel|panel|paneli|panelde|panelden|panelin|panelinde|jarvis|uygulama|uygulamayı|uygulamayi|uygulamada|uygulamaya') };
+      const aliases = { koza: boundary('koza'), 'charm-drop': boundary('charm[ -]?drop'), 'forge-run': boundary('forge[ -]?run'), aeryo: boundary('aeryo'), tupsper: boundary('tuckspire|tupsper'), 'oryvona-panel': boundary('oryvona[ -]?panel|panel|paneli|panelde|panelden|panelin|panelinde|jarvis|argon|uygulama|uygulamayı|uygulamayi|uygulamada|uygulamaya') };
       const mentioned = PROJECTS.filter(p => aliases[p].test(text));
       if (scope && !PROJECTS.includes(scope)) return { status: 'rejected', message: 'Geçersiz proje kapsamı.' };
       if (mentioned.length > 1 || (scope && mentioned.length === 1 && mentioned[0] !== scope)) return { status: 'clarify', question: 'Bu isteği hangi tek projeye göndereyim?', candidates: mentioned.length ? mentioned : PROJECTS.slice() };
@@ -324,7 +346,7 @@
     const timer = options.noTimers ? null : setInterval(() => { void loadRows().then(flush).catch(() => {}); }, 2000);
     const poll = options.noTimers ? null : setInterval(() => { if (!host.context().view || host.context().view === 'jarvis') void refresh(); }, 2000);
     const ready = loadRows().then(() => Promise.all([flush(), refresh()]));
-    return { getSnapshot, getAccountKey, subscribe: fn => { listeners.add(fn); fn(getSnapshot()); return () => listeners.delete(fn); }, submitIntent, cancelJob, resolveIntent, drafts, attachments, speech, refresh, resume, ready, flush, dispose: () => { disposed = true; generation++; if (timer) clearInterval(timer); if (poll) clearInterval(poll); if (recognition) recognition.abort(); listeners.clear(); rows = []; serverRows = []; if (typeof globalThis.removeEventListener === 'function') { globalThis.removeEventListener('online', onlineHandler); globalThis.removeEventListener('offline', emit); } } };
+    return { getSnapshot, getAccountKey, subscribe: fn => { listeners.add(fn); fn(getSnapshot()); return () => listeners.delete(fn); }, submitIntent, askArchive, cancelJob, resolveIntent, drafts, attachments, speech, refresh, resume, ready, flush, dispose: () => { disposed = true; generation++; if (timer) clearInterval(timer); if (poll) clearInterval(poll); if (recognition) recognition.abort(); listeners.clear(); rows = []; serverRows = []; if (typeof globalThis.removeEventListener === 'function') { globalThis.removeEventListener('online', onlineHandler); globalThis.removeEventListener('offline', emit); } } };
   }
   // Read dimensions BEFORE image decoding/canvas allocation. Reject unknown encodings.
   function readImageDimensions(bytes, mime) {

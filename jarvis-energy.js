@@ -1,4 +1,4 @@
-/* ORYVONA v23 — decorative energy core. No network, microphone or audio startup. */
+/* ORYVONA v26 — bounded, decorative Canvas2D orb. No network or audio startup. */
 (function (root, factory) {
   'use strict';
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -8,277 +8,328 @@
 
   var TAU = Math.PI * 2;
   var mounts = new WeakMap();
-  var STATES = Object.freeze(['idle', 'listening', 'thinking', 'orchestrating', 'success', 'blocked', 'offline']);
+  var MODES = Object.freeze(['idle', 'listening', 'thinking', 'speaking']);
+  var STATES = Object.freeze(MODES.concat(['orchestrating', 'success', 'blocked', 'offline']));
   var JOB_STATES = Object.freeze(['queued', 'running', 'blocked', 'completed', 'failed', 'paused', 'cancelled']);
-  var PALETTES = Object.freeze({
-    idle: ['rgba(79,205,204,.12)', 'rgba(97,232,221,.45)', '#a4f7e9'],
-    listening: ['rgba(79,225,212,.18)', 'rgba(111,247,221,.8)', '#d2fff2'],
-    thinking: ['rgba(68,188,224,.16)', 'rgba(112,219,247,.72)', '#c1f4ff'],
-    orchestrating: ['rgba(67,214,200,.18)', 'rgba(77,236,217,.8)', '#bcfff0'],
-    success: ['rgba(77,213,157,.18)', 'rgba(127,245,181,.8)', '#e1ffed'],
-    blocked: ['rgba(225,172,89,.13)', 'rgba(239,193,116,.7)', '#ffe4b6'],
-    offline: ['rgba(148,170,179,.07)', 'rgba(148,170,179,.32)', '#a4b5bc']
+  var COLORS = Object.freeze({
+    idle: ['#43d5ed', '#518eff', '#d7fbff'],
+    listening: ['#69edee', '#46baff', '#edffff'],
+    thinking: ['#64b8ff', '#677fff', '#deecff'],
+    speaking: ['#78f4f2', '#50aaff', '#efffff'],
+    blocked: ['#dbb276', '#827e93', '#fae5bc'],
+    offline: ['#72899c', '#486375', '#b0c3d1']
   });
 
   function normaliseState(state) {
     if (typeof state !== 'string' || STATES.indexOf(state) === -1) throw new TypeError('Unknown Jarvis energy state');
     return state;
   }
-
+  function modeOf(state) { return state === 'orchestrating' ? 'thinking' : state === 'success' ? 'idle' : state; }
   function clampAudioLevel(value) {
     if (typeof value !== 'number' || !Number.isFinite(value)) throw new TypeError('Audio level must be a finite number');
     return Math.max(0, Math.min(1, value));
   }
-
   function pixelBudget(width, height, ratio) {
-    var w = typeof width === 'number' && Number.isFinite(width) && width > 0 ? Math.max(1, Math.min(width, 512)) : 140;
-    var h = typeof height === 'number' && Number.isFinite(height) && height > 0 ? Math.max(1, Math.min(height, 256)) : 88;
-    var dpr = typeof ratio === 'number' && Number.isFinite(ratio) ? Math.min(1.75, Math.max(1, ratio)) : 1;
-    return { width: w, height: h, dpr: dpr, pixelWidth: Math.round(w * dpr), pixelHeight: Math.round(h * dpr) };
+    var w = Number.isFinite(width) && width > 0 ? Math.max(1, Math.min(width, 512)) : 224;
+    var h = Number.isFinite(height) && height > 0 ? Math.max(1, Math.min(height, 512)) : 224;
+    var dpr = Number.isFinite(ratio) ? Math.min(1.75, Math.max(1, ratio)) : 1;
+    // Absolute backing-store ceiling, even for abnormally large or stretched hosts.
+    var pixels = w * h * dpr * dpr;
+    if (pixels > 600000) dpr = Math.sqrt(600000 / (w * h));
+    return { width: w, height: h, dpr: dpr, pixelWidth: Math.max(1, Math.floor(w * dpr)), pixelHeight: Math.max(1, Math.floor(h * dpr)) };
   }
-
-  function normaliseActivities(jobs) {
-    if (!Array.isArray(jobs) || jobs.length > 1000) throw new TypeError('Activities must be an array of at most 1000 real job records');
+  function normaliseActivities(records) {
+    if (!Array.isArray(records) || records.length > 1000) throw new TypeError('Activities must be an array of at most 1000 real job records');
     var seen = new Set();
-    var accepted = [];
-    for (var i = 0; i < jobs.length; i += 1) {
-      var job = jobs[i];
+    return records.map(function (job) {
       if (!job || typeof job !== 'object' || typeof job.id !== 'string' || !job.id.trim() || job.id.length > 160 ||
-          JOB_STATES.indexOf(job.status) === -1 || seen.has(job.id)) throw new TypeError('Each activity requires a unique id and a known status');
+          JOB_STATES.indexOf(job.status) === -1 || seen.has(job.id)) throw new TypeError('Activities require unique ids and known statuses');
       if (job.project !== undefined && (typeof job.project !== 'string' || job.project.length > 160)) throw new TypeError('Invalid activity project');
       seen.add(job.id);
-      accepted.push(Object.freeze({ id: job.id, status: job.status, project: job.project || '' }));
-    }
-    return accepted;
+      return Object.freeze({ id: job.id, status: job.status, project: job.project || '' });
+    });
   }
-
   function targetFPS(state) {
-    if (state === 'offline') return 0;
-    return state === 'thinking' || state === 'listening' || state === 'orchestrating' ? 60 : 24;
+    var mode = modeOf(normaliseState(state));
+    if (mode === 'offline' || mode === 'blocked') return 0;
+    return mode === 'idle' ? 24 : 60;
   }
 
   function mount(canvas, options) {
     options = options || {};
     if (!canvas || typeof canvas.getContext !== 'function' || typeof canvas.getBoundingClientRect !== 'function') throw new TypeError('mount expects a canvas element');
     if (mounts.has(canvas)) throw new Error('Canvas already has a mounted Jarvis energy core');
-    var state = normaliseState(options.state === undefined ? 'idle' : options.state);
     if (options.reducedMotion !== undefined && typeof options.reducedMotion !== 'boolean') throw new TypeError('reducedMotion must be boolean');
-    var context = canvas.getContext('2d', { alpha: true, desynchronized: true });
-    if (!context) throw new Error('Canvas2D unavailable');
+    var state = normaliseState(options.state === undefined ? options.mode === undefined ? 'idle' : options.mode : options.state);
+    var mode = modeOf(state);
+    var ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+    if (!ctx) throw new Error('Canvas2D unavailable');
     var doc = canvas.ownerDocument;
-    var view = doc && doc.defaultView ? doc.defaultView : typeof globalThis !== 'undefined' ? globalThis : {};
+    var view = doc && doc.defaultView || (typeof globalThis !== 'undefined' ? globalThis : {});
     var runtime = options.runtime || {};
-    var requestFrame = runtime.requestAnimationFrame || (view.requestAnimationFrame && view.requestAnimationFrame.bind(view));
-    var cancelFrame = runtime.cancelAnimationFrame || (view.cancelAnimationFrame && view.cancelAnimationFrame.bind(view));
+    var raf = runtime.requestAnimationFrame || view.requestAnimationFrame && view.requestAnimationFrame.bind(view);
+    var caf = runtime.cancelAnimationFrame || view.cancelAnimationFrame && view.cancelAnimationFrame.bind(view);
     var now = runtime.now || function () { return view.performance && view.performance.now ? view.performance.now() : Date.now(); };
-    var timer = runtime.setTimeout || (view.setTimeout && view.setTimeout.bind(view));
-    var clearTimer = runtime.clearTimeout || (view.clearTimeout && view.clearTimeout.bind(view));
+    var timer = runtime.setTimeout || view.setTimeout && view.setTimeout.bind(view);
+    var clearTimer = runtime.clearTimeout || view.clearTimeout && view.clearTimeout.bind(view);
     var Resize = runtime.ResizeObserver || view.ResizeObserver;
     var Intersect = runtime.IntersectionObserver || view.IntersectionObserver;
-    var matchMedia = runtime.matchMedia || (view.matchMedia && view.matchMedia.bind(view));
-    if (!requestFrame || !cancelFrame || !timer || !clearTimer) throw new Error('Animation and timer APIs unavailable');
+    var matchMedia = runtime.matchMedia || view.matchMedia && view.matchMedia.bind(view);
+    if (!raf || !caf || !timer || !clearTimer) throw new Error('Animation and timer APIs unavailable');
     var media = matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : null;
-    var prefersReducedMotion = !!(media && media.matches);
-    var forcedReducedMotion = options.reducedMotion === true;
+    var reducedByOS = !!(media && media.matches);
+    var forcedReduced = options.reducedMotion === true;
     var destroyed = false;
-    var onScreen = true;
+    var visible = true;
     var frameId = null;
     var resizeTimer = null;
     var resizeObserver = null;
     var intersectionObserver = null;
     var size = null;
-    var gradient = null;
-    var audioLevel = 0;
+    var gradients = null;
     var jobs = [];
-    var visibleJobs = 0;
-    var runningJobs = 0;
-    var rippleStart = -10000;
-    var lastRender = -Infinity;
+    var marks = [];
+    var level = null;
+    var smoothLevel = 0;
+    var speechEnergy = mode === 'speaking' ? 1 : 0;
     var startedAt = now();
-    var firstMeasuredFrame = null;
-    var lastMeasuredFrame = null;
+    var modeSince = startedAt;
+    var lastDraw = -Infinity;
+    var previousDraw = null;
+    var tapSince = -Infinity;
     var frames = 0;
     var callbacks = 0;
     var totalDrawMS = 0;
     var maxDrawMS = 0;
     var overBudgetFrames = 0;
-    var ringAngles = new Float32Array(8);
-    for (var i = 0; i < 8; i += 1) ringAngles[i] = i * TAU / 8 - Math.PI / 2;
-    var oldAriaHidden = canvas.getAttribute('aria-hidden');
+    var firstMeasuredFrame = null;
+    var lastMeasuredFrame = null;
+    var oldAria = canvas.getAttribute('aria-hidden');
     var oldState = canvas.getAttribute('data-energy-state');
+    var oldMode = canvas.getAttribute('data-energy-mode');
+    var oldBackground = canvas.style ? canvas.style.background : null;
     canvas.setAttribute('aria-hidden', 'true');
-    // Keep the decorative canvas transparent even inside dark Android WebViews.
-    if (canvas.style) canvas.style.background = 'transparent';
     canvas.setAttribute('data-energy-state', state);
+    canvas.setAttribute('data-energy-mode', mode);
+    if (canvas.style) canvas.style.background = 'transparent';
 
-    function reducedMotion() { return forcedReducedMotion || prefersReducedMotion; }
-    function drawable() { return !destroyed && onScreen && !(doc && doc.hidden); }
-    function cancel() {
-      if (frameId !== null) { cancelFrame(frameId); frameId = null; }
+    function reduced() { return forcedReduced || reducedByOS; }
+    function drawable() { return !destroyed && visible && !(doc && doc.hidden); }
+    function frozen() { return reduced() || mode === 'offline' || mode === 'blocked'; }
+    function stopFrame() { if (frameId !== null) { caf(frameId); frameId = null; } }
+    function ring(radius, squash, angle, from, to, color, width, alpha) {
+      ctx.save();
+      ctx.globalAlpha = alpha === undefined ? 1 : alpha;
+      ctx.rotate(angle);
+      ctx.scale(1, squash);
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, from, to);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.stroke();
+      ctx.restore();
     }
-
+    function dot(x, y, radius, color, alpha) {
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
     function resize() {
       if (destroyed) return;
       var rect = canvas.getBoundingClientRect();
-      var dpr = runtime.devicePixelRatio === undefined ? view.devicePixelRatio : runtime.devicePixelRatio;
-      size = pixelBudget(rect.width, rect.height, dpr);
+      size = pixelBudget(rect.width, rect.height, runtime.devicePixelRatio === undefined ? view.devicePixelRatio : runtime.devicePixelRatio);
       canvas.width = size.pixelWidth;
       canvas.height = size.pixelHeight;
-      // Cached once per resize, never allocated by the frame renderer.
-      gradient = context.createRadialGradient(0, 0, 1, 0, 0, 18);
-      gradient.addColorStop(0, 'rgba(171,255,237,.72)');
-      gradient.addColorStop(.22, 'rgba(75,225,214,.32)');
-      gradient.addColorStop(1, 'rgba(53,171,186,0)');
+      // Only size changes allocate gradients; no frame-time layout or shadowBlur.
+      var halo = ctx.createRadialGradient(0, 0, 12, 0, 0, 108);
+      halo.addColorStop(0, 'rgba(57,181,255,.15)');
+      halo.addColorStop(.5, 'rgba(38,128,226,.075)');
+      halo.addColorStop(1, 'rgba(34,125,232,0)');
+      var sphere = ctx.createRadialGradient(-17, -19, 2, 0, 0, 58);
+      sphere.addColorStop(0, 'rgba(171,249,255,.24)');
+      sphere.addColorStop(.42, 'rgba(47,181,236,.16)');
+      sphere.addColorStop(.82, 'rgba(28,86,168,.12)');
+      sphere.addColorStop(1, 'rgba(50,167,255,.3)');
+      var heart = ctx.createRadialGradient(0, 0, 0, 0, 0, 25);
+      heart.addColorStop(0, 'rgba(221,255,255,.7)');
+      heart.addColorStop(.18, 'rgba(111,230,255,.4)');
+      heart.addColorStop(.6, 'rgba(62,151,255,.17)');
+      heart.addColorStop(1, 'rgba(52,166,255,0)');
+      gradients = { halo: halo, sphere: sphere, heart: heart };
       refresh();
     }
-
     function queueResize() {
       if (resizeTimer !== null) clearTimer(resizeTimer);
-      resizeTimer = timer(function () { resizeTimer = null; resize(); }, 90);
+      resizeTimer = timer(function () { resizeTimer = null; resize(); }, 80);
     }
-
-    function ellipse(radius, squash, angle, from, to, color, width) {
-      context.save();
-      context.rotate(angle);
-      context.scale(1, squash);
-      context.beginPath();
-      context.arc(0, 0, radius, from, to);
-      context.strokeStyle = color;
-      context.lineWidth = width;
-      context.stroke();
-      context.restore();
+    function fillGradient(gradient, radius, alpha) {
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 1;
     }
-
     function render(timestamp) {
-      if (!drawable() || !size) return;
-      var measureStart = now();
-      var frozen = reducedMotion() || state === 'offline';
-      var elapsed = frozen ? 0 : Math.max(0, timestamp - startedAt) / 1000;
-      var palette = PALETTES[state];
-      var speed = state === 'thinking' ? .65 : state === 'orchestrating' ? .42 : .16;
-      var pulse = frozen ? 1 : 1 + Math.sin(elapsed * 2.4) * .035;
-      var response = state === 'listening' ? audioLevel * .22 : 0;
-      var scale = Math.min(size.width / 140, size.height / 88);
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.setTransform(size.dpr * scale, 0, 0, size.dpr * scale, size.pixelWidth / 2, size.pixelHeight / 2);
-      context.lineCap = 'round';
-      ellipse(48, .57, -.12, 0, TAU, palette[0], .8);
-      ellipse(39, .72, .23, 0, TAU, palette[0], .7);
-      ellipse(48, .57, -.12, elapsed * speed, elapsed * speed + Math.PI * .76, palette[1], 1.1);
-      ellipse(39, .72, .23, -elapsed * speed + Math.PI, -elapsed * speed + Math.PI * 1.65, palette[1], .9);
-      context.save();
-      context.scale(pulse + response, pulse + response);
-      context.fillStyle = gradient;
-      context.beginPath();
-      context.arc(0, 0, 18, 0, TAU);
-      context.fill();
-      ellipse(12, 1, 0, 0, TAU, palette[0], .85);
-      ellipse(6.6, 1, 0, 0, TAU, palette[1], 1.1);
-      context.beginPath();
-      context.arc(0, 0, 2.1, 0, TAU);
-      context.fillStyle = palette[2];
-      context.fill();
-      context.restore();
-      // Only supplied job records create satellite marks. No decorative fake workers.
-      for (var j = 0; j < visibleJobs; j += 1) {
-        var angle = ringAngles[j] + elapsed * (j < runningJobs ? .22 : 0);
-        context.beginPath();
-        context.arc(Math.cos(angle) * 48, Math.sin(angle) * 27.4, j < runningJobs ? 2 : 1.4, 0, TAU);
-        context.fillStyle = j < runningJobs ? palette[2] : palette[1];
-        context.fill();
+      if (!drawable() || !size || !gradients) return;
+      var measuredStart = now();
+      var isFrozen = frozen();
+      var t = isFrozen ? 0 : Math.max(0, timestamp - startedAt) / 1000;
+      var modeAge = isFrozen ? 0 : Math.max(0, timestamp - modeSince) / 1000;
+      var delta = previousDraw === null ? 1 / 60 : Math.min(.1, Math.max(0, timestamp - previousDraw) / 1000);
+      previousDraw = timestamp;
+      smoothLevel += ((level === null ? 0 : level) - smoothLevel) * (1 - Math.exp(-delta * 15));
+      var palette = COLORS[mode];
+      var speaking = mode === 'speaking';
+      var listening = mode === 'listening';
+      var thinking = mode === 'thinking';
+      var speed = thinking ? .78 : speaking ? .38 : listening ? .22 : .075;
+      // Listening uses only explicitly supplied real microphone levels. Unknown input never fabricates a spectrum.
+      var response = !isFrozen && (listening || speaking) ? smoothLevel : 0;
+      // A visual release envelope softens the return to idle without extending speech state.
+      speechEnergy = isFrozen ? (speaking ? 1 : 0) : speechEnergy + ((speaking ? 1 : 0) - speechEnergy) * (1 - Math.exp(-delta * 9));
+      var breath = isFrozen ? 1 : 1 + Math.sin(t * (1.35 + speechEnergy * 2.05)) * (.018 + speechEnergy * .037);
+      var scale = Math.min(size.width, size.height) / 256;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(size.dpr * scale, 0, 0, size.dpr * scale, size.pixelWidth / 2, size.pixelHeight / 2);
+      ctx.lineCap = 'round';
+      fillGradient(gradients.halo, 108, isFrozen ? .5 : .88 + (breath - 1) * 2 + response * .1);
+      ring(107, 1, 0, 0, TAU, palette[0], .45, .13);
+      ring(99, 1, 0, 0, TAU, palette[1], .6, .22);
+      ring(99, 1, 0, t * speed * .36, t * speed * .36 + .9, palette[0], 1.1, .75);
+      ring(99, 1, 0, t * speed * .36 + Math.PI, t * speed * .36 + Math.PI + .36, palette[1], 1.5, .8);
+      ring(88, .49, -.36 + t * speed * .1, 0, TAU, palette[0], .8, .28);
+      ring(88, .49, -.36 + t * speed * .1, t * speed, t * speed + Math.PI * .94, palette[0], 1.35, .82);
+      ring(79, .83, .78 - t * speed * .14, 0, TAU, palette[1], .75, .3);
+      ring(79, .83, .78 - t * speed * .14, -t * speed + Math.PI * .2, -t * speed + Math.PI * 1.01, palette[1], 1.3, .8);
+      ctx.save();
+      var sphereScale = breath + response * .11;
+      ctx.scale(sphereScale, sphereScale);
+      fillGradient(gradients.sphere, 58, isFrozen ? .65 : 1);
+      ring(58, 1, 0, 0, TAU, palette[0], .9, .54);
+      ring(57, 1, 0, -t * speed * .65, -t * speed * .65 + Math.PI * .62, palette[2], 1.35, .7);
+      // Wireframe meridians and latitudes keep a recognizable spherical silhouette.
+      ring(56, .31, .06, 0, TAU, palette[0], .65, .35);
+      ring(56, .7, .06, 0, TAU, palette[0], .6, .19);
+      ring(56, .28 + Math.sin(t * speed * .55) * .12, Math.PI / 2 + .06, 0, TAU, palette[1], .75, .39);
+      ring(56, .76, Math.PI / 2 + .06, 0, TAU, palette[1], .6, .22);
+      fillGradient(gradients.heart, 25, isFrozen ? .5 : .75 + response * .25);
+      ring(17, 1, 0, t * speed * 1.3, t * speed * 1.3 + Math.PI * 1.65, palette[0], 1.1, .65);
+      ring(10.5, .65, -t * speed, 0, TAU, palette[1], .8, .62);
+      dot(0, 0, 2.2 + response * 1.5, palette[2], .9);
+      ctx.restore();
+      // These are decorative energy nodes, never counts or invented worker statuses.
+      for (var i = 0; i < 12; i += 1) {
+        var theta = i * TAU / 12 + t * speed * .18;
+        dot(Math.cos(theta) * 107, Math.sin(theta) * 107, i % 3 === 0 ? 1.35 : .65, palette[i % 2], i % 3 === 0 ? .62 : .25);
       }
-      var rippleAge = timestamp - rippleStart;
-      if (!frozen && rippleAge >= 0 && rippleAge < 420) {
-        context.globalAlpha = (1 - rippleAge / 420) * .45;
-        ellipse(14 + rippleAge * .06, .75, 0, 0, TAU, palette[1], .8);
-        context.globalAlpha = 1;
+      // Only validated real jobs create the separate outer operational marks.
+      for (var j = 0; j < marks.length; j += 1) {
+        var jobAngle = j * TAU / 6 - Math.PI / 2;
+        var running = marks[j].status === 'running';
+        dot(Math.cos(jobAngle) * 115, Math.sin(jobAngle) * 115, running ? 2.2 : 1.5, running ? palette[2] : palette[0], running ? .9 : .45);
       }
-      var cost = Math.max(0, now() - measureStart);
+      if (speechEnergy > .015 && !isFrozen) {
+        // Decorative rings live exactly as long as the controller's real speaking state.
+        for (var wave = 0; wave < 2; wave += 1) {
+          var phase = (modeAge * .62 + wave * .5) % 1;
+          ring(63 + phase * 29, 1, 0, 0, TAU, palette[0], .85, (1 - phase) * .32 * speechEnergy);
+        }
+      }
+      if (thinking && !isFrozen) {
+        ring(68, 1, 0, t * 1.35, t * 1.35 + Math.PI * .7, palette[0], 1.5, .82);
+        ring(71, 1, 0, -t * .9 + Math.PI, -t * .9 + Math.PI * 1.45, palette[1], .8, .6);
+      }
+      var tapAge = timestamp - tapSince;
+      if (!isFrozen && tapAge >= 0 && tapAge < 450) ring(58 + tapAge * .1, 1, 0, 0, TAU, palette[2], .8, (1 - tapAge / 450) * .4);
+      ctx.globalAlpha = 1;
+      var cost = Math.max(0, now() - measuredStart);
       frames += 1;
       totalDrawMS += cost;
-      if (cost > maxDrawMS) maxDrawMS = cost;
+      maxDrawMS = Math.max(maxDrawMS, cost);
       if (cost > 16.67) overBudgetFrames += 1;
       if (firstMeasuredFrame === null) firstMeasuredFrame = timestamp;
       lastMeasuredFrame = timestamp;
     }
-
     function frame(timestamp) {
       frameId = null;
-      if (!drawable() || reducedMotion() || targetFPS(state) === 0) return;
+      if (!drawable() || frozen()) return;
       callbacks += 1;
       var interval = 1000 / targetFPS(state);
-      var delta = timestamp - lastRender;
-      if (delta >= interval - .3) {
+      var difference = timestamp - lastDraw;
+      if (difference >= interval - .3) {
         render(timestamp);
-        // Preserve fractional cadence on 60/90/120 Hz displays without catch-up loops.
-        lastRender += Math.max(1, Math.floor((delta + .3) / interval)) * interval;
+        lastDraw += Math.max(1, Math.floor((difference + .3) / interval)) * interval;
       }
-      frameId = requestFrame(frame);
+      frameId = raf(frame);
     }
-
     function refresh() {
-      cancel();
+      stopFrame();
       if (!drawable()) return;
       var timestamp = now();
       render(timestamp);
-      lastRender = timestamp;
-      if (!reducedMotion() && targetFPS(state) > 0) frameId = requestFrame(frame);
+      lastDraw = timestamp;
+      if (!frozen()) frameId = raf(frame);
     }
-
     function visibilityChanged() { refresh(); }
-    function motionChanged(event) { prefersReducedMotion = !!event.matches; refresh(); }
+    function motionChanged(event) { reducedByOS = !!event.matches; refresh(); }
     function tapped() {
-      if (!drawable() || reducedMotion() || state === 'offline') return;
-      rippleStart = now();
+      if (!drawable() || frozen()) return;
+      tapSince = now();
       if (frameId === null) refresh();
     }
-
-    function ensureAlive() { if (destroyed) throw new Error('Jarvis energy core has been destroyed'); }
+    function alive() { if (destroyed) throw new Error('Jarvis energy core has been destroyed'); }
     function setState(next) {
-      ensureAlive();
+      alive();
       var nextState = normaliseState(next);
-      if (state === nextState) return;
+      if (nextState === state) return;
       state = nextState;
-      if (state !== 'listening') audioLevel = 0;
+      var nextMode = modeOf(nextState);
+      if (nextMode !== mode) {
+        mode = nextMode;
+        modeSince = now();
+        // Never carry a listening measurement into speech output or another mode.
+        level = null;
+        smoothLevel = 0;
+      }
       canvas.setAttribute('data-energy-state', state);
+      canvas.setAttribute('data-energy-mode', mode);
       refresh();
     }
-    function setAudioLevel(level) {
-      ensureAlive();
-      var actualLevel = clampAudioLevel(level);
-      if (state !== 'listening') throw new Error('Audio levels require an explicit listening controller state');
-      audioLevel = actualLevel;
-      if (reducedMotion()) return; // Motion reduction also disables audio-driven pulses.
-      if (frameId === null) refresh();
+    function setAudioLevel(value) {
+      alive();
+      if (mode !== 'listening' && mode !== 'speaking') throw new Error('Audio levels require a listening or speaking controller state');
+      level = value === null ? null : clampAudioLevel(value);
+      if (!reduced() && frameId === null) refresh();
     }
-    function setActivities(activities) {
-      ensureAlive();
-      jobs = normaliseActivities(activities);
-      runningJobs = 0;
-      for (var j = 0; j < jobs.length; j += 1) if (jobs[j].status === 'running') runningJobs += 1;
-      visibleJobs = Math.min(8, jobs.length);
-      runningJobs = Math.min(visibleJobs, runningJobs);
+    function setActivities(records) {
+      alive();
+      jobs = normaliseActivities(records);
+      // Stable ordering; do not mislabel a queued job as a running satellite.
+      marks = jobs.filter(function (job) { return job.status === 'running'; }).concat(jobs.filter(function (job) { return job.status !== 'running'; })).slice(0, 6);
       refresh();
     }
     function getStats() {
       var elapsed = firstMeasuredFrame !== null && lastMeasuredFrame > firstMeasuredFrame ? lastMeasuredFrame - firstMeasuredFrame : 0;
-      return Object.freeze({
-        state: state, destroyed: destroyed, visible: drawable(), reducedMotion: reducedMotion(),
-        targetFPS: reducedMotion() ? 0 : targetFPS(state), frames: frames, rafCallbacks: callbacks,
+      return Object.freeze({ state: state, mode: mode, destroyed: destroyed, visible: drawable(), reducedMotion: reduced(),
+        targetFPS: reduced() ? 0 : targetFPS(state), frames: frames, rafCallbacks: callbacks,
         averageDrawMS: frames ? totalDrawMS / frames : null, maxDrawMS: frames ? maxDrawMS : null,
         overBudgetFrames: overBudgetFrames, sampleDurationMS: elapsed,
         sampledDrawFPS: elapsed > 0 ? (frames - 1) * 1000 / elapsed : null,
         backingPixels: size ? size.pixelWidth * size.pixelHeight : 0, dpr: size ? size.dpr : null,
-        activities: jobs.length, visibleActivityMarks: visibleJobs,
-        performanceEvidence: frames > 1 ? 'MEASURED_IN_CURRENT_RUNTIME' : 'INSUFFICIENT_SAMPLE',
-        deviceVerification: 'NOT_DEVICE_VERIFIED'
-      });
+        activities: jobs.length, visibleActivityMarks: marks.length, audioLevelKnown: level !== null,
+        performanceEvidence: frames > 1 ? 'CANVAS_CPU_AND_DRAW_CADENCE_ONLY' : 'INSUFFICIENT_SAMPLE',
+        deviceVerification: 'NOT_DEVICE_VERIFIED' });
     }
+    function restore(attribute, value) { if (value === null) canvas.removeAttribute(attribute); else canvas.setAttribute(attribute, value); }
     function destroy() {
       if (destroyed) return;
       destroyed = true;
-      cancel();
+      stopFrame();
       if (resizeTimer !== null) { clearTimer(resizeTimer); resizeTimer = null; }
       if (resizeObserver) resizeObserver.disconnect();
       if (intersectionObserver) intersectionObserver.disconnect();
@@ -287,15 +338,17 @@
       if (view.removeEventListener) view.removeEventListener('resize', queueResize);
       if (media && media.removeEventListener) media.removeEventListener('change', motionChanged);
       else if (media && media.removeListener) media.removeListener(motionChanged);
-      if (oldAriaHidden === null) canvas.removeAttribute('aria-hidden'); else canvas.setAttribute('aria-hidden', oldAriaHidden);
-      if (oldState === null) canvas.removeAttribute('data-energy-state'); else canvas.setAttribute('data-energy-state', oldState);
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      restore('aria-hidden', oldAria);
+      restore('data-energy-state', oldState);
+      restore('data-energy-mode', oldMode);
+      if (canvas.style) canvas.style.background = oldBackground;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       jobs = [];
-      gradient = null;
+      marks = [];
+      gradients = null;
       mounts.delete(canvas);
     }
-
     if (doc) doc.addEventListener('visibilitychange', visibilityChanged);
     canvas.addEventListener('pointerdown', tapped, { passive: true });
     if (view.addEventListener) view.addEventListener('resize', queueResize, { passive: true });
@@ -305,20 +358,18 @@
     if (Intersect) {
       intersectionObserver = new Intersect(function (entries) {
         if (destroyed) return;
-        for (var k = 0; k < entries.length; k += 1) {
-          if (entries[k].target === canvas) { onScreen = entries[k].isIntersecting; break; }
-        }
+        for (var i = 0; i < entries.length; i += 1) if (entries[i].target === canvas) { visible = entries[i].isIntersecting; break; }
         refresh();
       }, { threshold: 0 });
       intersectionObserver.observe(canvas);
     }
     resize();
-    var controller = Object.freeze({ setState: setState, setAudioLevel: setAudioLevel, setActivities: setActivities, getStats: getStats, destroy: destroy });
+    var controller = Object.freeze({ setState: setState, setMode: setState, setAudioLevel: setAudioLevel,
+      setActivities: setActivities, getStats: getStats, destroy: destroy });
     mounts.set(canvas, controller);
     return controller;
   }
-
-  return Object.freeze({ version: '23.0.0', STATES: STATES, JOB_STATES: JOB_STATES,
+  return Object.freeze({ version: '26.0.0', MODES: MODES, STATES: STATES, JOB_STATES: JOB_STATES,
     mount: mount, normaliseState: normaliseState, normaliseActivities: normaliseActivities,
-    clampAudioLevel: clampAudioLevel, pixelBudget: pixelBudget, targetFPS: targetFPS });
+    clampAudioLevel: clampAudioLevel, pixelBudget: pixelBudget, targetFPS: targetFPS, modeOf: modeOf });
 });

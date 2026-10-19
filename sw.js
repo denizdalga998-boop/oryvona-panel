@@ -1,9 +1,9 @@
 // v22: durable commands live in IndexedDB. Shell updates never erase that queue or existing game caches.
-const CACHE = 'oryvona-panel-v25';
+const CACHE = 'oryvona-panel-v26';
 // Game payloads did not change in v22: retain the v20 on-demand cache instead of forcing a download.
 const GAME_CACHE = 'oryvona-games-v20';
 const SCOPE = new URL('./', self.registration.scope);
-const SHELL = ['./jarvis-world.css?v=25','./jarvis-v23-shell.css?v=25','./jarvis-energy.js?v=25','./jarvis-bridge.js?v=25','./supabase-host-port.js?v=25','./jarvis-world.js?v=25','./jarvis-v23-bootstrap.js?v=25','./','./index.html','./config.js','./command-outbox.js','./vendor/supabase-2.45.4.min.js','./manifest.json','./native-shell.css','./native-shell.js','./game-lab.css','./game-lab.js','./data/game-builds.json','./logo.webp','./logo.png','./icon-192.png','./icon-512.png','./icon-512-maskable.png','./badge-96.png'];
+const SHELL = ["./","./badge-192.png","./badge-96.png","./command-outbox.js?v=26","./config.js?v=26","./data/game-builds.json","./game-lab.css?v=26","./game-lab.js?v=26","./icon-192.png","./icon-512-maskable.png","./icon-512.png","./index.html","./jarvis-bridge.js?v=26","./jarvis-brief.js?v=26","./jarvis-energy.js?v=26","./jarvis-v23-shell.css?v=26","./jarvis-voice.js?v=26","./jarvis-world.css?v=26","./jarvis-world.js?v=26","./logo.png","./logo.webp","./manifest.json","./mark.png","./native-shell.css?v=26","./native-shell.js?v=26","./studio-data-v26.js?v=26","./studio-decisions-v26.js?v=26","./studio-facade-v26.js?v=26","./studio-integration-v26.css?v=26","./studio-v26-bootstrap.js?v=26","./studio-v26.css?v=26","./studio-world-v26.js?v=26","./supabase-host-port.js?v=26","./vendor/supabase-2.45.4.min.js?v=26"];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('oryvona-panel-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
