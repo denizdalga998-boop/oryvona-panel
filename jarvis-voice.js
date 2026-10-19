@@ -255,16 +255,20 @@
         activeSpeechId = null;
         mode = 'idle';
         emit();
+        convoSpeechEnded();
       };
       current.onerror = function (event) {
         if (!valid()) return;
         utterance = null;
         activeSpeechId = null;
         mode = 'idle';
+        convoSpeechEnded();
         fail('TTS_' + String(event && event.error || 'FAILED').toUpperCase().replace(/[^A-Z_-]/g, ''), 'Sesli yanıt durdu. Yazılı yanıtı okuyabilirsin.');
       };
       try {
         error = null;
+        mode = convo ? 'speaking' : mode;   // hands-free: recognition pauses before Argon's first word
+        convoSpeechStarted();
         synth.speak(current);
         spokenIds.add(input.id);
         if (spokenIds.size > 100) spokenIds.delete(spokenIds.values().next().value);
@@ -337,7 +341,112 @@
         return Object.assign(fail('RECOGNITION_FAILED', 'Ses tanıma başlatılamadı. Yazabilirsin.'), { stop: function () {} });
       }
     }
-    function cancel() { if (destroyed) return; stopAll('cancelled'); notice = 'Ses durduruldu.'; emit(); }
+    /* ===== ARGON eller serbest (hands-free): continuous listening, ~1 s silence = end of utterance, auto-resume after Argon speaks,
+       barge-in (the owner talking over Argon cuts the speech). Recognition is paused while Argon speaks so it never transcribes itself;
+       during speech only a level meter listens (echo-cancelled mic) to detect the owner's voice. ===== */
+    var convo = null;
+    var SILENCE_MS = typeof options.silenceMs === 'number' ? options.silenceMs : 1000;
+    function convoStopRec() {
+      if (!convo) return;
+      if (convo.timer) { clearTimeout(convo.timer); convo.timer = null; }
+      var r = convo.rec; convo.rec = null;
+      if (r) { r.onresult = r.onend = r.onerror = null; try { r.abort ? r.abort() : r.stop(); } catch (_) {} }
+    }
+    function convoDisarm() {
+      if (!convo || !convo.meter) return;
+      var m = convo.meter; convo.meter = null;
+      if (m.timer) clearInterval(m.timer);
+      try { m.source && m.source.disconnect(); } catch (_) {}
+      if (m.stream && m.stream.getTracks) m.stream.getTracks().forEach(function (t) { try { t.stop(); } catch (_) {} });
+      if (m.context && m.context.close) try { Promise.resolve(m.context.close()).catch(function () {}); } catch (_) {}
+    }
+    function convoFlush() {
+      if (!convo) return;
+      var text = convo.buffer.trim(); convo.buffer = '';
+      if (convo.timer) { clearTimeout(convo.timer); convo.timer = null; }
+      if (!text) return;
+      try { convo.onUtterance(text); } catch (_) {}
+    }
+    function convoListen() {
+      if (!convo || destroyed || convo.paused || convo.rec) return;
+      if (mode === 'speaking') { convoArmBargeIn(); return; }
+      if (typeof Recognition !== 'function') { fail('RECOGNITION_UNAVAILABLE', 'Bu cihazda sürekli Türkçe ses tanıma yok. Yazarak konuşabilirsin.'); return; }
+      var current; try { current = new Recognition(); } catch (_) { return; }
+      convo.rec = current;
+      current.lang = 'tr-TR'; current.continuous = true; current.interimResults = true; current.maxAlternatives = 1;
+      current.onstart = function () { if (convo && convo.rec === current && mode !== 'speaking') { mode = 'listening'; notice = 'Canlı: dinliyorum.'; error = null; emit(); } };
+      current.onresult = function (event) {
+        if (!convo || convo.rec !== current) return;
+        var results = event && event.results || [], text = '';
+        for (var i = 0; i < results.length; i++) text += (text ? ' ' : '') + String(results[i] && results[i][0] && results[i][0].transcript || '').trim();
+        convo.buffer = text.trim();
+        if (typeof convo.onPartial === 'function') try { convo.onPartial(convo.buffer); } catch (_) {}
+        if (convo.timer) clearTimeout(convo.timer);
+        // End of utterance = silence. Recognition keeps running; the buffered sentence goes to the brain without any tap.
+        convo.timer = setTimeout(function () { if (convo && convo.rec === current) { convoStopRec(); convoFlush(); convoRestart(150); } }, SILENCE_MS);
+      };
+      current.onend = function () {
+        if (!convo || convo.rec !== current) return;
+        convo.rec = null;
+        if (convo.buffer.trim()) convoFlush();
+        if (mode === 'listening') { mode = 'idle'; emit(); }
+        convoRestart(250);
+      };
+      current.onerror = function (event) {
+        if (!convo || convo.rec !== current) return;
+        var code = String(event && event.error || 'failed');
+        convo.rec = null;
+        if (code === 'not-allowed' || code === 'service-not-allowed') { stopConversation(); fail('RECOGNITION_NOT_ALLOWED', 'Mikrofon izni verilmedi. Canlı mod kapandı; yazarak konuşabilirsin.'); return; }
+        convoRestart(code === 'network' ? 1500 : 400);
+      };
+      try { current.start(); } catch (_) { convo.rec = null; convoRestart(800); }
+    }
+    function convoRestart(ms) { if (!convo) return; var c = convo; setTimeout(function () { if (convo === c) convoListen(); }, ms); }
+    function convoArmBargeIn() {
+      if (!convo || convo.meter || options.bargeIn === false) return;
+      var media = win.navigator && win.navigator.mediaDevices, AC = win.AudioContext || win.webkitAudioContext;
+      if (!media || typeof media.getUserMedia !== 'function' || typeof AC !== 'function') return;
+      var c = convo, armedAt = Date.now(), m = { stream: null, context: null, source: null, timer: null };
+      c.meter = m;
+      Promise.resolve(media.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: false }, video: false })).then(function (stream) {
+        if (convo !== c || c.meter !== m || mode !== 'speaking') { stream.getTracks().forEach(function (t) { try { t.stop(); } catch (_) {} }); if (c.meter === m) c.meter = null; return; }
+        m.stream = stream; m.context = new AC(); var analyser = m.context.createAnalyser(); analyser.fftSize = 512;
+        m.source = m.context.createMediaStreamSource(stream); m.source.connect(analyser);
+        var data = new Uint8Array(analyser.fftSize), loud = 0;
+        // setInterval, not rAF: it must keep working while the page is not painting.
+        m.timer = setInterval(function () {
+          if (convo !== c || mode !== 'speaking') { convoDisarm(); return; }
+          analyser.getByteTimeDomainData(data); var sum = 0;
+          for (var i = 0; i < data.length; i++) { var v = (data[i] - 128) / 128; sum += v * v; }
+          var rms = Math.sqrt(sum / data.length);
+          loud = rms > (options.bargeInLevel || 0.07) ? loud + 50 : Math.max(0, loud - 50);
+          if (Date.now() - armedAt > 500 && loud >= 250) {   // ~¼ s of the owner's voice over Argon
+            convoDisarm(); stopSpeakingInternal(); mode = 'idle'; notice = 'Sözünü kestim; dinliyorum.'; emit();
+            if (typeof c.onBargeIn === 'function') try { c.onBargeIn(); } catch (_) {}
+            convoListen();
+          }
+        }, 50);
+      }).catch(function () { if (c.meter === m) c.meter = null; });
+    }
+    function startConversation(handlers) {
+      var blocked = usable(); if (blocked) return blocked;
+      handlers = handlers || {};
+      stopConversation(); stopListeningInternal('conversation');
+      convo = { onUtterance: handlers.onUtterance || function () {}, onPartial: handlers.onPartial, onBargeIn: handlers.onBargeIn, buffer: '', timer: null, rec: null, meter: null, paused: false };
+      enabled = true; selectVoice(); notice = 'Canlı mod açık: konuş, susunca gönderirim.'; error = null; emit();
+      convoListen();
+      return { ok: true, stop: stopConversation };
+    }
+    function stopConversation() {
+      if (!convo) return;
+      convoStopRec(); convoDisarm(); convo = null;
+      if (mode === 'listening') mode = 'idle';
+      notice = 'Canlı mod kapalı.'; emit();
+    }
+    // Speech hand-off: pause recognition while Argon talks, resume (or barge-in) around it.
+    function convoSpeechStarted() { if (!convo) return; convoStopRec(); convoArmBargeIn(); }
+    function convoSpeechEnded() { if (!convo) return; convoDisarm(); convoRestart(200); }
+    function cancel() { if (destroyed) return; stopConversation(); stopAll('cancelled'); notice = 'Ses durduruldu.'; emit(); }
     function contextChanged() { accountCurrent(); }
     function hidden() { if (!visible()) cancel(); }
     function voicesChanged() { if (!destroyed) { accountCurrent(); selectVoice(); emit(); } }
@@ -363,12 +472,16 @@
       },
       setEnabled: setEnabled,
       startListening: startListening,
+      startConversation: startConversation,
+      stopConversation: function () { if (!destroyed) stopConversation(); },
+      conversationActive: function () { return !!convo; },
       stopListening: function () { if (!destroyed) { stopListeningInternal('stopped'); emit(); } },
       speak: speak,
       stopSpeaking: function () { if (!destroyed) { stopSpeakingInternal(); emit(); } },
       cancel: cancel,
       destroy: function () {
         if (destroyed) return;
+        stopConversation();
         stopAll('destroyed');
         enabled = false;
         destroyed = true;

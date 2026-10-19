@@ -183,6 +183,24 @@
         return { ok: false, timeout: true, requestId, answer_tr: 'DJ-KABIN kara kutudan henüz yanıt vermedi (çevrimdışı olabilir). Soru kayıtlı; iş emri oluşturulmadı.' };
       } catch (e) { return { ok: false, code: e.code || 'ARCHIVE_FAILED', answer_tr: e.message || 'Kara kutuya ulaşılamadı. İş emri oluşturulmadı.' }; }
     }
+    /** ARGON canlı beyin: one conversational turn answered by the model on DJ-KABIN; returns its reply and proposed tool calls. */
+    async function askBrain(payload) {
+      try {
+        requireAccountKey(payload && payload.accountKey);
+        await syncAccount(); const id = contextOwner(); if (!id || id !== ownerId) throw error('AUTH_REQUIRED', 'Sahip hesabınla giriş yap.');
+        const text = String(payload.text || '').trim(); if (!text || text.length > 2000) throw error('TEXT_INVALID', 'Mesaj 1–2000 karakter olmalı.');
+        const requestId = globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function' ? globalThis.crypto.randomUUID() : null; if (!requestId) throw error('UNAVAILABLE', 'Bu tarayıcı güvenli kimlik üretemiyor.');
+        await request('askBrain', { requestId, text, history: Array.isArray(payload.history) ? payload.history : [], mode: payload.mode }, id);
+        const deadline = now() + (Number(payload.timeoutMs) > 0 ? Number(payload.timeoutMs) : 95000), wait = ms => new Promise(r => setTimeout(r, ms));
+        while (now() < deadline) {
+          if (payload.signal && payload.signal.aborted) return { ok: false, aborted: true, requestId, answer_tr: '' };
+          await wait(Number(payload.pollMs) > 0 ? Number(payload.pollMs) : 900); requireAccountKey(payload.accountKey);
+          const answer = await request('getBrainAnswer', { requestId }, id);
+          if (answer && (answer.status === 'done' || answer.status === 'failed')) return { ok: answer.status === 'done', answer_tr: String(answer.answer_tr || ''), actions: Array.isArray(answer.actions) ? answer.actions : [], model: answer.model || null, status: answer.receipt && answer.receipt.status || null, requestId };
+        }
+        return { ok: false, timeout: true, requestId, answer_tr: 'DJ-KABIN\'deki beyin şu an yanıt vermiyor efendim (işçi kapalı ya da Claude girişi bekleniyor). Mesajın kayıtlı.' };
+      } catch (e) { return { ok: false, code: e.code || 'BRAIN_FAILED', answer_tr: e.message || 'Beyne ulaşılamadı.' }; }
+    }
     async function submitIntent(payload) {
       try {
         requireAccountKey(payload && payload.accountKey);
@@ -346,7 +364,7 @@
     const timer = options.noTimers ? null : setInterval(() => { void loadRows().then(flush).catch(() => {}); }, 2000);
     const poll = options.noTimers ? null : setInterval(() => { if (!host.context().view || host.context().view === 'jarvis') void refresh(); }, 2000);
     const ready = loadRows().then(() => Promise.all([flush(), refresh()]));
-    return { getSnapshot, getAccountKey, subscribe: fn => { listeners.add(fn); fn(getSnapshot()); return () => listeners.delete(fn); }, submitIntent, askArchive, cancelJob, resolveIntent, drafts, attachments, speech, refresh, resume, ready, flush, dispose: () => { disposed = true; generation++; if (timer) clearInterval(timer); if (poll) clearInterval(poll); if (recognition) recognition.abort(); listeners.clear(); rows = []; serverRows = []; if (typeof globalThis.removeEventListener === 'function') { globalThis.removeEventListener('online', onlineHandler); globalThis.removeEventListener('offline', emit); } } };
+    return { getSnapshot, getAccountKey, subscribe: fn => { listeners.add(fn); fn(getSnapshot()); return () => listeners.delete(fn); }, submitIntent, askArchive, askBrain, cancelJob, resolveIntent, drafts, attachments, speech, refresh, resume, ready, flush, dispose: () => { disposed = true; generation++; if (timer) clearInterval(timer); if (poll) clearInterval(poll); if (recognition) recognition.abort(); listeners.clear(); rows = []; serverRows = []; if (typeof globalThis.removeEventListener === 'function') { globalThis.removeEventListener('online', onlineHandler); globalThis.removeEventListener('offline', emit); } } };
   }
   // Read dimensions BEFORE image decoding/canvas allocation. Reject unknown encodings.
   function readImageDimensions(bytes, mime) {

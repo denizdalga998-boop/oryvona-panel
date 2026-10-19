@@ -85,6 +85,25 @@
           result: { operation: 'argon_archive_query', transport: 'commands-isolated-v24', owner_id: context.userId, client_request_id: payload.requestId, payload_hash: hash } }, context);
         await guard(payload); return { data: { requestId: row.id, status: row.status }, error: null };
       }
+      if (operation === 'askBrain') {
+        // ARGON canlı beyin: one conversational turn for the model on DJ-KABIN. Read-only for the phone: tool calls come back as
+        // proposals; a dispatch still becomes a real intent only through submitIntent after the owner's explicit Evet.
+        if (!UUID.test(payload.requestId || '') || typeof payload.text !== 'string' || !payload.text.trim() || payload.text.length > 2000) throw failure('PAYLOAD_MISMATCH', 'Mesaj 1–2000 karakter olmalı.');
+        const history = (Array.isArray(payload.history) ? payload.history : []).slice(-12).filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string').map(m => ({ role: m.role, text: m.text.slice(0, 1200) }));
+        const mode = ['low', 'medium', 'high'].includes(payload.mode) ? payload.mode : 'medium';
+        const hash = await digest(new TextEncoder().encode(canonical({ text: payload.text, operation: 'argon_chat', mode })));
+        await guard(payload);
+        const row = await insert({ id: payload.requestId, project_id: 'koza', action: 'gemini_review', text: payload.text, status: 'queued', created_by: context.email, runner: LANE,
+          result: { operation: 'argon_chat', transport: 'commands-isolated-v24', owner_id: context.userId, client_request_id: payload.requestId, payload_hash: hash, mode, history } }, context);
+        await guard(payload); return { data: { requestId: row.id, status: row.status }, error: null };
+      }
+      if (operation === 'getBrainAnswer') {
+        if (!UUID.test(payload.requestId || '')) throw failure('PAYLOAD_MISMATCH', 'Mesaj kimliği geçersiz.');
+        const row = await find(payload.requestId, context);
+        if (!row || row.result?.operation !== 'argon_chat') return { data: { status: 'missing' }, error: null };
+        const r = row.result || {};
+        return { data: { status: row.status, answer_tr: String(r.answer_tr || '').slice(0, 2400), actions: Array.isArray(r.actions) ? r.actions.slice(0, 4) : [], model: typeof r.model === 'string' ? r.model : null, receipt: r.receipt && typeof r.receipt.status === 'string' ? { status: r.receipt.status } : null }, error: null };
+      }
       if (operation === 'getArchiveAnswer') {
         if (!UUID.test(payload.requestId || '')) throw failure('PAYLOAD_MISMATCH', 'Soru kimliği geçersiz.');
         const row = await find(payload.requestId, context);
