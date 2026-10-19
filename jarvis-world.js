@@ -61,27 +61,44 @@
     function conversationHistory(){var all=snapshot.messages.concat(readMessages).filter(function(m){return m&&!m.pending&&typeof m.body==='string'&&m.body.trim();}).map(function(m,i){var c=m.createdAt,t=typeof c==='number'?c:Date.parse(c);return {m:m,i:i,t:Number.isFinite(t)?t:0};});all.sort(function(a,b){return a.t-b.t||a.i-b.i;});return all.slice(-12).map(function(x){return {role:x.m.role==='user'?'user':'assistant',text:safeText(x.m.body,1200)};});}
     async function brainTurn(textValue,version){
       var owner=accountKey,ticket=accountEpoch,askScope=scope,id='brain:'+owner+':'+(++readCounter),createdAt=new Date().toISOString(),history=conversationHistory();
-      answerBusy=true;readMessages.push({id:id+':user',role:'user',body:textValue,createdAt:createdAt,origin:{kind:'local',evidenceLabel:'Canlı beyne gönderildi.'}},{id:id,role:'assistant',body:'…',pending:true,createdAt:createdAt,origin:{kind:'local',evidenceLabel:'Argon düşünüyor (DJ-KABIN · Claude).'}});if(readMessages.length>80)readMessages=readMessages.slice(-80);
+      answerBusy=true;readMessages.push({id:id+':user',role:'user',body:textValue,createdAt:createdAt,origin:{kind:'local',evidenceLabel:'Canlı beyne gönderildi.'}},{id:id,role:'assistant',body:'…',pending:true,createdAt:createdAt,origin:{kind:'local',evidenceLabel:'Argon düşünüyor (DJ-KABIN · Ana Komutan).'}});if(readMessages.length>80)readMessages=readMessages.slice(-80);
       var d=drafts.get(askScope);if(d.version===version&&!d.attachments.length){drafts.update(askScope,{text:''});queueSave(askScope);if(scope===askScope)renderDraft();}
       syncComposer();update(snapshot);bottom(true);setStatus('Argon düşünüyor…');
       var res=null;
       try{res=await bridge.askBrain({text:textValue,history:history,mode:argonMode,accountKey:owner});}catch(_e){res={ok:false,answer_tr:'Beyne ulaşılamadı efendim.'};}
       if(!owns(owner,ticket))return;
       var body=safeText(res&&res.answer_tr||'Yanıt alınamadı efendim.',2400);
-      readMessages=readMessages.map(function(m){return m.id===id?{id:id,role:'assistant',body:body,createdAt:new Date().toISOString(),origin:res&&res.ok?{kind:'model',provider:'Claude (abonelik · DJ-KABIN)',model:res.model||'model',evidenceLabel:'Canlı yapay zekâ yanıtı · mod: '+MODE_TR[argonMode]}:{kind:'local',evidenceLabel:'Beyin yanıtı alınamadı'+(res&&res.status?' ('+res.status+')':'')+'.'}}:m;});
+      var modelLabel=res&&res.model?String(res.model):'model';
+      var providerLabel=/gpt|codex|openai/i.test(modelLabel)?'OpenAI Codex (Canlı Beyin · DJ-KABIN)':'Claude (Abonelik · DJ-KABIN)';
+      readMessages=readMessages.map(function(m){return m.id===id?{id:id,role:'assistant',body:body,createdAt:new Date().toISOString(),origin:res&&res.ok?{kind:'model',provider:providerLabel,model:modelLabel,evidenceLabel:'Canlı yapay zekâ yanıtı · mod: '+MODE_TR[argonMode]}:{kind:'local',evidenceLabel:'Beyin yanıtı alınamadı'+(res&&res.status?' ('+res.status+')':'')+'.'}}:m;});
       answerBusy=false;syncComposer();update(snapshot);bottom(true);setStatus(res&&res.ok?'':'Beyin şu an yanıt veremedi.',res&&res.ok?'normal':'error');
-      if(voice&&typeof voice.speak==='function'&&voiceState.enabled)voice.speak({id:id,text:body.slice(0,1500),accountKey:owner});
+      if(voice&&typeof voice.speak==='function'&&voiceState.enabled)voice.speak({id:id,text:body.slice(0,1500),audioB64:res&&res.audio_b64||null,accountKey:owner});
       runBrainActions(res&&res.ok&&Array.isArray(res.actions)?res.actions:[],owner,ticket);
     }
     function runBrainActions(actions,owner,ticket){
       actions.forEach(function(a){
         if(!a||typeof a.tool!=='string')return;
-        if(a.tool==='set_argon_mode'&&MODE_TR[a.level]){argonMode=a.level;writePref('oryvona.argonMode',a.level);setStatus('Çalışma modu: '+MODE_TR[a.level]+'.');}
-        if(a.tool==='dispatch_cloud_or_worker_task'){
-          if(a.provider!=='claude'||a.environment!=='local'){setStatus('OpenAI / bulut yürütücüsü bu sistemde henüz bağlı değil; iş emri oluşturulmadı.','error');return;}
-          if(typeof a.instruction!=='string'||!a.instruction.trim()||!validProject(a.project,projects))return;
-          var text=(a.mode==='plan'?'[PLAN modu: kodu değiştirme, yalnız uygulanabilir bir plan çıkar] ':'')+safeText(a.instruction,4000);
-          askConfirm({accountKey:owner,accountEpoch:ticket,scope:a.project,target:a.project,text:text,attachments:[],version:drafts.get(a.project).version},{silent:true});
+        if((a.tool==='set_argon_mode'||a.tool==='set_argon_or_worker_mode')&&MODE_TR[a.level]){
+          argonMode=a.level;writePref('oryvona.argonMode',a.level);
+          if(a.provider)writePref('oryvona.workerProvider',a.provider);
+          if(a.execution_mode)writePref('oryvona.workerExecMode',a.execution_mode);
+          if(a.environment)writePref('oryvona.workerEnv',a.environment);
+          setStatus('Çalışma modu: '+MODE_TR[a.level]+(a.provider&&a.provider!=='argon'?' · '+a.provider.toUpperCase():'')+'.');
+        }
+        if(a.tool==='dispatch_cloud_or_worker_task'||a.tool==='dispatch_worker_task'){
+          var proj=a.project==='tuckspire'?'tupsper':a.project;
+          if(typeof a.instruction!=='string'||!a.instruction.trim()||!validProject(proj,projects))return;
+          var execMode=a.execution_mode||a.mode||'work';
+          var prov=a.provider==='openai'?'openai':'claude';
+          var envName=a.environment==='cloud'?'cloud':'local';
+          var prefix='';
+          if(execMode==='plan'&&prov==='claude'&&envName==='local'&&!a.level){
+            prefix='[PLAN modu: kodu değiştirme, yalnız uygulanabilir bir plan çıkar] ';
+          }else if(prov!=='claude'||envName!=='local'||execMode==='codex'||a.level){
+            prefix='[Sağlayıcı: '+(prov==='openai'?'OpenAI':'Claude')+' · Ortam: '+(envName==='cloud'?'Bulut':'Yerel')+' · Mod: '+(execMode==='codex'?'Codex':execMode==='plan'?'Plan':'Work')+(a.level?' · Seviye: '+a.level:'')+'] ';
+          }
+          var text=prefix+safeText(a.instruction,4000);
+          askConfirm({accountKey:owner,accountEpoch:ticket,scope:proj,target:proj,text:text,attachments:[],version:drafts.get(proj).version},{silent:true});
         }
       });
     }

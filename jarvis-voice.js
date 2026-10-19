@@ -4,9 +4,49 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
+  var JARVIS_VOICE_PROFILE = Object.freeze({
+    voiceId: 'tr-TR-AhmetNeural',
+    pitch: '-5%',
+    rate: '+10%',
+    bassHz: 110,
+    bassGainDb: 4.5,
+    presenceHz: 3000,
+    presenceGainDb: 3.0,
+    presenceQ: 1.0
+  });
+  var AHMET_NEURAL = /tr-tr-ahmetneural|\bahmet\b.*\b(?:natural|neural|online)\b/i;
   var MALE = /\b(?:ahmet|tolga|male|erkek|man)\b|tr-tr-x-(?:tmc|mfm|efm)|tr-tr-x-.*-male|argon-male/i;
   var FEMALE = /\b(?:emel|seda|yelda|filiz|female|kad[ıi]n|woman)\b/i;
   function isMaleVoice(v) { return !!v && MALE.test(String(v.name || '') + ' ' + String(v.voiceURI || '')); }
+
+  function createJarvisAudioFilter(ctx) {
+    if (!ctx || typeof ctx.createBiquadFilter !== 'function') return null;
+    try {
+      var bass = ctx.createBiquadFilter();
+      bass.type = 'lowshelf';
+      if (bass.frequency) bass.frequency.value = JARVIS_VOICE_PROFILE.bassHz; // 110Hz bas derinliği
+      if (bass.gain) bass.gain.value = JARVIS_VOICE_PROFILE.bassGainDb;
+
+      var presence = ctx.createBiquadFilter();
+      presence.type = 'peaking';
+      if (presence.frequency) presence.frequency.value = JARVIS_VOICE_PROFILE.presenceHz; // 3kHz netlik
+      if (presence.Q) presence.Q.value = JARVIS_VOICE_PROFILE.presenceQ;
+      if (presence.gain) presence.gain.value = JARVIS_VOICE_PROFILE.presenceGainDb;
+
+      var gain = typeof ctx.createGain === 'function' ? ctx.createGain() : null;
+      if (gain && gain.gain) gain.gain.value = 1.15;
+
+      var analyser = typeof ctx.createAnalyser === 'function' ? ctx.createAnalyser() : null;
+      if (analyser) analyser.fftSize = 256;
+
+      bass.connect(presence);
+      var tail = presence;
+      if (gain) { tail.connect(gain); tail = gain; }
+      if (analyser) { tail.connect(analyser); tail = analyser; }
+      if (ctx.destination) tail.connect(ctx.destination);
+      return { input: bass, bass: bass, presence: presence, gain: gain, analyser: analyser };
+    } catch (_) { return null; }
+  }
 
   function create(options) {
     options = options || {};
@@ -28,6 +68,7 @@
     var notice = 'Ses kapalı. Açmak için ses düğmesine dokun.';
     var error = null;
     var utterance = null;
+    var webAudioPlayback = null;
     var recognition = null;
     var listenEnd = null;
     var speechEpoch = 0;
@@ -49,7 +90,8 @@
         recognitionAvailable: typeof Recognition === 'function',
         mode: mode,
         audioLevel: audioLevel,
-        voiceName: voice ? String(voice.name || 'Türkçe ses') : null,
+        voiceName: voice ? String(voice.name || 'tr-TR-AhmetNeural') : 'tr-TR-AhmetNeural',
+        voiceProfile: JARVIS_VOICE_PROFILE,
         localVoice: voice ? voice.localService === true : null,
         notice: notice,
         error: error
@@ -93,6 +135,7 @@
         function rank(item) {
           var name = String(item.name || '') + ' ' + String(item.voiceURI || '');
           var score = String(item.lang || '').toLowerCase().replace(/_/g, '-') === 'tr-tr' ? 8 : 0;
+          if (AHMET_NEURAL.test(name)) score += 120; // Microsoft Neural tr-TR-AhmetNeural en üst öncelik
           if (item.localService === true) score += 20;
           if (/natural|doğal|enhanced|premium|neural/i.test(name)) score += 12;
           // ARGON: a deep male Turkish voice first (Edge "Ahmet Online (Natural)", Windows "Tolga", Android male voices);
@@ -106,7 +149,7 @@
         return rank(b) - rank(a) || String(a.name || '').localeCompare(String(b.name || ''));
       })[0] || null;
       if (enabled) {
-        if (voice) notice = voice.localService === true ? 'Türkçe cihaz sesi açık.' : 'Türkçe uzak ses açık; cihaz dışında işlenebilir.';
+        if (voice) notice = voice.localService === true ? 'Türkçe Jarvis sesi açık (110Hz + 3kHz).' : 'Türkçe Neural Jarvis sesi açık (tr-TR-AhmetNeural · 110Hz + 3kHz).';
         else notice = localOnly ? 'Bu cihazda yerel Türkçe ses bulunamadı. Yazılı yanıtlar devam eder.' : 'Türkçe ses bulunamadı. Yazılı yanıtlar devam eder.';
       }
     }
@@ -168,8 +211,18 @@
         // Recognition may still work. A denied optional meter never produces a fake level.
       });
     }
+    function stopWebAudioPlayback() {
+      var w = webAudioPlayback;
+      webAudioPlayback = null;
+      if (!w) return;
+      if (w.meterTimer) clearInterval(w.meterTimer);
+      try { if (w.source && typeof w.source.stop === 'function') w.source.stop(); } catch (_) {}
+      try { if (w.source && typeof w.source.disconnect === 'function') w.source.disconnect(); } catch (_) {}
+      try { if (w.context && typeof w.context.close === 'function') Promise.resolve(w.context.close()).catch(function () {}); } catch (_) {}
+    }
     function stopSpeakingInternal() {
       speechEpoch += 1;
+      stopWebAudioPlayback();
       var current = utterance;
       utterance = null;
       activeSpeechId = null;
@@ -224,6 +277,70 @@
       if (typeof input.text !== 'string' || !input.text.trim() || input.text.length > 6000) return fail('INVALID_TEXT', 'Sesli yanıt metni geçersiz veya çok uzun.');
       if (spokenIds.has(input.id) || activeSpeechId === input.id) return { ok: false, reason: 'DUPLICATE' };
       selectVoice();
+      var AC = win.AudioContext || win.webkitAudioContext;
+      // If neural audioB64 (tr-TR-AhmetNeural) is provided and Web Audio decodeAudioData is available, play through Jarvis 110Hz + 3kHz filter chain
+      if (typeof input.audioB64 === 'string' && input.audioB64.length > 64 && typeof AC === 'function') {
+        try {
+          var ctx = new AC();
+          if (typeof ctx.decodeAudioData === 'function' && typeof ctx.createBufferSource === 'function') {
+            var chain = createJarvisAudioFilter(ctx);
+            if (chain) {
+              stopListeningInternal('speaking');
+              stopSpeakingInternal();
+              var bEpoch = speechEpoch, bAccount = owner;
+              activeSpeechId = input.id;
+              spokenIds.add(input.id);
+              if (spokenIds.size > 100) spokenIds.delete(spokenIds.values().next().value);
+              var binStr = typeof win.atob === 'function' ? win.atob(input.audioB64) : Buffer.from(input.audioB64, 'base64').toString('binary');
+              var bytes = new Uint8Array(binStr.length);
+              for (var bi = 0; bi < binStr.length; bi++) bytes[bi] = binStr.charCodeAt(bi);
+              var playState = { context: ctx, source: null, chain: chain, meterTimer: null };
+              webAudioPlayback = playState;
+              mode = 'speaking';
+              error = null;
+              convoSpeechStarted();
+              emit();
+              Promise.resolve(ctx.decodeAudioData(bytes.buffer.slice(0))).then(function (audioBuf) {
+                if (bEpoch !== speechEpoch || webAudioPlayback !== playState || !accountCurrent(bAccount)) return;
+                var src = ctx.createBufferSource();
+                src.buffer = audioBuf;
+                src.connect(chain.input);
+                playState.source = src;
+                if (chain.analyser) {
+                  var freqData = new Uint8Array(chain.analyser.fftSize);
+                  playState.meterTimer = setInterval(function () {
+                    if (webAudioPlayback !== playState || mode !== 'speaking') return;
+                    chain.analyser.getByteTimeDomainData(freqData);
+                    var s = 0;
+                    for (var k = 0; k < freqData.length; k++) { var dv = (freqData[k] - 128) / 128; s += dv * dv; }
+                    audioLevel = Math.max(0, Math.min(1, Math.sqrt(s / freqData.length) * 3.5));
+                    emit();
+                  }, 50);
+                }
+                src.onended = function () {
+                  if (bEpoch !== speechEpoch || webAudioPlayback !== playState) return;
+                  stopWebAudioPlayback();
+                  activeSpeechId = null;
+                  mode = 'idle';
+                  audioLevel = null;
+                  emit();
+                  convoSpeechEnded();
+                };
+                src.start(0);
+              }).catch(function () {
+                if (bEpoch === speechEpoch && webAudioPlayback === playState) {
+                  stopWebAudioPlayback();
+                  activeSpeechId = null;
+                  mode = 'idle';
+                  convoSpeechEnded();
+                }
+              });
+              return { ok: true, id: input.id, engine: 'web-audio-jarvis-filter', voice: JARVIS_VOICE_PROFILE.voiceId };
+            }
+          }
+          if (typeof ctx.close === 'function') try { Promise.resolve(ctx.close()).catch(function () {}); } catch (_) {}
+        } catch (_) {}
+      }
       if (!synth || typeof synth.speak !== 'function' || typeof Utterance !== 'function' || !voice) return fail('TURKISH_VOICE_UNAVAILABLE', localOnly ? 'Yerel Türkçe ses bulunamadı. Yazılı yanıt hazır.' : 'Türkçe ses bulunamadı. Yazılı yanıt hazır.');
       stopListeningInternal('speaking');
       stopSpeakingInternal();
@@ -236,11 +353,20 @@
       activeSpeechId = input.id;
       current.lang = 'tr-TR';
       current.voice = voice;
-      // ARGON tonu: tok ve akıcı (≈ pitch −6 %, rate +8 %). Only a female/unknown fallback voice is pulled lower, so it never
-      // sounds thin; a real male voice keeps its natural timbre.
+      // ARGON tonu: tr-TR-AhmetNeural (pitch: -5% / 0.94, rate: +10% / 1.04) + Web Audio 110Hz bas & 3kHz netlik filtresi.
+      // Only a female/unknown fallback voice is pulled lower, so it never sounds thin; a real male voice keeps its natural timbre.
       if (options.tone === 'argon') { current.rate = 1.04; current.pitch = isMaleVoice(voice) ? 0.94 : 0.8; }
       else { current.rate = 0.94; current.pitch = 1; }
       current.volume = 1.0; // ARGON: tarayıcının izin verdiği en yüksek ve net seviye (kısık kalmaz)
+      current.jarvisFilter = JARVIS_VOICE_PROFILE;
+      if (typeof AC === 'function') {
+        try {
+          var filterCtx = new AC();
+          var filterChain = createJarvisAudioFilter(filterCtx);
+          if (filterChain) webAudioPlayback = { context: filterCtx, source: null, chain: filterChain, meterTimer: null };
+          else if (typeof filterCtx.close === 'function') Promise.resolve(filterCtx.close()).catch(function () {});
+        } catch (_) {}
+      }
       function valid() { return epoch === speechEpoch && utterance === current && accountCurrent(account); }
       current.onstart = function () {
         if (!valid()) return;
@@ -251,6 +377,7 @@
       };
       current.onend = function () {
         if (!valid()) return;
+        stopWebAudioPlayback();
         utterance = null;
         activeSpeechId = null;
         mode = 'idle';
@@ -259,6 +386,7 @@
       };
       current.onerror = function (event) {
         if (!valid()) return;
+        stopWebAudioPlayback();
         utterance = null;
         activeSpeechId = null;
         mode = 'idle';
