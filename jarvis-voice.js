@@ -76,6 +76,7 @@
     var measurement = null;
     var spokenIds = new Set();
     var activeSpeechId = null;
+    var voiceAuditionActive = false;
 
     function readAccount() {
       try {
@@ -252,6 +253,7 @@
     function usable() {
       if (destroyed) return { ok: false, reason: 'DESTROYED' };
       if (!accountCurrent()) return fail('ACCOUNT_REQUIRED', 'Ses için geçerli bir hesap bağlamı gerekli.');
+      if (voiceAuditionActive) return { ok: false, reason: 'VOICE_AUDITION_ACTIVE' };
       if (!visible()) return fail('HIDDEN', 'Ses yalnız açık Argon ekranında kullanılabilir.');
       return null;
     }
@@ -586,6 +588,11 @@
       synth.onvoiceschanged = voicesHandler;
       removers.push(function () { if (synth.onvoiceschanged === voicesHandler) synth.onvoiceschanged = previousVoicesHandler; });
     }
+    bind(doc, 'oryvona:voice-audition', function (event) {
+      cancel();
+      voiceAuditionActive = !(event && event.detail && event.detail.active === false);
+      if (event && event.detail && typeof event.detail === 'object') event.detail.cancelled = true;
+    });
     bind(doc, 'visibilitychange', hidden);
     bind(doc, 'oryvona:studio-context-change', contextChanged);
     bind(win, 'pagehide', cancel);
