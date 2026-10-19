@@ -1,0 +1,44 @@
+name: Store generated voice audition on isolated branch
+on:
+  push:
+    branches: [ceo/voice-audition-v1]
+    paths: ['.github/workflows/voice-audition-store.yml']
+permissions:
+  actions: read
+  contents: write
+jobs:
+  store:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: argon-male-voice-audition-v1
+          run-id: 39328677054
+          github-token: ${{ github.token }}
+          path: audition-transfer
+      - name: Validate original receipt and store only fixed public audition files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64, hashlib, json, os, pathlib, urllib.request, wave
+          repo = "denizdalga998-boop/oryvona-panel"
+          branch = "ceo/voice-audition-v1"
+          root = pathlib.Path("audition-transfer")
+          receipt = json.loads((root / "receipt.json").read_text())
+          wave_path = root / "argon-m2-v1.wav"
+          data = wave_path.read_bytes()
+          assert receipt["voice"] == "M2" and receipt["language"] == "tr"
+          assert receipt["revision"] == "aafc6e32416a594460b32413efc49d7fe4ce6d46"
+          assert len(data) == 900128
+          assert hashlib.sha256(data).hexdigest() == "53842598806c9f6819952db9d50fcb4df83b560bb1c6ae0f0785d2501721a274"
+          with wave.open(str(wave_path)) as wav:
+              assert wav.getnchannels() == 1 and wav.getsampwidth() == 2
+              assert 1 < wav.getnframes() / wav.getframerate() < 30
+          for source, target in [("receipt.json", "voice/argon-m2-v1.json"), ("MODEL-LICENSE.txt", "voice/SUPERTONIC-MODEL-LICENSE.txt"), ("argon-m2-v1.wav", "voice/argon-m2-v1.wav")]:
+              payload = json.dumps({"message": "voice: retain validated fixed male audition output", "branch": branch, "content": base64.b64encode((root / source).read_bytes()).decode("ascii")}).encode()
+              req = urllib.request.Request("https://api.github.com/repos/" + repo + "/contents/" + target, data=payload, method="PUT", headers={"Authorization": "Bearer " + os.environ["GH_TOKEN"], "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "Content-Type": "application/json"})
+              with urllib.request.urlopen(req, timeout=30) as result:
+                  body = json.load(result)
+              print(json.dumps({"file": target, "blob": body["content"]["sha"], "commit": body["commit"]["sha"]}))
