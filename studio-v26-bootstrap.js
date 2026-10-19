@@ -81,7 +81,10 @@
     finally{mounting=false;}
   }
   function sync(){pendingSync=0;if(disposed)return;if(mountedKey!==key()||!data)mount();else{companyBrand();applyActive();refresh().catch(()=>{});}}
-  function schedule(){if(!pendingSync&&!disposed)pendingSync=window.requestAnimationFrame(sync);}
+  // A view switch must never wait on painting: when frames stall (hidden/throttled WebView) a short timer still applies it.
+  let syncTimer=0;
+  function runSync(){if(pendingSync)window.cancelAnimationFrame(pendingSync);if(syncTimer)window.clearTimeout(syncTimer);pendingSync=0;syncTimer=0;sync();}
+  function schedule(){if((pendingSync||syncTimer)||disposed)return;pendingSync=window.requestAnimationFrame(runSync);syncTimer=window.setTimeout(runSync,60);}
   function refreshClick(event){if(!event.target.closest?.('#refreshBtn'))return;event.preventDefault();event.stopImmediatePropagation();refresh(true).catch(()=>{});}
   on(document,'oryvona:ready',schedule);on(document,'oryvona:view-change',()=>{syncCompatibility();schedule();});on(document,'oryvona:studio-context-change',()=>{syncCompatibility(true);schedule();});
   const compatibility=document.getElementById('v26StoreCompatibility');if(compatibility)on(compatibility,'toggle',()=>syncCompatibility());
@@ -89,7 +92,7 @@
   on(document,'click',refreshClick,true);on(window,'pageshow',schedule);
   // No pagehide destroy: the document may enter bfcache. Each module handles suspension.
   timer=window.setInterval(()=>refresh().catch(()=>{}),30000);
-  window.OryvonaStudioV26Lifecycle=Object.freeze({refresh:()=>refresh(true),destroy(){if(disposed)return;disposed=true;if(pendingSync)window.cancelAnimationFrame(pendingSync);if(timer)window.clearInterval(timer);listeners.forEach(off=>off());disposeMount();document.body.classList.remove('oryvona-jarvis-world');}});
+  window.OryvonaStudioV26Lifecycle=Object.freeze({refresh:()=>refresh(true),destroy(){if(disposed)return;disposed=true;if(pendingSync)window.cancelAnimationFrame(pendingSync);if(syncTimer)window.clearTimeout(syncTimer);if(timer)window.clearInterval(timer);listeners.forEach(off=>off());disposeMount();document.body.classList.remove('oryvona-jarvis-world');}});
   syncCompatibility(true);
   sync();
 })();

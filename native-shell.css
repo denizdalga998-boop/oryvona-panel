@@ -1,5 +1,9 @@
 /* Native interaction layer; the measured v17 header and game pills remain intact. */
-html,body{max-width:100%;overflow-x:clip;overscroll-behavior-y:none;-webkit-text-size-adjust:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+html,body{max-width:100%;overflow-x:clip;-webkit-text-size-adjust:100%;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+/* Pull-to-refresh is stopped on the viewport only. On body, overscroll-behavior:none blocked scroll chaining: a finger swipe
+   that started on body (a scroll container with nothing to scroll) never reached the page, so pages looked frozen. */
+html{overscroll-behavior-y:none}
+body{overscroll-behavior-y:auto}
 input,textarea,select,[contenteditable="true"],[data-selectable]{user-select:text;-webkit-user-select:text;-webkit-touch-callout:default}
 button,a,[role="button"],summary{touch-action:manipulation}
 button,a,[role="button"]{-webkit-user-drag:none}

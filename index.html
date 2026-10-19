@@ -84,7 +84,7 @@ a{color:var(--brand);font-weight:800}
 .band-top .k{font-size:.73rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#cfcbea}
 .band .hero{background:none;box-shadow:none;padding:10px 0 0;border-radius:0}
 .band .hero::before,.band .hero::after{display:none}
-.drawer{position:fixed;inset:0;z-index:40}
+.drawer{position:fixed;inset:0;z-index:45}
 .scrim{position:absolute;inset:0;background:rgba(10,9,30,.52);backdrop-filter:blur(4px)}
 .dpanel{position:absolute;left:0;top:0;bottom:0;width:min(310px,85vw);background:var(--surface);color:var(--fg);box-shadow:16px 0 44px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:6px;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 20px;overflow:auto;animation:slidein .22s ease-out}
 @keyframes slidein{from{transform:translateX(-30px);opacity:0}to{transform:none;opacity:1}}
@@ -538,7 +538,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       </div>
       <div class="detail" id="jarvisAttBadge" hidden></div>
       <div class="j-input-row">
-        <textarea id="jarvisInput" rows="2" maxlength="2000" data-i18n-ph="jarvis.ph" placeholder="Argon'e emrini yaz (Örn: Charm Drop'u ilerletelim)…"></textarea>
+        <textarea id="jarvisInput" rows="2" maxlength="2000" data-i18n-ph="jarvis.ph" placeholder="Argon'a emrini yaz (Örn: Charm Drop'u ilerletelim)…"></textarea>
         <button type="button" class="cmd-send-btn" id="jarvisSendBtn"><span data-i18n="cmd.send">Gönder</span> <span class="arr">➤</span></button>
       </div>
       <div class="detail" id="jarvisMsg" style="min-height:1.2em"></div>
@@ -730,7 +730,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
       sub:"Emirlerini kalıcı kuyruğa kaydet; mevcut iş akışını merkezden yönet",
       subGame:g=>`${g} · Argon komut kuyruğu · Ek ücretli API yok`,
       c1:"Oyunu İlerlet",c2:"Paneli Geliştir",c3:"Durum Özeti Ver",c4:"Test Et & Yayına Al",
-      ph:"Argon'e emrini yaz (Örn: Charm Drop'u ilerletelim)…",
+      ph:"Argon'a emrini yaz (Örn: Charm Drop'u ilerletelim)…",
       welcome:(g,w)=>`Merhaba Deniz! Şu an seçili oyun: ${g}. ${w} Farklı yapay zeka modları seçmene gerek yok; üstteki 4 hızlı emir çipinden birine dokunabilir veya aşağıdan doğrudan bana yazabilirsin.`,
       sent:"Emir telefona kaydedildi. Bağlantı ve sahip oturumu hazır olduğunda aynı kimlikle teslim edilecek.",
       thinking:"Emir kuyrukta; sunucu/çalıştırıcı sonucu bekleniyor…",
@@ -774,7 +774,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     feed:{more:n=>`Daha fazla göster (${n})`,title:"İşler & Akış",week:"Bu hafta",records:"Kayıtlar",notes:"Notlar",empty:"Henüz akış kaydı yok.",emptyFilter:"Bu süzgeçte kayıt yok.",last7:"son 7 gün",turns:"Tur",turnsSub:"sıra el değiştirdi",runsSub:n=>`${n} tanesi sorunsuz`,noRuns:"koşu yok",workTime:"çalışma süresi",reviewTime:"inceleme süresi",today:"Bugün",hm:(h,m)=>`${h} sa ${m} dk`,min:m=>`${m} dk`,hr:h=>`${h} sa`,worked:v=>v+" çalıştı",waitFor:v=>"Bekleme: "+v,nowLabel:"şimdi"},
     tests:{title:"Testler",code:"Kod testleri",browser:"Tarayıcı testleri",natural:"Gerçek oynanış",lifecycle:"Sekme / Turu bitir",allPassed:"Hepsi geçti",missing:"Eksik var",waiting:"Bekleniyor",pass:"Geçti",blocked:"Engel",fail:"Hata",blockedSub:"Altyapı sınırı, oyun hatası değil",failSub:"Gerçek bir sorun bulundu",notRun:"Henüz koşmadı",runLog:"Detaylı test raporu: ",openReport:"Son test raporunu aç ›",noRun:"Henüz bulut testi yapılmadı.",noPipe:"Bu oyunun otomatik testleri henüz bağlı değil.",history:"Test geçmişi",noHistory:"Test geçmişi yok.",rowCode:"Kod",rowBrowser:"Tarayıcı",rowNatural:"Oynanış",rowLife:"Sekme / çıkış",cellPass:"geçti",cellBlocked:"engel",cellFail:"hata",cellNone:"koşmadı",lastRun:"Son test notu: "},
     gemini:{title:"Gemini İncelemesi",sub:"Bağımsız kalite kontrol · sırayı etkilemez, ikinci görüş sunar",pass:"Geçti",fail:"Sorun Buldu",unverified:"Kanıt Bekliyor",blocked:"Durduruldu",matchYes:"OpenAI ile aynı fikirde",matchNo:"OpenAI'dan farklı görüşte",matchUnknown:"OpenAI kararı bekleniyor",none:"Henüz Gemini incelemesi yok.",err:v=>"Durum: "+v,dur:v=>v+" sn sürdü",geminiSaid:v=>`Gemini'nin ilk değerlendirmesi: ${v}`,source:{gemini:"Doğrudan inceleme",'runner-override':"Eksik kanıt nedeniyle beklemeye alındı",'runner-fallback':"Teknik eksiklik nedeniyle tamamlanamadı"},task:"İncelenen iş: "},
-    cmd:{title:"Komut Kutusu",sub:"Görevini yaz veya sesle söyle, doğrudan Argon'e Gönder'e dokun",ph:"Yapılmasını istediğin görevi veya inceleme notunu kısaca yaz…",
+    cmd:{title:"Komut Kutusu",sub:"Görevini yaz veya sesle söyle, doğrudan Argon'a Gönder'e dokun",ph:"Yapılmasını istediğin görevi veya inceleme notunu kısaca yaz…",
       p1:"🔍 Son durumu kontrol et",p2:"🛠️ Son hatayı düzelt",p3:"📱 Dokunmatik testi çalıştır",p4:"📦 Mağaza durumunu özetle",
       voice:"Sesle Yaz",voiceStop:"Dinliyor… (Durdur)",voiceUnsup:"Tarayıcınız doğrudan sesle yazmayı desteklemiyor; klavyedeki mikrofon tuşunu kullanabilirsiniz.",voiceDone:"Ses metne çevrildi · Gönder'e dokun.",
       attachImg:"Ekran Görüntüsü / Görsel Ekle",draw:"✏️ İşaretle",clearDraw:"↺ Temizle",removeImg:"✕ Kaldır",drawHint:"Görselin üzerine parmağınla dokunarak sorunlu yeri kırmızıyla işaretleyebilirsin.",imgReady:"📸 Görsel Kanıt Hazır",
@@ -806,7 +806,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     det:{turn:"Sıra kimde",stage:"Oyun nerede",qa:"Son bulut testi",auto:"Otomasyon",worknote:"OpenAI'dan son not",gemini:"Gemini İncelemesi",terms:"Terimler ve roller",noTask:"Aktif görev yok",taskCode:(id,t)=>`Görev: ${id} · ${t}. tur`,lock:(who,at)=>` · ${who} çalışıyor (${at})`,lockFree:" · şu an kimse çalışmıyor",
       pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`Yapılan her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI otomatik geçişi",on:"etkin",off:"kapalı",wakeSub:v=>`Claude çalışmasını bitirince OpenAI kendiliğinden devreye girer. Son hareket: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Claude görev geldiğinde otomatik veya Komut Kutusu ile çalışır.",repo:"Proje bağlantısı: ",openRepo:"Proje sayfasını aç ›",lastPush:v=>` · son güncelleme ${v}`,openCommit:"Son değişikliği gör ›",last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
       workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar"},
-    terms:[["Argon","Tek beyin komuta asistanı. Doğrudan seninle konuşur, durum kartını okur ve arka plan işlerini kredi yakmadan yönetir."],["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Doğrudan Argon'e sesle, yazıyla veya ekran görüntüsüyle emir vermeni sağlayan alan."]],
+    terms:[["Argon","Tek beyin komuta asistanı. Doğrudan seninle konuşur, durum kartını okur ve arka plan işlerini kredi yakmadan yönetir."],["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Doğrudan Argon'a sesle, yazıyla veya ekran görüntüsüyle emir vermeni sağlayan alan."]],
     set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.6 (v26) · Doğrulanmış Teslim & Argon Stüdyo Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Argon, Claude, OpenAI ve süreç adımları",
       demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · ${src}`,ghSignal:"Canlı senkronizasyon aktif",noDataYet:"Henüz veri yok",
       pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
@@ -2240,6 +2240,19 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("gate.noConfig");return;}
     sb=window.supabase.createClient(CFG.url,CFG.anonKey,{auth:{flowType:"implicit",detectSessionInUrl:true,persistSession:true,autoRefreshToken:true},realtime:{params:{eventsPerSecond:5}}});
     sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"&&location.hash.includes("access_token"))history.replaceState({view:"home"},"",location.pathname);});
+    // Magic link, every arrival path: a hash-only change (ARGON app / an already open tab gets no reload, so detectSessionInUrl never
+    // sees it), an expired or used link (#error_description), or a PKCE ?code= link from another client. Each ends visibly.
+    const linkNote=t=>{$("gateText").textContent=t;$("banner").hidden=false;$("banner").textContent=t;};
+    async function takeLinkSession(){
+      const h=new URLSearchParams(location.hash.slice(1)),q=new URLSearchParams(location.search);
+      if(h.get("error_description")||h.get("error")){const expired=/expired|invalid/i.test(h.get("error_code")||h.get("error_description")||"");history.replaceState({view:"home"},"",location.pathname);linkNote(lang==="tr"?(expired?"Giriş bağlantısının süresi dolmuş ya da daha önce kullanılmış. E-postanı yazıp yeni bağlantı iste.":"Giriş bağlantısı açılamadı. Yeni bağlantı iste."):(expired?"This sign-in link has expired or was already used. Request a new one.":"The sign-in link could not be opened. Request a new one."));return;}
+      const at=h.get("access_token"),rt=h.get("refresh_token");
+      if(at&&rt){const {error}=await sb.auth.setSession({access_token:at,refresh_token:rt});history.replaceState({view:"home"},"",location.pathname);if(error)linkNote(lang==="tr"?"Giriş bağlantısı doğrulanamadı. Yeni bağlantı iste.":"The sign-in link could not be verified. Request a new one.");return;}
+      const code=q.get("code");
+      if(code){const {error}=await sb.auth.exchangeCodeForSession(code).catch(e=>({error:e}));history.replaceState({view:"home"},"",location.pathname);if(error)linkNote(lang==="tr"?"Bu giriş bağlantısı başka bir tarayıcı için üretilmiş. Bu ekranda e-postanı yazıp yeni bağlantı iste.":"This link was made for another browser. Request a new one here.");}
+    }
+    addEventListener("hashchange",()=>{if(/(?:access_token|error_description|error)=/.test(location.hash))takeLinkSession().catch(()=>{});});
+    if(/(?:error_description|error)=/.test(location.hash)||new URLSearchParams(location.search).has("code"))takeLinkSession().catch(()=>{});
     if(pendingInvite())$("gateText").textContent=T("gate.invited");
     const apply=s=>{const changed=session?.user?.id!==s?.user?.id||session?.user?.email!==s?.user?.email;if(changed){isOwner=false;stop();}session=s;announceStudioContext();const signedIn=!!s;$("gate").hidden=signedIn;commandOutbox?.snapshot();if(signedIn)start();else stop();};
     const {data:{session:s0}}=await sb.auth.getSession();apply(s0);

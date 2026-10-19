@@ -1,6 +1,6 @@
 /* v26 shared command-center tokens. Glass is a static translucent surface; no moving blur. */
 :root{--studio-bg:#040a16;--studio-panel:#0b1729;--studio-line:#244768;--studio-text:#ecf6ff;--studio-muted:#8da8c4;--studio-cyan:#4de3ff;--studio-blue:#328bff;--studio-radius:20px;--studio-nav-h:calc(66px + env(safe-area-inset-bottom,0px));color-scheme:dark}
-body.oryvona-v26{background:radial-gradient(ellipse at 5% 0,#10335d55,transparent 48%),#040a16;color:var(--studio-text);overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+body.oryvona-v26{background:radial-gradient(ellipse at 5% 0,#10335d55,transparent 48%),#040a16;color:var(--studio-text);overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:auto;-webkit-tap-highlight-color:transparent}
 body.oryvona-v26::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background-image:linear-gradient(#2b6c9f08 1px,transparent 1px),linear-gradient(90deg,#2b6c9f08 1px,transparent 1px);background-size:42px 42px}
 body.oryvona-v26 #topbar{background:#06101feb;border-bottom:1px solid #23466d88;box-shadow:0 6px 24px #0002;color:var(--studio-text)}
 body.oryvona-v26 .app-top-inner{max-width:1200px}body.oryvona-v26 .app-head{gap:8px}body.oryvona-v26 .iconbtn{min-width:44px;min-height:44px;background:#10203a;border-color:#2e587a;color:var(--studio-text)}

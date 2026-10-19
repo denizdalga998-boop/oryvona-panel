@@ -31,9 +31,9 @@
 @media(max-width:480px){.jw-header{grid-template-columns:minmax(0,1fr) 66px auto;padding:10px 14px 8px;column-gap:8px;row-gap:4px}.jw-energy{width:66px;height:50px}.jw-activity-toggle{padding-inline:8px;font-size:10px}.jw-title{font-size:22px}.jw-composer-zone{padding:6px 10px 12px}}
 
 /* v24 very short keyboard mode keeps the editor above navigation. */
-.jw-shell[data-ultra="true"] .jw-header,.jw-shell[data-ultra="true"] .jw-banner,.jw-shell[data-ultra="true"] .jw-thread,.jw-shell[data-ultra="true"] .jw-clarify,.jw-shell[data-ultra="true"] .jw-attachments{display:none}
+.jw-shell[data-ultra="true"] .jw-header,.jw-shell[data-ultra="true"] .jw-banner,.jw-shell[data-ultra="true"] .jw-thread,.jw-shell[data-ultra="true"] .jw-attachments{display:none}
 .jw-shell[data-ultra="true"] .jw-composer-zone{padding-top:0;padding-bottom:12px}.jw-shell[data-ultra="true"] .jw-input{max-height:44px}.jw-shell[data-ultra="true"] .jw-composer-status{max-height:16px;white-space:nowrap;overflow:auto}
-.jw-shell[data-micro="true"] .jw-composer-status{display:none}
+.jw-shell[data-micro="true"] .jw-composer-status{max-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* v26: one central orbital stage, one full-width conversation, one icon composer. */
 .jw-root{--jw-bg:#040a16;--jw-panel:#0c1b30;--jw-raised:#112b46;--jw-line:#2b5274;--jw-text:#edf7ff;--jw-muted:#90adc6;--jw-accent:#4de3ff;background:radial-gradient(ellipse at 50% 20%,#11376755,transparent 62%),#040a16;color:var(--jw-text);--jw-orb-size:224px}
