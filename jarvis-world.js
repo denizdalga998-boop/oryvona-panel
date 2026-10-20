@@ -167,7 +167,7 @@
     function isReadQuery(text){if(brief&&typeof brief.classify==='function')return brief.classify(text).handled===true;if(!brief||typeof brief.respond!=='function'||!studioData)return false;try{var data=studioData.getSnapshot();if(!data||data.accountKey!==accountKey)return false;var answer=brief.respond(text,data);return answer&&answer.handled===true;}catch(_e){return false;}}
     function syncComposer(){
       var d=drafts.get(scope),busy=busyScopes.has(draftKey(scope))||answerBusy;
-      var speechAvailable=voice?voiceState.recognitionAvailable===true:bridge.speech&&bridge.speech.available!==false&&typeof bridge.speech.start==='function';
+      var speechAvailable=!!(bridge.speech&&bridge.speech.available!==false&&typeof bridge.speech.start==='function')&&(!voice||voiceState.ttsAvailable!==false);
       var query=!d.attachments.length&&isReadQuery(d.text),hasText=!!(d.text.trim()||String(input.value||'').trim()||d.attachments.length);
       var speaking=voiceState.mode==='speaking',voiceLoading=voiceState.mode==='tts-loading'||voiceState.voicePending===true,listening=speechStarting||!!speechStop||voiceState.mode==='listening';
       send.dataset.empty=String(!hasText);send.disabled=!accountKey||busy||(!brainOn&&!query&&snapshot.connection&&snapshot.connection.submitAvailable===false);
@@ -179,9 +179,9 @@
       add.disabled=!accountKey||busy||d.attachments.length>=3||snapshot.capabilities&&snapshot.capabilities.attachments===false||!bridge.attachments||typeof bridge.attachments.choose!=='function';
       add.title=snapshot.capabilities&&snapshot.capabilities.attachments===false?'Gizli görsel yükleme hazır değil. Metin emri gönderebilirsin.':d.attachments.length>=3?'Bir komuta en fazla 3 görsel eklenebilir':'Görsel veya dosya ekle';
       mic.hidden=!speechAvailable&&mode!=='preview';mic.disabled=!accountKey||(!listening&&(busy||voiceLoading))||!speechAvailable;
-      var micLabel=!speechAvailable?'Canlı ses telefonda kullanılabilir':busy?'Yanıt bekleniyor; mikrofon kapalı':voiceLoading?'Erkek ses hazırlanıyor; mikrofon kapalı':speaking?'Yanıt okunuyor; mikrofon kapalı':listening?'Dinlemeyi iptal et':'Konuşmak için mikrofonu aç';
+      var micLabel=!speechAvailable?'Bu cihazda sesle yazma kullanılamıyor':busy?'Yanıt bekleniyor; mikrofon kapalı':voiceLoading?'Erkek ses hazırlanıyor; mikrofon kapalı':speaking?'Yanıt okunuyor; mikrofon kapalı':listening?'Dinlemeyi iptal et':'Konuşmak için mikrofonu aç';
       mic.title=micLabel;mic.setAttribute('aria-label',micLabel);mic.setAttribute('aria-pressed',String(listening));
-      mic.dataset.state=busy?'waiting':voiceLoading?'voice-loading':speaking?'speaking':voiceState.mode==='listening'?'listening':speechStarting?'starting':'idle';
+      mic.dataset.state=busy?'waiting':voiceLoading?'voice-loading':speaking?'speaking':speechStarting?'starting':listening?'listening':'idle';
       send.setAttribute('aria-label',busy?'Komut işleniyor':'Komutu gönder');syncEnergy();
     }
     function selectScope(next){if(next&&!validProject(next,projects))throw new Error('Geçersiz komut kapsamı.');stopSpeech();clearConfirmation();scope=next;clarification=null;clarify.hidden=true;renderDraft();loadDraft(next);setStatus('');/* No selected-game mutation, no global navigation event. */}
@@ -242,7 +242,7 @@
     /* The box is the truth: Android voice typing / IME composition may not have produced an 'input' event yet, so the draft can lag. */
     function adoptBoxText(){var live=String(input.value||'');var dd=drafts.get(scope);if(live!==dd.text){drafts.update(scope,{text:live});queueSave(scope);}}
     function enableOutputFromSend(){if(voice&&(!outputPreferenceChosen||voiceState.enabled)){if(!outputPreferenceChosen)voice.setEnabled(true);if(typeof voice.unlockAudio==='function')Promise.resolve(voice.unlockAudio()).catch(function(){});}}
-    async function submit(){enableOutputFromSend();adoptBoxText();var key=readAccountKey();if(key!==accountKey)resetAccount(key);if(!accountKey){setStatus('Önce sahip hesabıyla giriş yapmalısın. İş emri oluşturulmadı.','error');return;}if(answerBusy){setStatus('Önceki yanıt hazırlanıyor; bir saniye sonra tekrar gönder.');return;}var owner=accountKey,ticket=accountEpoch,submitScope=scope,d=drafts.get(submitScope);if(!d.text.trim()&&!d.attachments.length)return;stopSpeech();var textValue=d.text.trim(),version=d.version;if(pendingConfirm){if(pendingConfirm.accountKey===owner&&isYes(textValue)){resolveConfirm(true,pendingConfirm.approvalId);return;}if(pendingConfirm.accountKey===owner&&isNo(textValue)){resolveConfirm(false,pendingConfirm.approvalId);return;}clearConfirmation();}if(brainOn&&!d.attachments.length){brainTurn(textValue,version);return;}if(d.attachments.length&&isReadQuery(textValue)){setStatus('Bu soru sistem verisini okur. Ekli görselleri kaldırıp yeniden sor; iş emri oluşturulmadı.');return;}if(!d.attachments.length&&await answerRead(textValue,version,false))return;if(!owns(owner,ticket)||scope!==submitScope||d.version!==version)return;if(!d.attachments.length&&typeof bridge.askArchive==='function'&&isHistoryQuestion(textValue)){answerArchive(textValue,version);return;}if(!d.attachments.length&&isGreeting(textValue)){localExchange(textValue,'Buradayım efendim. Bir oyunun durumunu sorabilir (“Forge Run ne durumda?”), günlük özeti isteyebilir ya da yapılacak değişikliği yazabilirsin; göndermeden önce sana onaylatırım.','Selamlaşma · Model çağrısı yok · İş emri oluşturulmadı.',version);return;}var unknownKind=brief&&typeof brief.classify==='function'&&brief.classify(textValue).kind==='unknown';var folded=textValue.toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');var looksQuestion=(/[?]/.test(textValue)||/\b(?:nasil|neden|nedir|nerede|kim|ne durumda|mi|midir|musun)\b/.test(folded))&&!/\b(?:duzelt\w*|ekle\w*|gelistir\w*|baslat\w*|degistir\w*|uret\w*|planla\w*|yayinla\w*|sil|test et|calistir\w*|paketle\w*|ilerlet\w*|guncelle\w*)\b/.test(folded);
+    async function submit(fromSpeech){if(fromSpeech!==true)enableOutputFromSend();adoptBoxText();var key=readAccountKey();if(key!==accountKey)resetAccount(key);if(!accountKey){setStatus('Önce sahip hesabıyla giriş yapmalısın. İş emri oluşturulmadı.','error');return;}if(answerBusy){setStatus('Önceki yanıt hazırlanıyor; bir saniye sonra tekrar gönder.');return;}var owner=accountKey,ticket=accountEpoch,submitScope=scope,d=drafts.get(submitScope);if(!d.text.trim()&&!d.attachments.length)return;stopSpeech();var textValue=d.text.trim(),version=d.version;if(pendingConfirm){if(pendingConfirm.accountKey===owner&&isYes(textValue)){resolveConfirm(true,pendingConfirm.approvalId);return;}if(pendingConfirm.accountKey===owner&&isNo(textValue)){resolveConfirm(false,pendingConfirm.approvalId);return;}clearConfirmation();}if(brainOn&&!d.attachments.length){brainTurn(textValue,version);return;}if(d.attachments.length&&isReadQuery(textValue)){setStatus('Bu soru sistem verisini okur. Ekli görselleri kaldırıp yeniden sor; iş emri oluşturulmadı.');return;}if(!d.attachments.length&&await answerRead(textValue,version,false))return;if(!owns(owner,ticket)||scope!==submitScope||d.version!==version)return;if(!d.attachments.length&&typeof bridge.askArchive==='function'&&isHistoryQuestion(textValue)){answerArchive(textValue,version);return;}if(!d.attachments.length&&isGreeting(textValue)){localExchange(textValue,'Buradayım efendim. Bir oyunun durumunu sorabilir (“Forge Run ne durumda?”), günlük özeti isteyebilir ya da yapılacak değişikliği yazabilirsin; göndermeden önce sana onaylatırım.','Selamlaşma · Model çağrısı yok · İş emri oluşturulmadı.',version);return;}var unknownKind=brief&&typeof brief.classify==='function'&&brief.classify(textValue).kind==='unknown';var folded=textValue.toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');var looksQuestion=(/[?]/.test(textValue)||/\b(?:nasil|neden|nedir|nerede|kim|ne durumda|mi|midir|musun)\b/.test(folded))&&!/\b(?:duzelt\w*|ekle\w*|gelistir\w*|baslat\w*|degistir\w*|uret\w*|planla\w*|yayinla\w*|sil|test et|calistir\w*|paketle\w*|ilerlet\w*|guncelle\w*)\b/.test(folded);
       /* Without confirm-first the v26 contract keeps unmatched text out of the queue. With confirm-first an unmatched statement
          ("KOZA'da kamera titriyor") becomes a change request that is only queued after an explicit Evet; unmatched questions get a visible reply. */
       if(unknownKind&&!confirmBeforeQueue){setStatus('Bunu kayıt sorusu veya açık bir değişiklik emri olarak eşleştiremedim. Yapılacak değişikliği açıkça yaz; iş emri oluşturulmadı.');return;}
@@ -266,28 +266,34 @@
       if(!voice)return;
       outputPreferenceChosen=true;var enableOutput=!voiceState.enabled;if(!enableOutput)stopSpeech();voice.setEnabled(enableOutput);
     });on(daily,'click',function(){enableOutputFromSend();if(!accountKey||answerBusy)return;stopSpeech();if(brainOn){brainTurn('Bugün stüdyoda neler oldu? Kısaca özetle.',-1);return;}answerRead('Bugün neler oldu?',-1,false);});
-    on(mic,'click',async function(){
-      if(destroyed||!worldActive()||!accountKey||!voice)return;
-      if(speechStop||speechStarting||voice.conversationActive&&voice.conversationActive()){stopSpeech();voice.cancel();setStatus('Canlı ses kapandı. Mesajların burada korunuyor.');return;}
+    on(mic,'click',function(){
+      if(destroyed||!worldActive()||!accountKey)return;
+      if(speechStop||speechStarting){stopSpeech();setStatus('Dinleme iptal edildi. Mesajın taslakta korunuyor.');return;}
       if(answerBusy||busyScopes.has(draftKey(scope)))return;
-      var owner=accountKey,ticket=accountEpoch,viewTicket=activeEpoch,captureTicket=++speechEpoch,turn=0,liveIds=null;
-      speechStarting=true;syncComposer();setStatus('Google canlı ses bağlantısı açılıyor…');
-      function valid(){return captureTicket===speechEpoch&&owns(owner,ticket)&&worldActive()&&viewTicket===activeEpoch;}
-      function record(role,text,meta){
-        if(!valid()||!String(text||'').trim())return;
-        if(!liveIds)liveIds={user:'live:'+owner+':'+(++readCounter)+':u',assistant:'live:'+owner+':'+readCounter+':a'};
-        var id=liveIds[role],found=readMessages.find(function(m){return m.id===id;});
-        var row={id:id,role:role,body:safeText(text,2400),createdAt:found?found.createdAt:new Date().toISOString(),origin:{kind:'model',provider:'Google AI Studio',model:'gemini-3.8-live-extended-thinking',evidenceLabel:'Canlı ses transkripsiyonu; iş emri yalnız açık görev isteğiyle oluşturulur.'}};
-        if(found)readMessages=readMessages.map(function(m){return m.id===id?row:m;});else readMessages.push(row);
-        if(readMessages.length>80)readMessages=readMessages.slice(-80);update(snapshot);bottom(true);
-        if(role==='assistant'&&meta&&meta.final)liveIds=null;
-      }
+      if(!bridge.speech||bridge.speech.available===false||typeof bridge.speech.start!=='function'||voice&&voiceState.ttsAvailable===false){setStatus('Bu cihazda sesle yazma kullanılamıyor.','error');return;}
+      enableOutputFromSend();if(voice&&typeof voice.cancel==='function')voice.cancel();
+      var owner=accountKey,ticket=accountEpoch,viewTicket=activeEpoch,captureTicket=++speechEpoch,captureScope=scope,baseText=drafts.get(scope).text.trim(),finalText='',finished=false;
+      speechStarting=true;syncComposer();setStatus('Dinliyorum. Konuşman bitince mesajın gönderilecek.');
+      function valid(){return !finished&&captureTicket===speechEpoch&&owns(owner,ticket)&&worldActive()&&viewTicket===activeEpoch&&scope===captureScope;}
       try{
-        var result=await voice.startConversation({onTranscript:function(text,meta){if(valid()&&meta&&meta.final&&pendingConfirm&&pendingConfirm.accountKey===owner&&(isYes(text)||isNo(text))){resolveConfirm(isYes(text),pendingConfirm.approvalId);return;}record('user',text,meta);},onReply:function(text,meta){record('assistant',text,meta);},onTask:function(r){if(!valid())return;setStatus(r&&r.status==='durably_queued'?'Görev kalıcı işçi kuyruğuna alındı. İşçi çalışması henüz doğrulanmadı.':'Günlük sohbet işçi kuyruğuna gönderilmedi.');if(r&&r.status==='durably_queued'&&typeof bridge.refresh==='function')bridge.refresh().catch(function(){});},onEnd:function(){if(!valid())return;speechStarting=false;speechStop=null;syncComposer();}});
-        if(!valid()){if(result&&result.stop)result.stop();return;}
-        speechStarting=false;if(!result||result.ok!==true){syncComposer();setStatus(voice.getSnapshot().error||'Canlı ses açılamadı; yazarak devam edebilirsin.','error');return;}
-        speechStop=result.stop;syncComposer();setStatus('Canlı Argon açık. Bitirmek için mikrofon düğmesine dokun.');
-      }catch(_e){if(valid()){speechStarting=false;speechStop=null;syncComposer();setStatus('Canlı ses açılamadı. Yazılı sohbet kullanılabilir.','error');}}
+        var capture=bridge.speech.start({
+          onStart:function(){if(valid())setStatus('Dinliyorum. Konuşman bitince mesajın gönderilecek.');},
+          onResult:function(result){
+            if(!valid()||!result)return;var text=safeText(result.text,4000).trim();
+            finalText=result.final===true?text:'';
+            drafts.update(captureScope,{text:[baseText,text].filter(Boolean).join(' ')});renderDraft();queueSave(captureScope);
+          },
+          onError:function(error){if(!valid())return;finished=true;stopSpeech();setStatus(error&&error.message||'Sesle yazma tamamlanamadı. Mesajın taslakta korunuyor.','error');},
+          onEnd:function(){
+            if(!valid())return;finished=true;speechStarting=false;speechStop=null;syncComposer();
+            if(finalText){setStatus('Konuşman gönderiliyor…');submit(true);}
+            else setStatus('Konuşma algılanmadı. Yeniden deneyebilir veya mesajını yazabilirsin.');
+          }
+        });
+        if(!valid()){if(!finished&&capture&&typeof capture.stop==='function')capture.stop();return;}
+        if(!capture||typeof capture.stop!=='function')throw new Error('Sesle yazma başlatılamadı.');
+        speechStarting=false;speechStop=capture.stop;syncComposer();
+      }catch(error){if(valid()){finished=true;speechStarting=false;speechStop=null;syncComposer();setStatus(error&&error.message||'Sesle yazma açılamadı. Yazarak devam edebilirsin.','error');}}
     });
     on(activity,'click',function(){activityVisible=!activityVisible;activity.setAttribute('aria-expanded',String(activityVisible));activity.setAttribute('aria-label',activityVisible?'Aktif işleri gizle':'Aktif işleri göster');update(snapshot);if(activityVisible)bottom(true);});
     function measure(){if(raf){win.cancelAnimationFrame(raf);raf=0;}if(measureTimer){win.clearTimeout(measureTimer);measureTimer=0;}if(destroyed||!active)return;var vv=win.visualViewport,rect=root.getBoundingClientRect();/* A hidden root reports top 0: measuring it would push the composer under the navigation bar. */if(root.hidden||!root.getClientRects().length)return;var viewportTop=vv?vv.offsetTop:0,viewportBottom=viewportTop+(vv?vv.height:win.innerHeight),nav=doc.querySelector('.tabs'),navRect=nav&&!nav.hidden&&nav.getClientRects().length?nav.getBoundingClientRect():null,rawInset=typeof options.bottomInset==='function'?options.bottomInset():options.bottomInset,cssInset=parseFloat(win.getComputedStyle(doc.documentElement).getPropertyValue('--bottom-nav-h'))||0,inset=Number.isFinite(rawInset)?Math.max(0,rawInset):cssInset,lower=viewportBottom-inset;if(navRect&&navRect.bottom>viewportTop&&navRect.top<viewportBottom)lower=Math.min(lower,navRect.top);var height=Math.max(1,Math.floor(lower-Math.max(viewportTop,rect.top)));root.style.setProperty('--jw-shell-height',height+'px');shell.dataset.compact=String(height<420);shell.dataset.tight=String(height<250);shell.dataset.ultra=String(height<180);shell.dataset.micro=String(height<92);}

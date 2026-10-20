@@ -14,4 +14,4 @@ ORYVONA-Jarvis-V24 gizli görevi ve daemon.lock PID/exclusive/standby_other_inst
 
 npm run sync yalnız tools/shell-public-files.json listesindeki küçük kabuk dosyalarını web'den site'a eşitler. Ağır oyun dizinlerini taramaz veya kopyalamaz. npm test statik ve fixture testleridir, gerçek model çağırmaz. Headless mobil denetim sentetik sahip verisi ile beş sekmenin yerleşimini ölçer; fiziksel telefon, mikrofon, gerçek API veya oyun testi değildir.
 
-Service worker kabuk anahtarı oryvona-panel-v26-argon-audio-memory-20261021-r2; önceki oyun önbelleği ve kalıcı kuyruk korunur. Supabase sahip yetkisi ve hesap değişimi kontrolleri korunur. Canlı hesap yanıtları önbelleğe alınmaz. Yayın kapsamı /oryvona-panel/ olarak kalır.
+Service worker kabuk anahtarı oryvona-panel-v26-argon-audio-memory-20261021-r3-stt; önceki oyun önbelleği ve kalıcı kuyruk korunur. Supabase sahip yetkisi ve hesap değişimi kontrolleri korunur. Canlı hesap yanıtları önbelleğe alınmaz. Yayın kapsamı /oryvona-panel/ olarak kalır.
