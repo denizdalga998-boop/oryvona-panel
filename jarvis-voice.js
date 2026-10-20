@@ -61,6 +61,11 @@
     var m2 = null, m2State = { status: 'setup_required', progress: 0, error: null };
     var m2Context = null, m2PrimedContext = null, m2Job = null, m2Prepare = null, m2PrepareEpoch = 0;
     var playbackBlocked = false, retrySpeech = null, errorCode = null;
+    var outputPreferenceChosen = false, outputPreferences = new Map(), readAnswerEpoch = 0;
+    var underlyingErrorCode = null, lastCancellationReason = null;
+    var voiceStats = { playbackChunks: 0, playbackClockAdvanced: false, firstPcmMs: null, restoreElapsedMs: 0 };
+    var BUILD_IDENTITY = 'argon-speech-recovery-2691';
+    var firstPcmTimeoutMs = Math.max(50, Math.min(240000, Number(options.firstPcmTimeoutMs) || 120000));
     var playbackPollMs = Math.max(10, Math.min(200, Number(options.playbackPollMs) || 50));
     var playbackStartMs = Math.max(40, Math.min(20000, Number(options.playbackStartTimeoutMs) || 6000));
     var playbackStallMs = Math.max(40, Math.min(20000, Number(options.playbackStallTimeoutMs) || 4000));
@@ -96,6 +101,43 @@
         return typeof value === 'string' ? value : '';
       } catch (_) { return ''; }
     }
+    function readPreferenceOwner() {
+      if (!owner || owner.length > 200) return null;
+      if (typeof options.getPreferenceKey !== 'function') return owner;
+      try {
+        var key = options.getPreferenceKey();
+        if (typeof key !== 'string' || !key || key.length > 200) return null;
+        // The trusted bootstrap supplies the stable UID separately. Do not guess a UID by
+        // stripping an arbitrary runtime account string, and reject mismatched identities.
+        return owner === key || owner.indexOf(key + ':') === 0 ? key : null;
+      } catch (_) { return null; }
+    }
+    function preferenceKey(account) { return account && account.length <= 200 ? 'oryvona.argon.voice-output.v1:' + encodeURIComponent(account) : null; }
+    function restoreOutputPreference() {
+      outputPreferenceChosen = false; enabled = false;
+      var preferenceOwner = readPreferenceOwner();
+      if (!m2Profile || !preferenceKey(preferenceOwner)) return;
+      if (outputPreferences.has(preferenceOwner)) { enabled = outputPreferences.get(preferenceOwner); outputPreferenceChosen = true; return; }
+      try {
+        var value = win.localStorage && win.localStorage.getItem(preferenceKey(preferenceOwner));
+        if (value === 'true' || value === 'false') { enabled = value === 'true'; outputPreferenceChosen = true; outputPreferences.set(preferenceOwner, enabled); }
+      } catch (_) { /* An unavailable store grants no permission; explicit in-memory choices still work. */ }
+    }
+    function rememberOutputPreference(value) {
+      var preferenceOwner = readPreferenceOwner();
+      if (!m2Profile || !preferenceKey(preferenceOwner)) return;
+      outputPreferenceChosen = true; outputPreferences.set(preferenceOwner, value);
+      try { if (win.localStorage) win.localStorage.setItem(preferenceKey(preferenceOwner), JSON.stringify(value)); }
+      catch (_) { /* Quota/private-mode failures must not block the requested voice or microphone action. */ }
+    }
+    function safeCode(value) { return typeof value === 'string' && /^[A-Z][A-Z0-9_]{0,63}$/.test(value) ? value : null; }
+    function safePhase(value) { return typeof value === 'string' && /^[a-z][a-z0-9_-]{0,40}$/.test(value) ? value : null; }
+    function modelCode(cause, fallback) {
+      return safeCode(cause && cause.code) || safeCode(m2State.probeErrorCode) || safeCode(m2State.lastFailureCode) || safeCode(fallback);
+    }
+    function cancellationReason(value) {
+      return ['cancelled', 'user', 'mute', 'page-hidden', 'view-left', 'owner-data-mismatch', 'account-change', 'world-destroyed', 'destroyed', 'capture-restarted', 'setup-cancelled', 'playback-superseded'].indexOf(value) >= 0 ? value : 'cancelled';
+    }
     function snapshot() {
       return Object.freeze({
         enabled: enabled,
@@ -110,8 +152,22 @@
         voiceSetupPending: m2Profile && !!m2Prepare,
         voiceSetupProgress: m2Profile ? Number(m2State.progress) || 0 : 0,
         voicePending: m2Profile && !!m2Job,
+        outputPreferenceChosen: m2Profile && outputPreferenceChosen,
+        modelStatus: m2Profile ? safePhase(m2State.status) || 'unknown' : null,
+        modelPhase: m2Profile ? safePhase(m2State.phase) : null,
+        modelWarm: m2Profile && m2State.warm === true,
+        contextState: m2Profile ? m2Context && safePhase(m2Context.state) || 'not_created' : null,
+        playbackChunks: voiceStats.playbackChunks,
+        playbackClockAdvanced: voiceStats.playbackClockAdvanced,
+        firstPcmMs: voiceStats.firstPcmMs,
+        restoreElapsedMs: m2Job && m2Job.restoreStartedAt !== null ? Math.max(0, clockNow() - m2Job.restoreStartedAt) : voiceStats.restoreElapsedMs,
+        lastCancellationReason: lastCancellationReason,
+        underlyingErrorCode: underlyingErrorCode || safeCode(m2State.probeErrorCode) || safeCode(m2State.lastFailureCode),
+        buildIdentity: m2Profile ? BUILD_IDENTITY : null,
+        voiceBuild: m2Profile ? '2691' : null,
+        controllerBuild: m2Profile && typeof m2State.controllerBuild === 'string' && /^\d{1,12}$/.test(m2State.controllerBuild) ? m2State.controllerBuild : null,
         playbackBlocked: m2Profile && playbackBlocked,
-        canRetrySpeech: m2Profile && playbackBlocked && !!retrySpeech && enabled,
+        canRetrySpeech: m2Profile && !!retrySpeech && enabled,
         voicePhase: m2Profile && playbackBlocked ? 'blocked' : mode === 'listening' ? 'listening' : mode === 'speaking' ? 'speaking' : mode === 'tts-loading' ? 'voice-loading' : m2Prepare ? 'setup' : 'idle',
         errorCode: errorCode,
         notice: notice,
@@ -119,11 +175,13 @@
       });
     }
     function emit() {
+      if (!destroyed && readAccount() !== owner) { accountCurrent(); return; }
       var value = snapshot();
       listeners.forEach(function (fn) { try { fn(value); } catch (_) {} });
     }
-    function fail(code, message) {
+    function fail(code, message, underlying) {
       errorCode = code;
+      if (underlying !== undefined) underlyingErrorCode = safeCode(underlying);
       error = message;
       notice = message;
       emit();
@@ -136,11 +194,14 @@
       var next = readAccount();
       if (next !== owner) {
         owner = next;
+        enabled = false; outputPreferenceChosen = false;
         stopAll('account-change');
-        enabled = false;
+        restoreOutputPreference();
         error = null;
+        errorCode = null; underlyingErrorCode = null;
+        voiceStats = { playbackChunks: 0, playbackClockAdvanced: false, firstPcmMs: null, restoreElapsedMs: 0 };
         spokenIds.clear();
-        notice = 'Hesap değişti. Sesi yeniden açabilirsin.';
+        notice = outputPreferenceChosen ? enabled ? 'Kayıtlı ses tercihi açık. Yeni yanıtlar sesli okunacak.' : 'Kayıtlı ses tercihi kapalı.' : 'Hesap değişti. Sesi yeniden açabilirsin.';
         emit();
       }
       return !destroyed && !!owner && (expected === undefined || expected === owner);
@@ -282,6 +343,9 @@
       if (ended) try { ended({ reason: reason || 'stopped' }); } catch (_) {}
     }
     function stopAll(reason) {
+      readAnswerEpoch++;
+      var preciseReason = cancellationReason(reason === 'restarted' ? 'capture-restarted' : reason);
+      if (preciseReason !== 'cancelled' || !lastCancellationReason || m2Job || m2Prepare || recognition) lastCancellationReason = preciseReason;
       if (reason !== 'restarted') { playbackBlocked = false; retrySpeech = null; }
       var hadM2Operation = !!m2Job || !!m2Prepare;
       if (reason !== 'restarted') stopM2Preparation();
@@ -305,11 +369,14 @@
     }
     function setEnabled(value) {
       if (destroyed) return snapshot();
-      accountCurrent();
+      if (!accountCurrent()) { enabled = false; outputPreferenceChosen = false; emit(); return snapshot(); }
       enabled = value === true;
+      if (owner) rememberOutputPreference(enabled);
       error = null;
       errorCode = null;
+      underlyingErrorCode = null;
       if (!enabled) {
+        readAnswerEpoch++; lastCancellationReason = 'mute';
         playbackBlocked = false; retrySpeech = null;
         var hadM2Operation = !!m2Job || !!m2Prepare;
         stopM2Preparation();
@@ -405,7 +472,7 @@
       catch (_) { return Promise.resolve(fail('M2_AUDIO_UNAVAILABLE', 'Bu cihaz erkek sesi oynatamıyor. Yazılı yanıtlar devam eder.')); }
       var capturedOwner = owner, ticket = ++m2PrepareEpoch;
       notice = 'Erkek ses modeli hazırlanıyor. İlk indirme yaklaşık 400 MB; metin ve mikrofon kullanılabilir.';
-      error = null; errorCode = null; playbackBlocked = false; retrySpeech = null;
+      error = null; errorCode = null; underlyingErrorCode = null; playbackBlocked = false; retrySpeech = null;
       var operation = Promise.all([contextReady, m2.prepare({ consent: true })]).then(function () {
         if (destroyed || ticket !== m2PrepareEpoch || !accountCurrent(capturedOwner) || !visible()) return { ok: false, reason: 'CANCELLED' };
         m2State = m2.snapshot();
@@ -416,7 +483,8 @@
       }).catch(function (cause) {
         if (destroyed || ticket !== m2PrepareEpoch || !accountCurrent(capturedOwner)) return { ok: false, reason: 'CANCELLED' };
         if (cause && cause.name === 'AbortError') return { ok: false, reason: 'CANCELLED' };
-        return fail('M2_SETUP_FAILED', 'Erkek ses hazırlanamadı. Ses düğmesinden yeniden deneyebilirsin; yazılı yanıtlar devam eder.');
+        m2State = m2.snapshot();
+        return fail('M2_SETUP_FAILED', 'Erkek ses hazırlanamadı. Ses düğmesinden yeniden deneyebilirsin; yazılı yanıtlar devam eder.', modelCode(cause, 'M2_SETUP_FAILED'));
       }).then(function (result) {
         if (ticket === m2PrepareEpoch) { m2Prepare = null; emit(); }
         return result;
@@ -435,7 +503,9 @@
       if (!AC) return fail('M2_CANCEL_UNAVAILABLE', 'Bu cihaz erkek sesi güvenle başlatamıyor. Yazılı yanıt hazır.');
       var resolveCompletion, completion = new Promise(function (resolve) { resolveCompletion = resolve; });
       var job = { epoch: speechEpoch, account: owner, id: input.id, controller: new AC(), sources: new Set(), nextAt: m2Context && m2Context.currentTime || 0, frames: 0, chunks: 0, done: false, resolve: resolveCompletion, firstAt: null, firstDuration: 0, segmentAt: null, segmentDuration: 0, confirmed: false, lastClock: 0, lastProgressAt: clockNow(), firstScheduledAt: 0, watchTimer: null, resumePending: null };
-      m2Job = job; activeSpeechId = input.id; mode = 'tts-loading'; error = null; errorCode = null;
+      job.startedAt = clockNow(); job.restoreStartedAt = null;
+      voiceStats = { playbackChunks: 0, playbackClockAdvanced: false, firstPcmMs: null, restoreElapsedMs: 0 };
+      m2Job = job; activeSpeechId = input.id; mode = 'tts-loading'; error = null; errorCode = null; underlyingErrorCode = null;
       playbackBlocked = false; retrySpeech = null;
       notice = 'Argon M2 yanıtı hazırlıyor; mikrofon kapalı.';
       convoSpeechQueued(); emit();
@@ -449,14 +519,17 @@
         job.resolve({ ok: true, profile: 'supertonic-3-M2', chunks: job.chunks });
         emit(); convoSpeechEnded();
       }
-      function failed(code) {
+      function failed(code, causeCode) {
         if (!valid()) return;
         var needsGesture = /^M2_(?:AUDIO_GESTURE_REQUIRED|PLAYBACK_BLOCKED|PLAYBACK_STALLED|PLAYBACK_FAILED)$/.test(code || '');
+        var retryable = code !== 'M2_CANCELLED' && code !== 'M2_SETUP_REQUIRED';
+        var exactCode = safeCode(causeCode) || modelCode(null, code);
+        if (job.restoreStartedAt !== null) voiceStats.restoreElapsedMs = Math.max(0, clockNow() - job.restoreStartedAt);
         stopM2Job(code || 'M2_SYNTHESIS_FAILED');
         stopSpeakingInternal(); mode = 'idle'; convoSpeechEnded();
         playbackBlocked = needsGesture;
-        retrySpeech = needsGesture ? { id: input.id, text: input.text, accountKey: input.accountKey } : null;
-        fail(code || 'M2_SYNTHESIS_FAILED', needsGesture ? 'Telefon yanıt sesini başlatamadı veya durdurdu. Son yanıtı okumak için üstteki ses düğmesine dokun; yazılı yanıt korunuyor.' : code === 'M2_SETUP_REQUIRED' ? 'Erkek sesi hazırlamak için üstteki ses düğmesine dokun. Yazılı yanıt hazır; Google sesi kullanılmadı.' : 'Erkek sesli yanıt hazırlanamadı. Yazılı yanıt hazır; Google sesi kullanılmadı.');
+        retrySpeech = retryable ? { id: input.id, text: input.text, accountKey: input.accountKey } : null;
+        fail(code || 'M2_SYNTHESIS_FAILED', needsGesture ? 'Telefon yanıt sesini başlatamadı veya durdurdu. Son yanıtı okumak için üstteki ses düğmesine dokun; yazılı yanıt korunuyor.' : code === 'M2_SETUP_REQUIRED' ? 'Erkek sesi hazırlamak için üstteki ses düğmesine dokun. Yazılı yanıt hazır; Google sesi kullanılmadı.' : 'Yanıt sesi hazırlanamadı. Mesajı yeniden göndermeden Dinle düğmesiyle sesi tekrar deneyebilirsin; yazılı yanıt korunuyor.', exactCode);
       }
       function observePlayback() {
         if (!valid() || !m2Context || m2Context.state !== 'running' || job.firstAt === null) return;
@@ -464,7 +537,7 @@
         if (!Number.isFinite(currentTime)) { failed('M2_PLAYBACK_BLOCKED'); return; }
         if (currentTime > job.lastClock + 0.00001) { job.lastClock = currentTime; job.lastProgressAt = now; }
         if (job.sources.size && currentTime > job.segmentAt + Math.min(0.002, job.segmentDuration / 2)) {
-          if (!job.confirmed) { job.confirmed = true; clearSpeechDeadline(); rememberSpoken(input.id); }
+          if (!job.confirmed) { job.confirmed = true; voiceStats.playbackClockAdvanced = true; clearSpeechDeadline(); rememberSpoken(input.id); }
           if (mode !== 'speaking') { mode = 'speaking'; notice = 'Argon M2 konuşuyor.'; convoSpeechStarted(); emit(); }
         }
       }
@@ -508,6 +581,8 @@
           job.nextAt = at + samples.length / 44100;
           if (!job.sources.size) { job.segmentAt = at; job.segmentDuration = samples.length / 44100; }
           job.frames += samples.length; job.chunks++; job.sources.add(source);
+          voiceStats.playbackChunks = job.chunks;
+          if (voiceStats.firstPcmMs === null) voiceStats.firstPcmMs = Math.max(0, clockNow() - job.startedAt);
           if (job.firstAt === null) { job.firstAt = at; job.firstDuration = samples.length / 44100; job.firstScheduledAt = clockNow(); job.lastClock = Number(context.currentTime) || 0; job.lastProgressAt = clockNow(); }
           source.onended = function () {
             if (!valid()) return;
@@ -525,16 +600,17 @@
         if (m2Context && m2Context.state === 'running') return scheduleChunk();
         return resumeForJob().then(scheduleChunk).catch(function () { if (valid()) failed('M2_AUDIO_GESTURE_REQUIRED'); });
       }
-      speechStartTimer = setTimeout(function () { failed('M2_START_TIMEOUT'); }, 120000);
       function synthesizeReady() {
         if (!valid()) return;
+        clearSpeechDeadline();
+        speechStartTimer = setTimeout(function () { failed('M2_START_TIMEOUT'); }, firstPcmTimeoutMs);
         try {
         Promise.resolve(m2.synthesize(input.text.trim(), { signal: job.controller.signal, onChunk: onChunk })).then(function () {
           if (!valid()) return;
           if (!job.chunks) { failed('M2_EMPTY_AUDIO'); return; }
           job.done = true; finished();
-        }).catch(function (cause) { if (valid()) failed(cause && cause.name === 'AbortError' ? 'M2_CANCELLED' : 'M2_SYNTHESIS_FAILED'); });
-        } catch (_) { failed('M2_SYNTHESIS_FAILED'); }
+        }).catch(function (cause) { if (valid()) { m2State = m2.snapshot(); failed(cause && cause.name === 'AbortError' ? 'M2_CANCELLED' : 'M2_SYNTHESIS_FAILED', modelCode(cause, 'M2_SYNTHESIS_FAILED')); } });
+        } catch (cause) { failed('M2_SYNTHESIS_FAILED', modelCode(cause, 'M2_SYNTHESIS_FAILED')); }
       }
       function withReadyAudio() {
         if (!valid()) return;
@@ -545,7 +621,23 @@
           synthesizeReady();
         } else resumeForJob().then(synthesizeReady).catch(function () { if (valid()) failed('M2_AUDIO_GESTURE_REQUIRED'); });
       }
-      if (m2State.status === 'ready') withReadyAudio();
+      function restoreCachedModel() {
+        if (!valid()) return;
+        m2State = m2.snapshot();
+        if (m2State.warm !== false || typeof m2.prepare !== 'function') { withReadyAudio(); return; }
+        job.restoreStartedAt = clockNow(); notice = 'Ses modeli bu cihazda açılıyor. İndirme yapılmıyor; mikrofon kapalı.'; emit();
+        // The controller owns the 600-second restoration deadline. The shorter first-PCM
+        // deadline starts only after cached sessions are initialized, never during restore.
+        var restoration;
+        try { restoration = m2.prepare({ consent: false, signal: job.controller.signal }); }
+        catch (cause) { m2State = m2.snapshot(); failed('M2_SYNTHESIS_FAILED', modelCode(cause, 'M2_RESTORE_FAILED')); return; }
+        Promise.resolve(restoration).then(function () {
+          if (!valid()) return;
+          voiceStats.restoreElapsedMs = Math.max(0, clockNow() - job.restoreStartedAt); job.restoreStartedAt = null;
+          m2State = m2.snapshot(); withReadyAudio();
+        }).catch(function (cause) { if (valid()) { m2State = m2.snapshot(); failed('M2_SYNTHESIS_FAILED', modelCode(cause, 'M2_RESTORE_FAILED')); } });
+      }
+      if (m2State.status === 'ready') restoreCachedModel();
       else {
         // Join an explicitly permitted setup, or only inspect the local cache. Neither path
         // grants permission for a new model download when the first answer races startup.
@@ -553,16 +645,17 @@
         Promise.resolve(readiness).then(function () {
           if (!valid()) return;
           m2State = m2.snapshot();
-          if (m2State.status !== 'ready') { failed('M2_SETUP_REQUIRED'); return; }
-          withReadyAudio();
-        }).catch(function () { if (valid()) failed('M2_SETUP_REQUIRED'); });
+          if (m2State.status !== 'ready') { failed('M2_SETUP_REQUIRED', modelCode(null, 'M2_SETUP_REQUIRED')); return; }
+          restoreCachedModel();
+        }).catch(function (cause) { if (valid()) { m2State = m2.snapshot(); failed('M2_SETUP_REQUIRED', modelCode(cause, 'M2_SETUP_REQUIRED')); } });
       }
       return { ok: true, id: input.id, engine: 'supertonic-3-M2', pending: true, completion: completion };
     }
     function retrySpeaking() {
       var blocked = usable();
       if (blocked) return Promise.resolve(blocked);
-      if (!m2Profile || !enabled || !playbackBlocked || !retrySpeech) return Promise.resolve({ ok: false, reason: 'NO_RETRY' });
+      if (recognition || mode === 'listening') return Promise.resolve(fail('CAPTURE_ACTIVE', 'Önce mikrofonu kapat; ardından yanıtı Dinle düğmesiyle okuyabilirsin.'));
+      if (!m2Profile || !enabled || !retrySpeech) return Promise.resolve({ ok: false, reason: 'NO_RETRY' });
       var input = retrySpeech, capturedOwner = owner, contextReady;
       try { contextReady = boundedAudioResume(unlockM2Audio()); } catch (_) { return Promise.resolve(fail('M2_AUDIO_UNAVAILABLE', 'Bu cihaz yanıt sesini oynatamıyor. Yazılı yanıt korunuyor.')); }
       return Promise.resolve(contextReady).then(function () {
@@ -572,6 +665,34 @@
       }).catch(function () {
         if (retrySpeech !== input || !accountCurrent(capturedOwner) || !visible() || !enabled) return { ok: false, reason: 'CANCELLED' };
         return fail('M2_AUDIO_GESTURE_REQUIRED', 'Telefon sesi henüz açamadı. Ses düğmesine yeniden dokun; yazılı yanıt korunuyor.');
+      });
+    }
+    function readAnswer(input) {
+      var blocked = usable();
+      if (blocked) return Promise.resolve(blocked);
+      if (!m2Profile || !m2) return Promise.resolve(fail('M2_COMPONENT_UNAVAILABLE', 'Erkek ses bileşeni yüklenmedi. Yazılı yanıt korunuyor.'));
+      if (recognition || mode === 'listening') return Promise.resolve(fail('CAPTURE_ACTIVE', 'Önce mikrofonu kapat; ardından yanıtı Dinle düğmesiyle okuyabilirsin.'));
+      input = input || {};
+      if (input.accountKey !== owner) return Promise.resolve(fail('ACCOUNT_MISMATCH', 'Yanıt bu hesap bağlamına ait değil.'));
+      if (typeof input.id !== 'string' || !input.id || input.id.length > 200 || typeof input.text !== 'string' || !input.text.trim() || input.text.length > 6000) return Promise.resolve(fail('INVALID_TEXT', 'Sesli yanıt metni veya kimliği geçersiz.'));
+      var answer = { id: input.id, text: input.text, accountKey: input.accountKey };
+      var capturedOwner = owner, ticket = ++readAnswerEpoch, contextReady;
+      // This method is called directly by the answer's trusted button gesture. Persist only
+      // the explicit output choice and prime audio before the first asynchronous boundary.
+      setEnabled(true);
+      try { contextReady = boundedAudioResume(unlockM2Audio()); }
+      catch (_) { contextReady = Promise.reject(new Error('M2_AUDIO_UNAVAILABLE')); }
+      function current() { return ticket === readAnswerEpoch && accountCurrent(capturedOwner) && visible() && enabled; }
+      return Promise.resolve(contextReady).then(function () {
+        if (!current()) return { ok: false, reason: 'CANCELLED' };
+        if (recognition || mode === 'listening') return fail('CAPTURE_ACTIVE', 'Önce mikrofonu kapat; ardından yanıtı Dinle düğmesiyle okuyabilirsin.');
+        spokenIds.delete(answer.id);
+        if (activeSpeechId === answer.id) stopSpeakingInternal();
+        return speak(answer);
+      }).catch(function () {
+        if (!current()) return { ok: false, reason: 'CANCELLED' };
+        playbackBlocked = true; retrySpeech = answer;
+        return fail('M2_AUDIO_GESTURE_REQUIRED', 'Telefon sesi henüz açamadı. Dinle düğmesine yeniden dokun; yazılı yanıt korunuyor.', 'M2_AUDIO_GESTURE_REQUIRED');
       });
     }
     function clearSpeechDeadline() {
@@ -590,6 +711,7 @@
       if (typeof input.id !== 'string' || !input.id || input.id.length > 200) return fail('INVALID_ID', 'Sesli yanıt kimliği geçersiz.');
       if (typeof input.text !== 'string' || !input.text.trim() || input.text.length > 6000) return fail('INVALID_TEXT', 'Sesli yanıt metni geçersiz veya çok uzun.');
       if (spokenIds.has(input.id) || activeSpeechId === input.id) return { ok: false, reason: 'DUPLICATE' };
+      readAnswerEpoch++;
       if (m2Profile) return speakM2(input);
       selectVoice();
       var AC = win.AudioContext || win.webkitAudioContext;
@@ -932,9 +1054,9 @@
     function convoSpeechQueued() { if (!convo) return; convoStopRec(); convoDisarm(); }
     function convoSpeechStarted() { if (!convo) return; convoStopRec(); convoArmBargeIn(); }
     function convoSpeechEnded() { if (!convo) return; convoDisarm(); convoRestart(200); }
-    function cancel() { if (destroyed) return; stopConversation(); stopAll('cancelled'); notice = 'Ses durduruldu.'; emit(); }
+    function cancel(reason) { if (destroyed) return; stopConversation(); stopAll(cancellationReason(reason)); notice = 'Ses durduruldu.'; emit(); }
     function contextChanged() { accountCurrent(); }
-    function hidden() { if (!visible()) cancel(); }
+    function hidden() { if (!visible()) cancel(doc && (doc.hidden === true || doc.visibilityState === 'hidden') ? 'page-hidden' : 'view-left'); }
     function voicesChanged() { if (!destroyed) { accountCurrent(); selectVoice(); emit(); } }
     if (m2Profile && win.OryvonaM2Voice && typeof win.OryvonaM2Voice.create === 'function') {
       try {
@@ -949,6 +1071,7 @@
         m2State = m2.snapshot();
       } catch (_) { m2 = null; m2State = { status: 'error', progress: 0, error: 'M2_UNAVAILABLE' }; }
     }
+    restoreOutputPreference();
     selectVoice();
     if (synth && typeof synth.addEventListener === 'function') bind(synth, 'voiceschanged', voicesChanged);
     else if (synth) {
@@ -958,14 +1081,15 @@
       removers.push(function () { if (synth.onvoiceschanged === voicesHandler) synth.onvoiceschanged = previousVoicesHandler; });
     }
     bind(doc, 'visibilitychange', hidden);
-    if (m2Profile) bind(doc, 'oryvona:view-change', function () { if (!visible()) cancel(); });
+    if (m2Profile) bind(doc, 'oryvona:view-change', function () { if (!visible()) cancel('view-left'); });
     bind(doc, 'oryvona:studio-context-change', contextChanged);
-    bind(win, 'pagehide', cancel);
+    bind(win, 'pagehide', function () { cancel('page-hidden'); });
     return Object.freeze({
       getSnapshot: function () { accountCurrent(); return snapshot(); },
       subscribe: function (fn) {
         if (typeof fn !== 'function') throw new TypeError('subscriber must be a function');
         if (destroyed) return function () {};
+        accountCurrent();
         listeners.add(fn);
         try { fn(snapshot()); } catch (_) {}
         return function () { listeners.delete(fn); };
@@ -980,6 +1104,7 @@
       stopListening: function () { if (!destroyed) { stopListeningInternal('stopped'); emit(); } },
       speak: speak,
       retrySpeaking: retrySpeaking,
+      readAnswer: readAnswer,
       stopSpeaking: function () { if (!destroyed) { stopSpeakingInternal(); convoSpeechEnded(); emit(); } },
       cancel: cancel,
       destroy: function () {

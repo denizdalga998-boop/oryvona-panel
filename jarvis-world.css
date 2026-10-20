@@ -102,3 +102,25 @@
 @media(max-width:359px){.jw-root .jw-shell .jw-header{grid-template-columns:minmax(0,1fr) 44px auto;gap:3px 6px}.jw-root .jw-header .jw-daily-brief{grid-column:1/-1;grid-row:3;justify-self:start;min-height:36px;padding-inline:10px}.jw-root .jw-header .jw-output-toggle{grid-column:2}.jw-root .jw-header .jw-activity-toggle{grid-column:3}.jw-root .jw-header .jw-status{grid-row:2}.jw-root .jw-timeline{padding-inline:8px}.jw-root .jw-message[data-role="assistant"],.jw-root .jw-message[data-role="user"]{padding:10px 12px}.jw-root .jw-composer-zone{padding-inline:6px}}
 @media(max-width:299px){.jw-root .jw-composer{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:2px;border-radius:20px}.jw-root .jw-input{grid-column:1/-1;grid-row:1;width:100%;padding-inline:10px}.jw-root .jw-composer>.jw-icon-button{grid-row:2}.jw-root .jw-composer>.jw-icon-button:first-child{grid-column:1}.jw-root .jw-composer>.jw-mic{grid-column:2;justify-self:end}.jw-root .jw-composer>.jw-send{grid-column:3}}
 @media(prefers-reduced-motion:reduce){.jw-root .jw-energy{transition:none}.jw-root .jw-thread{scroll-behavior:auto}}
+
+/* Persistent voice state stays with the composer; optional details float above it. */
+.jw-root .jw-voice-state{position:relative;display:flex;align-items:center;gap:8px;min-width:0;min-height:28px;margin:4px 3px 0;color:#9fbcd4;font-size:11px;line-height:1.4}
+.jw-root .jw-voice-state-label{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;word-break:normal}
+.jw-root .jw-voice-state[data-phase="speaking"] .jw-voice-state-label{color:#8de6ec}
+.jw-root .jw-voice-state[data-phase="listening"] .jw-voice-state-label{color:#f2cf8c}
+.jw-root .jw-voice-state[data-tone="error"] .jw-voice-state-label{color:#ffc1ba}
+.jw-root .jw-voice-details{flex:0 0 auto;min-width:0;max-width:100%;font-size:10px;color:#9dbbd2}
+.jw-root .jw-voice-details>summary{display:flex;align-items:center;justify-content:flex-end;gap:5px;min-height:28px;padding:3px 2px;cursor:pointer;list-style:none;white-space:nowrap;color:#a6c7df}
+.jw-root .jw-voice-details>summary::-webkit-details-marker{display:none}
+.jw-root .jw-voice-details>summary::after{content:'+';width:12px;text-align:center;color:#8de6ec;font-size:14px;line-height:1}
+.jw-root .jw-voice-details[open]>summary::after{content:'\2212'}
+.jw-root .jw-voice-details>summary:focus-visible{outline:2px solid var(--jw-accent);outline-offset:2px;border-radius:5px}
+.jw-root .jw-voice-details[open]{position:absolute;z-index:8;inset-inline-end:0;bottom:0;width:min(340px,100%);max-height:min(220px,55dvh);padding:5px 10px 8px;overflow:auto;overscroll-behavior:contain;border:1px solid #4b7391;border-radius:12px;background:#071525f5;box-shadow:0 6px 24px #00000055}
+.jw-root .jw-voice-debug{display:block;min-width:0;max-width:100%;max-height:112px;margin:2px 0 6px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;color:#c9dceb;font:10px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;user-select:text!important;-webkit-user-select:text!important;-webkit-touch-callout:default!important}
+.jw-root .jw-voice-copy,.jw-root .jw-reply-listen{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:48px;min-height:32px;padding:5px 10px;border:1px solid #4a779766;border-radius:999px;background:#12334db3;color:#bde6f8;font-size:11px;font-weight:550;line-height:1.25;white-space:nowrap;text-decoration:none;touch-action:manipulation}
+.jw-root .jw-reply-listen{margin-inline-start:auto;align-self:center}
+.jw-root .jw-voice-copy:disabled,.jw-root .jw-reply-listen:disabled{opacity:.45;cursor:default}
+.jw-root .jw-voice-copy:focus-visible,.jw-root .jw-reply-listen:focus-visible{outline:2px solid var(--jw-accent);outline-offset:2px}
+@media(max-width:359px){.jw-root .jw-voice-state{gap:6px;margin-inline:1px;font-size:10px}.jw-root .jw-voice-details>summary{font-size:10px}.jw-root .jw-reply-listen{padding-inline:8px}}
+@media(pointer:coarse){.jw-root .jw-voice-details>summary{min-height:32px}.jw-root .jw-voice-copy,.jw-root .jw-reply-listen{min-height:36px}}
+@media(prefers-reduced-motion:reduce){.jw-root .jw-voice-state *{scroll-behavior:auto}}

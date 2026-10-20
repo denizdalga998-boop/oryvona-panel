@@ -17,13 +17,24 @@
     var worker = null, epoch = 0, sequence = 0, setupSequence = 0, destroyed = false;
     var prepared = false, cached = false, preparePromise = null, synthesisActive = false;
     var pending = new Map();
-    var state = { status: 'setup_required', phase: null, progress: 0, error: null, voice: 'M2', profile: PROFILE, model: MODEL, revision: REVISION, warm: false };
+    var state = { controllerBuild: '2691', status: 'setup_required', phase: null, progress: 0, error: null, probeErrorCode: null, lastFailureCode: null, voice: 'M2', profile: PROFILE, model: MODEL, revision: REVISION, warm: false };
     var timerSet = options.setTimeout || win.setTimeout.bind(win);
     var timerClear = options.clearTimeout || win.clearTimeout.bind(win);
     function snapshot() { return Object.assign({}, state, { warm: prepared }); }
     function update(change) {
       Object.assign(state, change);
       try { if (typeof options.onState === 'function') options.onState(snapshot()); } catch (_) {}
+    }
+    function diagnosticCode(failure, fallback) {
+      var code = failure && failure.code;
+      return typeof code === 'string' && /^[A-Z][A-Z0-9_]{0,63}$/.test(code) ? code : fallback;
+    }
+    function probeFailed(failure) {
+      var code = diagnosticCode(failure, 'PROBE_FAILED');
+      cached = false;
+      var change = { probeErrorCode: code, lastFailureCode: code };
+      if (!preparePromise && !synthesisActive) Object.assign(change, { status: 'error', phase: null, progress: 0, error: 'Ses modelinin cihaz kaydı doğrulanamadı. Yazılı yanıt korunuyor.' });
+      update(change);
     }
     function finish(job, failure, value) {
       if (!pending.has(job.id)) return;
@@ -46,11 +57,12 @@
       failAll(failure || error('ABORTED', 'Ses işlemi iptal edildi.'));
     }
     function failWorker(failure) {
+      var code = diagnosticCode(failure, 'WORKER_ERROR');
       resetWorker(failure);
       if (failure.code === 'SETUP_REQUIRED' || failure.code === 'CACHE_MISS') {
         cached = false;
-        update({ status: 'setup_required', phase: null, progress: 0, error: 'Erkek sesini hazırlamak için ses düğmesine dokun.' });
-      } else update({ status: 'error', phase: null, error: failure.message });
+        update({ status: 'setup_required', phase: null, progress: 0, error: 'Erkek sesini hazırlamak için ses düğmesine dokun.', lastFailureCode: code });
+      } else update({ status: 'error', phase: null, error: failure.message, lastFailureCode: code });
     }
     function ensureWorker() {
       if (destroyed) throw error('DESTROYED', 'Ses motoru kapatıldı.');
@@ -75,14 +87,16 @@
         if (message.type === 'availability' && job.type === 'probe') {
           if (job.setupSequence !== setupSequence) { finish(job, null, { available: cached }); return; }
           cached = message.available === true;
-          if (!preparePromise && !synthesisActive) update({ status: cached ? 'ready' : 'setup_required', phase: null, error: null });
+          var availability = { probeErrorCode: null, lastFailureCode: null };
+          if (!preparePromise && !synthesisActive) Object.assign(availability, { status: cached ? 'ready' : 'setup_required', phase: null, error: null });
+          update(availability);
           finish(job, null, { available: cached });
           return;
         }
         if (message.type === 'ready' && job.type === 'prepare') {
           if (!validIdentity(message)) { failWorker(error('VOICE_IDENTITY', 'Beklenen M2 ses profili doğrulanamadı.')); return; }
           prepared = true; cached = true;
-          update({ status: 'ready', phase: null, progress: 1, error: null });
+          update({ status: 'ready', phase: null, progress: 1, error: null, probeErrorCode: null, lastFailureCode: null });
           finish(job, null, snapshot());
           return;
         }
@@ -116,7 +130,10 @@
         if (message.type === 'error') {
           var code = typeof message.code === 'string' ? message.code : 'M2_ERROR';
           var text = typeof message.message === 'string' ? message.message.slice(0, 240) : 'Erkek ses hazırlanamadı.';
-          if (job.type === 'probe') { if (job.setupSequence === setupSequence) cached = false; finish(job, null, { available: cached }); return; }
+          if (job.type === 'probe') {
+            if (job.setupSequence !== setupSequence) { finish(job, null, { available: cached }); return; }
+            finish(job, error(diagnosticCode({ code: code }, 'PROBE_FAILED'), 'Ses modelinin cihaz kaydı doğrulanamadı.')); return;
+          }
           failWorker(error(code, text));
         }
       };
@@ -132,10 +149,17 @@
         try {
           var current = ensureWorker();
           pending.set(job.id, job);
-          job.timer = timerSet(function () { if (pending.has(job.id)) failWorker(error('M2_TIMEOUT', 'Erkek ses işlemi zaman aşımına uğradı. Yazılı yanıt korunuyor.')); }, type === 'prepare' ? 600000 : type === 'probe' ? 20000 : 240000);
+          job.timer = timerSet(function () {
+            if (!pending.has(job.id)) return;
+            if (type === 'probe' && job.setupSequence !== setupSequence) { finish(job, null, { available: cached }); return; }
+            failWorker(error('M2_TIMEOUT', 'Erkek ses işlemi zaman aşımına uğradı. Yazılı yanıt korunuyor.'));
+          }, type === 'prepare' ? 600000 : type === 'probe' ? 20000 : 240000);
           if (signal) { job.abort = function () { stop(); }; signal.addEventListener('abort', job.abort, { once: true }); }
           current.postMessage(Object.assign({ type: type, id: job.id }, fields));
-        } catch (failure) { failWorker(failure); reject(failure); }
+        } catch (failure) {
+          if (type === 'probe') failure = error(diagnosticCode(failure, 'WORKER_ERROR'), 'Ses modelinin cihaz kaydı doğrulanamadı.');
+          failWorker(failure); reject(failure);
+        }
       });
     }
     function prepare(prepareOptions) {
@@ -174,7 +198,12 @@
     }
     function probe() {
       if (destroyed || preparePromise || synthesisActive) return Promise.resolve({ available: cached });
-      return request('probe', {}).catch(function () { return { available: false }; });
+      var capturedSetup = setupSequence;
+      return request('probe', {}).catch(function (failure) {
+        if (failure && (failure.code === 'ABORTED' || failure.name === 'AbortError')) return { available: cached };
+        if (!destroyed && capturedSetup === setupSequence) probeFailed(failure);
+        return { available: false };
+      });
     }
     Promise.resolve().then(probe).catch(function () {});
     return Object.freeze({ snapshot: snapshot, prepare: prepare, synthesize: synthesize, stop: stop, probe: probe,

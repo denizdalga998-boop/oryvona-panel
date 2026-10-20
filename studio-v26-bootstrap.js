@@ -40,7 +40,7 @@
     document.body.classList.toggle('oryvona-jarvis-world',view==='jarvis');
     for(const [name,record]of worlds){const active=visible&&view===name;if(record.active!==active){record.active=active;record.ui.setActive(active);}}
     syncCompatibility();
-    if(!visible||view!=='jarvis')voice?.cancel();
+    if(!visible||view!=='jarvis')voice?.cancel(!visible?'page-hidden':'view-left');
   }
   async function refresh(force=false){
     if(disposed||document.hidden||!data||!bridge)return;
@@ -62,7 +62,7 @@
       };
       data=window.OryvonaStudioDataV26.create({panel:scopedPanel,bridge,document});
       // Approved M2 runs on this device after explicit model-download consent. No device/Google TTS fallback.
-      voice=window.OryvonaJarvisVoice.create({getAccountKey:()=>bridge?.getAccountKey()||null,profile:'supertonic-3-M2',localOnly:true,measureInput:true,tone:'argon',
+      voice=window.OryvonaJarvisVoice.create({getAccountKey:()=>bridge?.getAccountKey()||null,getPreferenceKey:()=>bridge?.getAccountKey()?context().userId||null:null,profile:'supertonic-3-M2',localOnly:true,measureInput:true,tone:'argon',
         // Barge-in: inside the APK Argon's own voice comes back louder through the phone speaker, so the owner must be clearly louder.
         bargeInLevel:window.ArgonNative?0.16:0.07});
       decisions=window.OryvonaStudioDecisionsV26.create({host:host(),getAccountKey:()=>bridge?.getAccountKey()||null,getSnapshot:()=>data.getSnapshot()});
@@ -73,7 +73,7 @@
         window.OryvonaStudioWorldV26.mount(root,{data,bridge,view,onOpenTests:id=>panel.openTests(id),onFeedback:feedback,onApprove:approve});
         worlds.set(view,{ui,active:null});
       }
-      dataUnsub=data.subscribe(snapshot=>{if(snapshot.accountKey!==bridge?.getAccountKey())voice?.cancel();});
+      dataUnsub=data.subscribe(snapshot=>{if(snapshot.accountKey!==bridge?.getAccountKey())voice?.cancel('owner-data-mismatch');});
       mountedKey=key();window.__oryvonaJarvisV23Mounted=true;
       const old=document.getElementById('jarvisLegacySurface');if(old)old.hidden=true;
       const notice=document.getElementById('jarvisV23BootMessage');if(notice)notice.hidden=true;
