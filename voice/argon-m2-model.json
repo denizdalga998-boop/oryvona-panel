@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "model": "supertone-oss-archive/supertonic-3",
+  "revision": "aafc6e32416a594460b32413efc49d7fe4ce6d46",
+  "sourceRevision": "1e9799e964ea4c0dad7cde993b65c3c813a7b373",
+  "voice": "M2",
+  "language": "tr",
+  "sampleRate": 44100,
+  "steps": 8,
+  "speed": 1,
+  "baseUrl": "https://huggingface.co/supertone-oss-archive/supertonic-3/resolve/aafc6e32416a594460b32413efc49d7fe4ce6d46/",
+  "assets": [
+    {
+      "file": "onnx/duration_predictor.onnx",
+      "bytes": 3700147,
+      "sha256": "c3eb91414d5ff8a7a239b7fe9e34e7e2bf8a8140d8375ffb14718b1c639325db"
+    },
+    {
+      "file": "onnx/text_encoder.onnx",
+      "bytes": 36416150,
+      "sha256": "c7befd5ea8c3119769e8a6c1486c4edc6a3bc8365c67621c881bbb774b9902ff"
+    },
+    {
+      "file": "onnx/vector_estimator.onnx",
+      "bytes": 256534781,
+      "sha256": "883ac868ea0275ef0e991524dc64f16b3c0376efd7c320af6b53f5b780d7c61c"
+    },
+    {
+      "file": "onnx/vocoder.onnx",
+      "bytes": 101424195,
+      "sha256": "085de76dd8e8d5836d6ca66826601f615939218f90e519f70ee8a36ed2a4c4ba"
+    },
+    {
+      "file": "onnx/tts.json",
+      "bytes": 8253,
+      "sha256": "42078d3aef1cd43ab43021f3c54f47d2d75ceb4e75f627f118890128b06a0d09"
+    },
+    {
+      "file": "onnx/unicode_indexer.json",
+      "bytes": 277676,
+      "sha256": "9bf7346e43883a81f8645c81224f786d43c5b57f3641f6e7671a7d6c493cb24f"
+    },
+    {
+      "file": "voice_styles/M2.json",
+      "bytes": 292055,
+      "sha256": "b76cbf62bac707c710cf0ae5aba5e31eea1a6339a9734bfae33ab98499534a50"
+    },
+    {
+      "file": "LICENSE",
+      "bytes": 15007,
+      "sha256": "0d944a9110fed9a9602d60e0423a272903e7bd21ab060490774efc77c2275e9f"
+    }
+  ],
+  "runtime": {
+    "version": "1.23.2",
+    "integrity": "sha512-T09JUtMn+CZLk3mFwqiH0lgQf+4S7+oYHHtk6uhaYAAJI95bTcKi5bOOZYwORXfS/RLZCjDDEXGWIuOCAFlEjg==",
+    "assets": [
+      {
+        "id": "script",
+        "file": "ort.wasm.min.js",
+        "url": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/ort.wasm.min.js",
+        "bytes": 49926,
+        "sha256": "c6bc9f8e1d0ecc3983a57910e6a30b2230a512bcd2e0207cd64306459c3de7b4"
+      },
+      {
+        "id": "loader",
+        "file": "ort-wasm-simd-threaded.mjs",
+        "url": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/ort-wasm-simd-threaded.mjs",
+        "bytes": 20321,
+        "sha256": "90a557d15c02bac4504d95b67f431d8594635ed2a0a62a7f2cd83d090ff91d3e"
+      },
+      {
+        "id": "wasm",
+        "file": "ort-wasm-simd-threaded.wasm",
+        "url": "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.23.2/dist/ort-wasm-simd-threaded.wasm",
+        "bytes": 11905541,
+        "sha256": "45eaee27761ad883742a8d4b8fce1538d60ce43b51adf1726fafccc59b8c1a15"
+      }
+    ]
+  }
+}

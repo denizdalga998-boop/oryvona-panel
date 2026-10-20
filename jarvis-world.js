@@ -26,7 +26,7 @@
     if(root.childNodes.length)throw new Error('Argon kökü boş olmalı. Eski v22 düğümlerini değiştirmeyin.');
     var bridge=options.bridge;if(!bridge||typeof bridge.getSnapshot!=='function'||typeof bridge.subscribe!=='function'||typeof bridge.submitIntent!=='function')throw new Error('Güvenilir getSnapshot/subscribe/submitIntent köprüsü gerekli.');
     var doc=root.ownerDocument,win=doc.defaultView||globalThis,projects=options.projects||PROJECTS,mode=options.mode==='preview'?'preview':'live',drafts=new DraftStore(projects),scope=null,snapshot={revision:-1,messages:[],jobs:[],connection:{status:'offline'}},destroyed=false,active=true,unsub=null,energy=null,listeners=[],nodesByKey=new Map(),busyScopes=new Set(),clarification=null,speechStop=null,speechStarting=false,speechEpoch=0,raf=0,measureTimer=0,saveTimers=new Map(),draftLoads=new Set(),activityVisible=options.showActivity===true,lastRevision=-1,accountKey=null,accountEpoch=0,voice=options.voice||null,studioData=options.studioData||null,brief=options.brief||win.OryvonaJarvisBrief||null,voiceState={enabled:false,mode:'idle',audioLevel:null},voiceUnsub=null,dataUnsub=null,readMessages=[],readCounter=0,answerBusy=false,confirmBeforeQueue=options.confirmBeforeQueue!==false,pendingConfirm=null,activeEpoch=0;
-    var approvalNow=typeof options.now==='function'?options.now:Date.now,APPROVAL_TTL=5*60*1000,outputPreferenceChosen=false;
+    var approvalNow=typeof options.now==='function'?options.now:Date.now,APPROVAL_TTL=5*60*1000,outputPreferenceChosen=false,voiceSetupAttempt=0;
     function clearConfirmation(){pendingConfirm=null;clarify.hidden=true;}
     function worldActive(){var view=doc.body&&doc.body.dataset&&doc.body.dataset.oryvonaView;return active&&!doc.hidden&&doc.visibilityState!=='hidden'&&(!view||view==='jarvis');}
     if(mode==='live'&&typeof bridge.getAccountKey!=='function')throw new Error('Hesap değişimlerini doğrulayan getAccountKey köprüsü gerekli.');
@@ -177,19 +177,19 @@
       var d=drafts.get(scope),busy=busyScopes.has(draftKey(scope))||answerBusy;
       var speechAvailable=voice?voiceState.recognitionAvailable===true:bridge.speech&&bridge.speech.available!==false&&typeof bridge.speech.start==='function';
       var query=!d.attachments.length&&isReadQuery(d.text),hasText=!!(d.text.trim()||String(input.value||'').trim()||d.attachments.length);
-      var speaking=voiceState.mode==='speaking',listening=speechStarting||!!speechStop||voiceState.mode==='listening';
+      var speaking=voiceState.mode==='speaking',voiceLoading=voiceState.mode==='tts-loading'||voiceState.voicePending===true,listening=speechStarting||!!speechStop||voiceState.mode==='listening';
       send.dataset.empty=String(!hasText);send.disabled=!accountKey||busy||(!query&&snapshot.connection&&snapshot.connection.submitAvailable===false);
       input.disabled=busy;daily.disabled=!accountKey||answerBusy;
       var outputAvailable=voice&&voiceState.ttsAvailable!==false;
       sound.disabled=!outputAvailable;sound.setAttribute('aria-pressed',String(!!voiceState.enabled));
-      sound.setAttribute('aria-label',voiceState.enabled?'Sesli yanıtı kapat':'Sesli yanıtı aç');
+      sound.setAttribute('aria-label',voiceState.voiceSetupPending?'Erkek ses hazırlığını iptal et':voiceState.needsVoiceSetup?'Erkek sesi hazırla':voiceState.enabled?'Sesli yanıtı kapat':'Sesli yanıtı aç');
       sound.title=voiceState.notice||sound.getAttribute('aria-label');sound.replaceChildren(icon(voiceState.enabled?'sound':'mute'));
       add.disabled=!accountKey||busy||d.attachments.length>=3||snapshot.capabilities&&snapshot.capabilities.attachments===false||!bridge.attachments||typeof bridge.attachments.choose!=='function';
       add.title=snapshot.capabilities&&snapshot.capabilities.attachments===false?'Gizli görsel yükleme hazır değil. Metin emri gönderebilirsin.':d.attachments.length>=3?'Bir komuta en fazla 3 görsel eklenebilir':'Görsel veya dosya ekle';
-      mic.hidden=!speechAvailable&&mode!=='preview';mic.disabled=!accountKey||busy||speaking||!speechAvailable;
-      var micLabel=!speechAvailable?'Bu cihazda mikrofon kullanılamıyor':busy?'Yanıt bekleniyor; mikrofon kapalı':speaking?'Yanıt okunuyor; mikrofon kapalı':listening?'Dinlemeyi iptal et':'Konuşmak için mikrofonu aç';
+      mic.hidden=!speechAvailable&&mode!=='preview';mic.disabled=!accountKey||busy||speaking||voiceLoading||!speechAvailable;
+      var micLabel=!speechAvailable?'Bu cihazda mikrofon kullanılamıyor':busy?'Yanıt bekleniyor; mikrofon kapalı':voiceLoading?'Erkek ses hazırlanıyor; mikrofon kapalı':speaking?'Yanıt okunuyor; mikrofon kapalı':listening?'Dinlemeyi iptal et':'Konuşmak için mikrofonu aç';
       mic.title=micLabel;mic.setAttribute('aria-label',micLabel);mic.setAttribute('aria-pressed',String(listening));
-      mic.dataset.state=busy?'waiting':speaking?'speaking':voiceState.mode==='listening'?'listening':speechStarting?'starting':'idle';
+      mic.dataset.state=busy?'waiting':voiceLoading?'voice-loading':speaking?'speaking':voiceState.mode==='listening'?'listening':speechStarting?'starting':'idle';
       send.setAttribute('aria-label',busy?'Komut işleniyor':'Komutu gönder');syncEnergy();
     }
     function selectScope(next){if(next&&!validProject(next,projects))throw new Error('Geçersiz komut kapsamı.');stopSpeech();clearConfirmation();scope=next;clarification=null;clarify.hidden=true;renderDraft();loadDraft(next);setStatus('');/* No selected-game mutation, no global navigation event. */}
@@ -200,7 +200,7 @@
     function renderEmpty(){var box=el('div','jw-empty');box.append(el('span','jw-kicker','STÜDYO KOMUTA MERKEZİ'),el('h2','','Beş oyun. Tek net akış.'),el('p','','Ne değişeceğini söyle. Hedef, uzman ve doğrulanmış sonuç burada görünsün.'));var suggestions=el('div','jw-suggestions');['Forge Run ne durumda?','Bugün neler oldu?','Şu anda öncelikli olan ne?'].forEach(function(text){var b=btn(null,'jw-suggestion',text);b.textContent=text;dynamicOn(b,'click',function(){drafts.update(scope,{text:text});renderDraft();queueSave(scope);input.focus();});suggestions.appendChild(b);});box.appendChild(suggestions);timeline.appendChild(box);}
     function syncEnergy(){
       var running=snapshot.jobs.some(function(job){return job.status==='running';});
-      var state=voiceState.mode==='speaking'?'speaking':answerBusy?'waiting':voiceState.mode==='listening'?'listening':speechStarting?'starting':running?'working':'idle';
+      var state=voiceState.mode==='speaking'?'speaking':answerBusy||voiceState.mode==='tts-loading'?'waiting':voiceState.mode==='listening'?'listening':speechStarting?'starting':running?'working':'idle';
       var labels={speaking:'Yanıtı okuyorum',waiting:'Yanıt bekleniyor',listening:'Dinliyorum',starting:'Mikrofon açılıyor',working:'İşler sürüyor',idle:'Hazır'};
       var hints={speaking:'Mikrofon kapalı. Yanıt sesli okunuyor.',waiting:'Mikrofon kapalı. Yanıt bekleniyor.',listening:'Konuşman bitince tek mesaj gönderilir. İptal etmek için yeniden dokun.',starting:'Mikrofon hazırlanıyor. İptal etmek için yeniden dokun.',working:'Gerçek işçi kayıtları takip ediliyor.',idle:'Konuşmak için mikrofon düğmesine dokun.'};
       orbLabel.textContent=labels[state];orbHint.textContent=voiceState.error||hints[state];orbStage.dataset.mode=state;
@@ -269,9 +269,23 @@
     on(input,'keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229)keyboardSend(e);});
     on(input,'beforeinput',function(e){if((e.inputType==='insertLineBreak'||e.inputType==='insertParagraph')&&!e.isComposing&&win.matchMedia&&win.matchMedia('(pointer: coarse)').matches)keyboardSend(e);});on(scopeBtn,'click',function(){scopeMenu.hidden=!scopeMenu.hidden;scopeBtn.setAttribute('aria-expanded',String(!scopeMenu.hidden));});
     on(add,'click',async function(){if(add.disabled||snapshot.capabilities&&snapshot.capabilities.attachments===false)return;var chosenScope=scope,owner=accountKey,epoch=accountEpoch;try{var picked=await bridge.attachments.choose({scope:chosenScope,maxFiles:3-drafts.get(scope).attachments.length,accountKey:owner});if(!owns(owner,epoch))return;var target=drafts.get(chosenScope);drafts.update(chosenScope,{attachments:target.attachments.concat(cloneAttachments(picked))});queueSave(chosenScope);if(scope===chosenScope)renderDraft();}catch(err){if(owns(owner,epoch)&&scope===chosenScope)setStatus(err&&err.message||'Görsel eklenemedi.','error');}});
-    on(sound,'click',function(){if(!voice)return;outputPreferenceChosen=true;voice.setEnabled(!voiceState.enabled);});on(daily,'click',function(){if(!accountKey||answerBusy)return;stopSpeech();if(brainOn){brainTurn('Bugün stüdyoda neler oldu? Kısaca özetle.',-1);return;}answerRead('Bugün neler oldu?',-1,false);});
+    on(sound,'click',function(){
+      if(!voice)return;
+      var setupAttempt=++voiceSetupAttempt;
+      if(voiceState.voiceSetupPending){outputPreferenceChosen=true;voice.setEnabled(false);setStatus('Erkek ses hazırlığı iptal edildi. Yazılı yanıtlar devam eder.');return;}
+      if(voiceState.needsVoiceSetup&&typeof voice.prepareM2==='function'){
+        // Unlock a silent context at the start of this gesture, before a long native consent dialog.
+        if(typeof voice.unlockAudio==='function'){try{Promise.resolve(voice.unlockAudio()).catch(function(){});}catch(_unlockError){}}
+        if(typeof win.confirm!=='function'||!win.confirm('Beğendiğin erkek sesi bu telefonda çalıştırmak için ilk kez yaklaşık 400 MB model indirilecek. Wi-Fi önerilir. Ücretli API kullanılmaz. İndirmeyi başlatayım mı?'))return;
+        var setupOwner=accountKey,setupEpoch=accountEpoch,setupViewEpoch=activeEpoch;
+        outputPreferenceChosen=true;voice.setEnabled(true);
+        Promise.resolve(voice.prepareM2({consent:true})).then(function(result){if(destroyed||setupAttempt!==voiceSetupAttempt||setupViewEpoch!==activeEpoch||!worldActive()||!owns(setupOwner,setupEpoch))return;setStatus(result&&result.ok?'Argon M2 erkek sesi hazır. Yeni yanıtlar bu sesle okunacak.':voice.getSnapshot&&voice.getSnapshot().error||'Erkek ses hazırlığı tamamlanmadı. Yazılı yanıtlar devam eder.',result&&result.ok?'normal':'error');}).catch(function(){if(!destroyed&&setupAttempt===voiceSetupAttempt&&setupViewEpoch===activeEpoch&&worldActive()&&owns(setupOwner,setupEpoch))setStatus('Erkek ses hazırlanamadı. Yazılı yanıtlar devam eder.','error');});
+        return;
+      }
+      outputPreferenceChosen=true;voice.setEnabled(!voiceState.enabled);
+    });on(daily,'click',function(){if(!accountKey||answerBusy)return;stopSpeech();if(brainOn){brainTurn('Bugün stüdyoda neler oldu? Kısaca özetle.',-1);return;}answerRead('Bugün neler oldu?',-1,false);});
     on(mic,'click',async function(){
-      if(destroyed||!worldActive()||!accountKey||answerBusy||busyScopes.has(draftKey(scope))||voiceState.mode==='speaking')return;
+      if(destroyed||!worldActive()||!accountKey||answerBusy||busyScopes.has(draftKey(scope))||voiceState.mode==='speaking'||voiceState.mode==='tts-loading'||voiceState.voicePending===true)return;
       if(speechStop||speechStarting||voiceState.mode==='listening'){stopSpeech();setStatus('Dinleme iptal edildi. Taslağın korunuyor.');return;}
       // An explicit first voice turn also enables its reply, unless the owner chose mute.
       if(brainOn&&voice&&!outputPreferenceChosen&&!voiceState.enabled&&typeof voice.setEnabled==='function')voice.setEnabled(true);
@@ -322,8 +336,8 @@
     if(voice&&typeof voice.subscribe==='function')voiceUnsub=voice.subscribe(function(next){
       if(destroyed)return;if(readAccountKey()!==accountKey){resetAccount(readAccountKey());return;}
       var previous=voiceState;voiceState=next||{enabled:false,mode:'idle'};
-      var changed=previous.mode!==voiceState.mode||previous.enabled!==voiceState.enabled||previous.ttsAvailable!==voiceState.ttsAvailable||previous.recognitionAvailable!==voiceState.recognitionAvailable||previous.notice!==voiceState.notice||previous.error!==voiceState.error;
-      if(changed){syncComposer();syncEnergy();if(voiceState.error&&voiceState.error!==previous.error)setStatus(safeText(voiceState.error,500),'error');}
+      var changed=previous.mode!==voiceState.mode||previous.enabled!==voiceState.enabled||previous.ttsAvailable!==voiceState.ttsAvailable||previous.recognitionAvailable!==voiceState.recognitionAvailable||previous.notice!==voiceState.notice||previous.error!==voiceState.error||previous.needsVoiceSetup!==voiceState.needsVoiceSetup||previous.voiceSetupPending!==voiceState.voiceSetupPending||previous.voicePending!==voiceState.voicePending;
+      if(changed){syncComposer();syncEnergy();if(voiceState.error&&voiceState.error!==previous.error)setStatus(safeText(voiceState.error,500),'error');else if(voiceState.mode==='tts-loading'||voiceState.voiceSetupPending)setStatus(safeText(voiceState.notice,500));else if(previous.mode==='tts-loading'&&!answerBusy)setStatus('');}
       else if(active&&energy&&(voiceState.mode==='listening'||voiceState.mode==='speaking')){try{energy.setAudioLevel(typeof voiceState.audioLevel==='number'?voiceState.audioLevel:null);}catch(_e){/* A stale meter event is never a conversation redraw. */}}
     });if(studioData&&typeof studioData.subscribe==='function')dataUnsub=studioData.subscribe(function(){if(!destroyed)syncComposer();});
     if(win.JarvisEnergyCore&&typeof win.JarvisEnergyCore.mount==='function')energy=win.JarvisEnergyCore.mount(canvas,{state:'idle'});else canvas.hidden=true;

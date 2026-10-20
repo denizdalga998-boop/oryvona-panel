@@ -61,9 +61,8 @@
         async refreshStudioSnapshot(){const captured=bridge.getAccountKey(),answer=await panel.refreshStudioSnapshot(captured);return captured===bridge.getAccountKey()?answer:panel.getStudioSnapshot(bridge.getAccountKey());}
       };
       data=window.OryvonaStudioDataV26.create({panel:scopedPanel,bridge,document});
-      // Browser-native Turkish voices only: local voices preferred. Remote browser voices are labelled;
-      // no paid service, API key or model endpoint is configured. Audio remains opt-in.
-      voice=window.OryvonaJarvisVoice.create({getAccountKey:()=>bridge?.getAccountKey()||null,localOnly:false,measureInput:true,tone:'argon',
+      // Approved M2 runs on this device after explicit model-download consent. No device/Google TTS fallback.
+      voice=window.OryvonaJarvisVoice.create({getAccountKey:()=>bridge?.getAccountKey()||null,profile:'supertonic-3-M2',localOnly:true,measureInput:true,tone:'argon',
         // Barge-in: inside the APK Argon's own voice comes back louder through the phone speaker, so the owner must be clearly louder.
         bargeInLevel:window.ArgonNative?0.16:0.07});
       decisions=window.OryvonaStudioDecisionsV26.create({host:host(),getAccountKey:()=>bridge?.getAccountKey()||null,getSnapshot:()=>data.getSnapshot()});
