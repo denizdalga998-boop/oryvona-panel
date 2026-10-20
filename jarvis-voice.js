@@ -3,7 +3,7 @@
   'use strict'; var api = factory(); if (typeof module === 'object' && module.exports) module.exports = api; else root.OryvonaJarvisVoice = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  var STYLE = 'sakin, tok, doğal ve güven veren asistan tonu';
+  var STYLE = 'tok ve sakin erkek anlatımı; ağırbaşlı, nazik ve kendinden emin bir asistan tavrı; net ve doğal Türkçe, ölçülü tempo ve kısa doğal duraklamalar; ince kuru mizahı hafif ve abartısız bir tonla aktar';
   function pcmWav(pcm, rate, channels) {
     rate = Number(rate) || 24000; channels = Number(channels) || 1;
     if (!(pcm instanceof Uint8Array) || !pcm.byteLength || pcm.byteLength % (2 * channels) || ![1, 2].includes(channels) || rate < 8000 || rate > 96000) throw Error('INVALID_PCM');
@@ -32,7 +32,7 @@
     function visible() { return !doc || doc.hidden !== true; }
     function gesture() { return phone() && visible() && !!(win.navigator && win.navigator.userActivation && win.navigator.userActivation.isActive); }
     function available() { return phone() && typeof (win.AudioContext || win.webkitAudioContext) === 'function'; }
-    function snapshot() { return Object.freeze({ enabled: enabled, ttsAvailable: available(), recognitionAvailable: available() && !!(win.navigator && win.navigator.mediaDevices && win.navigator.mediaDevices.getUserMedia), mode: state.mode, voiceName: 'Gemini · Puck', voiceProfile: { voiceId: 'Puck', provider: 'google-ai-studio', speech_metadata: { style: STYLE } }, localVoice: false, needsVoiceSetup: false, voiceSetupPending: false, voicePending: state.mode === 'tts-loading', audioLevel: state.audioLevel, notice: state.notice, error: state.error, conversationActive: !!live }); }
+    function snapshot() { return Object.freeze({ enabled: enabled, ttsAvailable: available(), recognitionAvailable: available() && !!(win.navigator && win.navigator.mediaDevices && win.navigator.mediaDevices.getUserMedia), mode: state.mode, voiceName: 'Gemini · Charon', voiceProfile: { voiceId: 'Charon', fallbackVoiceId: 'Fenrir', provider: 'google-ai-studio', speech_metadata: { style: STYLE } }, localVoice: false, needsVoiceSetup: false, voiceSetupPending: false, voicePending: state.mode === 'tts-loading', audioLevel: state.audioLevel, notice: state.notice, error: state.error, conversationActive: !!live }); }
     function emit() { listeners.forEach(function (fn) { try { fn(snapshot()); } catch (_) {} }); }
     function fail(reason, text) { state.error = text; state.notice = text; emit(); return { ok: false, reason: reason }; }
     function current(ticket, captured) { return !destroyed && ticket === epoch && captured && captured === options.getAccountKey() && visible(); }
@@ -51,7 +51,7 @@
     function setEnabled(value) {
       if (!value) { enabled = false; cancel(); state.notice = 'Sesli yanıt kapalı.'; emit(); return snapshot(); }
       if (!ownerCurrent() || !gesture()) { fail('PHONE_GESTURE_REQUIRED', 'Ses yalnız telefondaki ses düğmesiyle açılabilir.'); return snapshot(); }
-      enabled = true; gestureGranted = true; unlockAudio().catch(function () {}); state.error = null; state.notice = 'Gemini Puck sesi açık. Yeni yanıtlar seslendirilecek.'; emit(); return snapshot();
+      enabled = true; gestureGranted = true; unlockAudio().catch(function () {}); state.error = null; state.notice = 'Gemini Charon sesi açık. Yeni yanıtlar seslendirilecek.'; emit(); return snapshot();
     }
     function bytes(b64) { if (typeof b64 !== 'string' || b64.length > 12 * 1024 * 1024 || !/^[A-Za-z0-9+/]*={0,2}$/.test(b64)) throw Error('INVALID_AUDIO'); var raw = win.atob(b64), out = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i); return out; }
     function encode(array) { var s = ''; for (var i = 0; i < array.length; i++) s += String.fromCharCode(array[i]); return win.btoa(s); }
@@ -70,7 +70,7 @@
       try {
         var ready=input.audioB64||(input.audio&&input.audio.data);
         if(!ready&&input.audioStatus&&input.audioStatus!=='audio_ready')throw Error('SERVER_TTS_ALREADY_ATTEMPTED');
-        var r=ready?{ok:true,audio:{mimeType:input.audio&&input.audio.mimeType||'audio/wav',data:ready}}:await client.synthesize({ requestId: win.crypto.randomUUID(), text: String(input.text).slice(0, 2400), voice: 'Puck', speech_metadata: { style: STYLE } });
+        var r=ready?{ok:true,audio:{mimeType:input.audio&&input.audio.mimeType||'audio/wav',data:ready}}:await client.synthesize({ requestId: win.crypto.randomUUID(), text: String(input.text).slice(0, 2400), voice: 'Charon', speech_metadata: { style: STYLE } });
         if (!current(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
         if (!r || r.ok !== true || !r.audio || r.audio.mimeType !== 'audio/wav') throw Error('TTS_UNAVAILABLE');
         var wav = bytes(r.audio.data); if (!wavValid(wav)) throw Error('INVALID_WAV');
@@ -90,7 +90,7 @@
         stream = await win.navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
         if (!current(ticket, captured)) { stream.getTracks().forEach(function (t) { t.stop(); }); return { ok: false, reason: 'CANCELLED' }; }
         capture = { stream: stream, source: null, processor: null, gain: null };
-        var session = await client.startLive({ gesture: true, voice: 'Puck', onTranscript: function (value, meta) { if (current(ticket, captured) && handlers.onTranscript) handlers.onTranscript(value, meta); }, onReply: function (value, meta) { if (current(ticket, captured) && handlers.onReply) handlers.onReply(value, meta); }, onTask: function (r) { if (current(ticket, captured) && handlers.onTask) handlers.onTask(r); }, onInteraction: function (status) { if (!current(ticket, captured)) return; state.mode = status === 'IN_PROGRESS' ? 'thinking' : sources.size ? 'speaking' : 'listening'; state.notice = status === 'IN_PROGRESS' ? 'Argon arka planda düşünüyor; konuşmaya devam edebilirsin.' : 'Dinliyorum.'; emit(); }, onAudio: function (data, mime) { if (!current(ticket, captured) || !enabled) return; try { var pcm = bytes(data), rate = Number((/rate=(\d+)/.exec(mime) || [])[1]) || 24000; if (pcm.byteLength % 2) return; var buffer = context.createBuffer(1, pcm.length / 2, rate), channel = buffer.getChannelData(0), view = new DataView(pcm.buffer); for (var i = 0; i < channel.length; i++) channel[i] = view.getInt16(i * 2, true) / 32768; playBuffer(buffer, ticket, captured, true); } catch (_) {} }, onInterrupted: function () { if (current(ticket, captured)) { stopPlayback(); state.mode = 'listening'; emit(); } }, onEnd: function (r) { if (!current(ticket, captured)) return; live = null; stopCapture(); stopPlayback(); state.mode = 'idle'; state.notice = 'Canlı ses bağlantısı kapandı. Mikrofon düğmesinden yeniden açabilirsin.'; emit(); if (handlers.onEnd) handlers.onEnd(r); } });
+        var session = await client.startLive({ gesture: true, voice: 'Charon', onTranscript: function (value, meta) { if (current(ticket, captured) && handlers.onTranscript) handlers.onTranscript(value, meta); }, onReply: function (value, meta) { if (current(ticket, captured) && handlers.onReply) handlers.onReply(value, meta); }, onTask: function (r) { if (current(ticket, captured) && handlers.onTask) handlers.onTask(r); }, onInteraction: function (status) { if (!current(ticket, captured)) return; state.mode = status === 'IN_PROGRESS' ? 'thinking' : sources.size ? 'speaking' : 'listening'; state.notice = status === 'IN_PROGRESS' ? 'Argon arka planda düşünüyor; konuşmaya devam edebilirsin.' : 'Dinliyorum.'; emit(); }, onAudio: function (data, mime) { if (!current(ticket, captured) || !enabled) return; try { var pcm = bytes(data), rate = Number((/rate=(\d+)/.exec(mime) || [])[1]) || 24000; if (pcm.byteLength % 2) return; var buffer = context.createBuffer(1, pcm.length / 2, rate), channel = buffer.getChannelData(0), view = new DataView(pcm.buffer); for (var i = 0; i < channel.length; i++) channel[i] = view.getInt16(i * 2, true) / 32768; playBuffer(buffer, ticket, captured, true); } catch (_) {} }, onInterrupted: function () { if (current(ticket, captured)) { stopPlayback(); state.mode = 'listening'; emit(); } }, onEnd: function (r) { if (!current(ticket, captured)) return; live = null; stopCapture(); stopPlayback(); state.mode = 'idle'; state.notice = 'Canlı ses bağlantısı kapandı. Mikrofon düğmesinden yeniden açabilirsin.'; emit(); if (handlers.onEnd) handlers.onEnd(r); } });
         if (!current(ticket, captured)) { if (session && session.stop) session.stop(); return { ok: false, reason: 'CANCELLED' }; }
         if (!session || session.ok !== true) throw Error('LIVE_UNAVAILABLE'); live = session;
         capture.source = context.createMediaStreamSource(stream); capture.processor = context.createScriptProcessor(4096, 1, 1); capture.gain = context.createGain(); capture.gain.gain.value = 0;
