@@ -59,7 +59,13 @@
     var localOnly = options.localOnly !== false;
     var m2Profile = options.profile === 'supertonic-3-M2';
     var m2 = null, m2State = { status: 'setup_required', progress: 0, error: null };
-    var m2Context = null, m2Job = null, m2Prepare = null, m2PrepareEpoch = 0;
+    var m2Context = null, m2PrimedContext = null, m2Job = null, m2Prepare = null, m2PrepareEpoch = 0;
+    var playbackBlocked = false, retrySpeech = null, errorCode = null;
+    var playbackPollMs = Math.max(10, Math.min(200, Number(options.playbackPollMs) || 50));
+    var playbackStartMs = Math.max(40, Math.min(20000, Number(options.playbackStartTimeoutMs) || 6000));
+    var playbackStallMs = Math.max(40, Math.min(20000, Number(options.playbackStallTimeoutMs) || 4000));
+    var audioResumeMs = Math.max(40, Math.min(10000, Number(options.audioResumeTimeoutMs) || 3000));
+    var clockNow = typeof options.now === 'function' ? options.now : Date.now;
     var listeners = new Set();
     var removers = [];
     var destroyed = false;
@@ -104,6 +110,10 @@
         voiceSetupPending: m2Profile && !!m2Prepare,
         voiceSetupProgress: m2Profile ? Number(m2State.progress) || 0 : 0,
         voicePending: m2Profile && !!m2Job,
+        playbackBlocked: m2Profile && playbackBlocked,
+        canRetrySpeech: m2Profile && playbackBlocked && !!retrySpeech && enabled,
+        voicePhase: m2Profile && playbackBlocked ? 'blocked' : mode === 'listening' ? 'listening' : mode === 'speaking' ? 'speaking' : mode === 'tts-loading' ? 'voice-loading' : m2Prepare ? 'setup' : 'idle',
+        errorCode: errorCode,
         notice: notice,
         error: error
       });
@@ -113,6 +123,7 @@
       listeners.forEach(function (fn) { try { fn(value); } catch (_) {} });
     }
     function fail(code, message) {
+      errorCode = code;
       error = message;
       notice = message;
       emit();
@@ -138,6 +149,7 @@
       if (m2Profile) {
         voice = null;
         if (!m2) { notice = 'Erkek ses bileşeni yüklenmedi. Uygulamayı kapatıp yeniden aç; yazılı yanıtlar devam eder.'; error = notice; return; }
+        if (playbackBlocked) return;
         if (enabled && !m2Job && !m2Prepare) notice = m2State.status === 'ready' ? 'Argon M2 erkek sesi hazır.' : 'Erkek sesi hazırlamak için üstteki ses düğmesine dokun.';
         return;
       }
@@ -184,9 +196,12 @@
       if (current.source && typeof current.source.disconnect === 'function') try { current.source.disconnect(); } catch (_) {}
       if (current.analyser && typeof current.analyser.disconnect === 'function') try { current.analyser.disconnect(); } catch (_) {}
       if (current.stream && typeof current.stream.getTracks === 'function') current.stream.getTracks().forEach(function (track) { try { track.stop(); } catch (_) {} });
-      if (current.context && typeof current.context.close === 'function') try { Promise.resolve(current.context.close()).catch(function () {}); } catch (_) {}
+      if (!current.sharedContext && current.context && typeof current.context.close === 'function') try { Promise.resolve(current.context.close()).catch(function () {}); } catch (_) {}
     }
     function beginMeasurement(epoch, account, conversation) {
+      // Android's native recognizer owns its microphone and audio focus. A second getUserMedia
+      // capture is not a meter for that recognizer and can interrupt subsequent WebAudio playback.
+      if (m2Profile && win.ArgonNative) return;
       var media = win.navigator && win.navigator.mediaDevices;
       var AudioContext = win.AudioContext || win.webkitAudioContext;
       if (options.measureInput !== true || !media || typeof media.getUserMedia !== 'function' || typeof AudioContext !== 'function' || typeof win.requestAnimationFrame !== 'function') return;
@@ -201,7 +216,9 @@
         var current = { stream: stream, context: null, source: null, analyser: null, frame: null, last: -Infinity };
         measurement = current;
         try {
-          current.context = new AudioContext();
+          current.sharedContext = m2Profile;
+          current.context = m2Profile ? m2Context : new AudioContext();
+          if (!current.context) throw new Error('METER_CONTEXT_UNAVAILABLE');
           current.analyser = current.context.createAnalyser();
           current.analyser.fftSize = 256;
           current.source = current.context.createMediaStreamSource(stream);
@@ -261,9 +278,11 @@
         else if (typeof current.stop === 'function') current.stop();
       } catch (_) {}
       if (mode === 'listening') mode = 'idle';
+      if (m2Profile && current && enabled && visible()) restoreAudioAfterCapture();
       if (ended) try { ended({ reason: reason || 'stopped' }); } catch (_) {}
     }
     function stopAll(reason) {
+      if (reason !== 'restarted') { playbackBlocked = false; retrySpeech = null; }
       var hadM2Operation = !!m2Job || !!m2Prepare;
       if (reason !== 'restarted') stopM2Preparation();
       stopConversation();
@@ -272,7 +291,11 @@
       if (m2Profile && reason !== 'restarted' && !hadM2Operation && m2) { try { m2.stop(); } catch (_) {} }
       mode = 'idle';
     }
-    function visible() { return !doc || doc.hidden !== true; }
+    function visible() {
+      if (doc && (doc.hidden === true || doc.visibilityState === 'hidden')) return false;
+      var view = m2Profile && doc && doc.body && doc.body.dataset && doc.body.dataset.oryvonaView;
+      return !view || view === 'jarvis';
+    }
     function usable() {
       if (destroyed) return { ok: false, reason: 'DESTROYED' };
       if (voiceAuditionActive) return { ok: false, reason: 'VOICE_AUDITION_ACTIVE' };
@@ -285,7 +308,9 @@
       accountCurrent();
       enabled = value === true;
       error = null;
+      errorCode = null;
       if (!enabled) {
+        playbackBlocked = false; retrySpeech = null;
         var hadM2Operation = !!m2Job || !!m2Prepare;
         stopM2Preparation();
         stopSpeakingInternal(); convoSpeechEnded();
@@ -298,7 +323,7 @@
       emit();
       return snapshot();
     }
-    function unlockM2Audio() {
+    function unlockM2Audio(prime) {
       var AC = win.AudioContext || win.webkitAudioContext;
       if (typeof AC !== 'function') throw new Error('M2_AUDIO_UNAVAILABLE');
       if (!m2Context || m2Context.state === 'closed') {
@@ -306,17 +331,46 @@
         catch (_) { m2Context = new AC(); }
       }
       var context = m2Context;
+      // The zero-valued frame is only primed from an explicit user action. It is never
+      // a substitute response, a TTS voice, or evidence that later PCM was played.
+      if (prime !== false && m2PrimedContext !== context) {
+        try {
+          var primingSource = context.createBufferSource();
+          primingSource.buffer = context.createBuffer(1, 1, 44100);
+          primingSource.connect(context.destination);
+          primingSource.onended = function () { try { primingSource.disconnect(); } catch (_) {} };
+          primingSource.start(0); m2PrimedContext = context;
+        } catch (_) { /* resume() below still reports whether this context can run. */ }
+      }
       return Promise.resolve(typeof context.resume === 'function' ? context.resume() : undefined).then(function () {
         if (context !== m2Context || context.state && context.state !== 'running') throw new Error('M2_AUDIO_GESTURE_REQUIRED');
         return context;
       });
     }
+    function boundedAudioResume(pendingAudio) {
+      var timer, supplied = arguments.length > 0;
+      return new Promise(function (resolve, reject) {
+        timer = setTimeout(function () { reject(new Error('M2_AUDIO_GESTURE_REQUIRED')); }, audioResumeMs);
+        var pending;
+        try { pending = supplied ? pendingAudio : unlockM2Audio(false); } catch (cause) { clearTimeout(timer); reject(cause); return; }
+        Promise.resolve(pending).then(function (context) { clearTimeout(timer); resolve(context); }, function (cause) { clearTimeout(timer); reject(cause); });
+      });
+    }
+    function restoreAudioAfterCapture() {
+      if (!m2Context || !visible() || !enabled) return;
+      // Android can release native recognition focus after its JS end callback. The response
+      // path retries resume again when PCM arrives and verifies the playback clock itself.
+      boundedAudioResume().catch(function () {});
+    }
     function unlockAudio() {
       var blocked = usable();
       if (blocked) return Promise.resolve(blocked);
       if (!m2Profile || !m2) return Promise.resolve({ ok: false, reason: 'M2_COMPONENT_UNAVAILABLE' });
+      var capturedOwner = owner, capturedEpoch = speechEpoch;
+      function current() { return !destroyed && owner === capturedOwner && readAccount() === capturedOwner && capturedEpoch === speechEpoch && visible(); }
       try {
-        return unlockM2Audio().then(function () { return { ok: true }; }).catch(function () {
+        return boundedAudioResume(unlockM2Audio()).then(function () { return { ok: current(), reason: current() ? undefined : 'CANCELLED' }; }).catch(function () {
+          if (!current()) return { ok: false, reason: 'CANCELLED' };
           return fail('M2_AUDIO_GESTURE_REQUIRED', 'Erkek sesi açmak için üstteki ses düğmesine yeniden dokun. Yazılı yanıtlar devam eder.');
         });
       } catch (_) { return Promise.resolve(fail('M2_AUDIO_UNAVAILABLE', 'Bu cihaz erkek sesi oynatamıyor. Yazılı yanıtlar devam eder.')); }
@@ -331,6 +385,7 @@
       var job = m2Job;
       if (!job) return;
       m2Job = null;
+      if (job.watchTimer) clearTimeout(job.watchTimer);
       try { job.controller.abort(); } catch (_) {}
       job.sources.forEach(function (source) {
         try { source.onended = null; source.stop(); } catch (_) {}
@@ -346,11 +401,11 @@
       if (!m2Profile || !m2 || !input || input.consent !== true) return Promise.resolve({ ok: false, reason: 'M2_CONSENT_REQUIRED' });
       if (m2Prepare) return m2Prepare;
       var contextReady;
-      try { contextReady = unlockM2Audio(); }
+      try { contextReady = boundedAudioResume(unlockM2Audio()); }
       catch (_) { return Promise.resolve(fail('M2_AUDIO_UNAVAILABLE', 'Bu cihaz erkek sesi oynatamıyor. Yazılı yanıtlar devam eder.')); }
       var capturedOwner = owner, ticket = ++m2PrepareEpoch;
       notice = 'Erkek ses modeli hazırlanıyor. İlk indirme yaklaşık 400 MB; metin ve mikrofon kullanılabilir.';
-      error = null;
+      error = null; errorCode = null; playbackBlocked = false; retrySpeech = null;
       var operation = Promise.all([contextReady, m2.prepare({ consent: true })]).then(function () {
         if (destroyed || ticket !== m2PrepareEpoch || !accountCurrent(capturedOwner) || !visible()) return { ok: false, reason: 'CANCELLED' };
         m2State = m2.snapshot();
@@ -372,20 +427,23 @@
     }
     function speakM2(input) {
       if (!m2) return fail('M2_COMPONENT_UNAVAILABLE', 'Erkek ses bileşeni yüklenmedi. Uygulamayı kapatıp yeniden aç; yazılı yanıt hazır.');
-      if (m2State.status !== 'ready') return fail('M2_SETUP_REQUIRED', 'Erkek sesi hazırlamak için üstteki ses düğmesine dokun. Yazılı yanıt hazır; Google sesi kullanılmadı.');
-      if (!m2Context || m2Context.state !== 'running') return fail('M2_AUDIO_GESTURE_REQUIRED', 'Erkek sesi açmak için üstteki ses düğmesine dokun. Yazılı yanıt hazır.');
+      m2State = m2.snapshot();
+      if (m2State.status !== 'ready' && !m2Prepare && typeof m2.probe !== 'function') return fail('M2_SETUP_REQUIRED', 'Erkek sesi hazırlamak için üstteki ses düğmesine dokun. Yazılı yanıt hazır; Google sesi kullanılmadı.');
       stopListeningInternal('speaking');
       stopSpeakingInternal();
       var AC = win.AbortController || (typeof AbortController === 'function' ? AbortController : null);
       if (!AC) return fail('M2_CANCEL_UNAVAILABLE', 'Bu cihaz erkek sesi güvenle başlatamıyor. Yazılı yanıt hazır.');
       var resolveCompletion, completion = new Promise(function (resolve) { resolveCompletion = resolve; });
-      var job = { epoch: speechEpoch, account: owner, id: input.id, controller: new AC(), sources: new Set(), nextAt: m2Context.currentTime || 0, frames: 0, chunks: 0, done: false, resolve: resolveCompletion };
-      m2Job = job; activeSpeechId = input.id; mode = 'tts-loading'; error = null;
+      var job = { epoch: speechEpoch, account: owner, id: input.id, controller: new AC(), sources: new Set(), nextAt: m2Context && m2Context.currentTime || 0, frames: 0, chunks: 0, done: false, resolve: resolveCompletion, firstAt: null, firstDuration: 0, segmentAt: null, segmentDuration: 0, confirmed: false, lastClock: 0, lastProgressAt: clockNow(), firstScheduledAt: 0, watchTimer: null, resumePending: null };
+      m2Job = job; activeSpeechId = input.id; mode = 'tts-loading'; error = null; errorCode = null;
+      playbackBlocked = false; retrySpeech = null;
       notice = 'Argon M2 yanıtı hazırlıyor; mikrofon kapalı.';
       convoSpeechQueued(); emit();
       function valid() { return m2Job === job && job.epoch === speechEpoch && !job.controller.signal.aborted && accountCurrent(job.account) && visible() && enabled; }
       function finished() {
         if (!valid() || !job.done || job.sources.size) return;
+        if (!job.confirmed) { failed('M2_PLAYBACK_BLOCKED'); return; }
+        if (job.watchTimer) clearTimeout(job.watchTimer);
         clearSpeechDeadline(); m2Job = null; activeSpeechId = null; mode = 'idle'; audioLevel = null;
         notice = 'Argon M2 erkek sesi hazır.';
         job.resolve({ ok: true, profile: 'supertonic-3-M2', chunks: job.chunks });
@@ -393,16 +451,53 @@
       }
       function failed(code) {
         if (!valid()) return;
+        var needsGesture = /^M2_(?:AUDIO_GESTURE_REQUIRED|PLAYBACK_BLOCKED|PLAYBACK_STALLED|PLAYBACK_FAILED)$/.test(code || '');
         stopM2Job(code || 'M2_SYNTHESIS_FAILED');
         stopSpeakingInternal(); mode = 'idle'; convoSpeechEnded();
-        fail(code || 'M2_SYNTHESIS_FAILED', 'Erkek sesli yanıt hazırlanamadı. Yazılı yanıt hazır; Google sesi kullanılmadı.');
+        playbackBlocked = needsGesture;
+        retrySpeech = needsGesture ? { id: input.id, text: input.text, accountKey: input.accountKey } : null;
+        fail(code || 'M2_SYNTHESIS_FAILED', needsGesture ? 'Telefon yanıt sesini başlatamadı veya durdurdu. Son yanıtı okumak için üstteki ses düğmesine dokun; yazılı yanıt korunuyor.' : code === 'M2_SETUP_REQUIRED' ? 'Erkek sesi hazırlamak için üstteki ses düğmesine dokun. Yazılı yanıt hazır; Google sesi kullanılmadı.' : 'Erkek sesli yanıt hazırlanamadı. Yazılı yanıt hazır; Google sesi kullanılmadı.');
       }
+      function observePlayback() {
+        if (!valid() || !m2Context || m2Context.state !== 'running' || job.firstAt === null) return;
+        var currentTime = Number(m2Context.currentTime), now = clockNow();
+        if (!Number.isFinite(currentTime)) { failed('M2_PLAYBACK_BLOCKED'); return; }
+        if (currentTime > job.lastClock + 0.00001) { job.lastClock = currentTime; job.lastProgressAt = now; }
+        if (job.sources.size && currentTime > job.segmentAt + Math.min(0.002, job.segmentDuration / 2)) {
+          if (!job.confirmed) { job.confirmed = true; clearSpeechDeadline(); rememberSpoken(input.id); }
+          if (mode !== 'speaking') { mode = 'speaking'; notice = 'Argon M2 konuşuyor.'; convoSpeechStarted(); emit(); }
+        }
+      }
+      function resumeForJob() {
+        if (job.resumePending) return job.resumePending;
+        job.resumePending = boundedAudioResume().then(function (context) {
+          if (!valid()) throw new Error('M2_CANCELLED');
+          return context;
+        });
+        job.resumePending.then(function () { job.resumePending = null; }, function () { job.resumePending = null; });
+        return job.resumePending;
+      }
+      function watchPlayback() {
+        job.watchTimer = null;
+        if (!valid()) return;
+        observePlayback();
+        if (!valid()) return;
+        var now = clockNow();
+        if (!job.confirmed && now - job.firstScheduledAt >= playbackStartMs) { failed('M2_PLAYBACK_BLOCKED'); return; }
+        if (job.confirmed && job.sources.size && now - job.lastProgressAt >= playbackStallMs) { failed('M2_PLAYBACK_STALLED'); return; }
+        if (m2Context && m2Context.state !== 'running') resumeForJob().catch(function () { if (valid()) failed('M2_AUDIO_GESTURE_REQUIRED'); });
+        job.watchTimer = setTimeout(watchPlayback, playbackPollMs);
+      }
+      function startWatch() { if (!job.watchTimer) job.watchTimer = setTimeout(watchPlayback, playbackPollMs); }
       function onChunk(chunk) {
         if (!valid()) return;
         var samples = chunk && chunk.samples;
         if (!chunk || chunk.profile !== 'supertonic-3-M2' || chunk.sampleRate !== 44100 || Object.prototype.toString.call(samples) !== '[object Float32Array]' || samples.length < 1 || samples.length > 44100 * 30 || job.frames + samples.length > 44100 * 180) { failed('M2_INVALID_PCM'); return; }
         for (var index = 0; index < samples.length; index++) if (!Number.isFinite(samples[index]) || Math.abs(samples[index]) > 1.01) { failed('M2_INVALID_PCM'); return; }
-        try {
+        function scheduleChunk() {
+          if (!valid()) return;
+          if (!m2Context || m2Context.state !== 'running') { failed('M2_AUDIO_GESTURE_REQUIRED'); return; }
+          try {
           var context = m2Context, buffer = context.createBuffer(1, samples.length, 44100), source = context.createBufferSource();
           if (typeof buffer.copyToChannel === 'function') buffer.copyToChannel(samples, 0);
           else buffer.getChannelData(0).set(samples);
@@ -411,8 +506,12 @@
           source.connect(context.destination);
           var at = Math.max((context.currentTime || 0) + 0.015, job.nextAt);
           job.nextAt = at + samples.length / 44100;
+          if (!job.sources.size) { job.segmentAt = at; job.segmentDuration = samples.length / 44100; }
           job.frames += samples.length; job.chunks++; job.sources.add(source);
+          if (job.firstAt === null) { job.firstAt = at; job.firstDuration = samples.length / 44100; job.firstScheduledAt = clockNow(); job.lastClock = Number(context.currentTime) || 0; job.lastProgressAt = clockNow(); }
           source.onended = function () {
+            if (!valid()) return;
+            observePlayback();
             if (!valid()) return;
             job.sources.delete(source);
             try { source.disconnect(); } catch (_) {}
@@ -420,19 +519,60 @@
             finished();
           };
           source.start(at);
-          clearSpeechDeadline(); rememberSpoken(input.id); mode = 'speaking'; notice = 'Argon M2 konuşuyor.';
-          convoSpeechStarted(); emit();
-        } catch (_) { failed('M2_PLAYBACK_FAILED'); }
+          observePlayback(); startWatch();
+          } catch (_) { failed('M2_PLAYBACK_FAILED'); }
+        }
+        if (m2Context && m2Context.state === 'running') return scheduleChunk();
+        return resumeForJob().then(scheduleChunk).catch(function () { if (valid()) failed('M2_AUDIO_GESTURE_REQUIRED'); });
       }
       speechStartTimer = setTimeout(function () { failed('M2_START_TIMEOUT'); }, 120000);
-      try {
+      function synthesizeReady() {
+        if (!valid()) return;
+        try {
         Promise.resolve(m2.synthesize(input.text.trim(), { signal: job.controller.signal, onChunk: onChunk })).then(function () {
           if (!valid()) return;
           if (!job.chunks) { failed('M2_EMPTY_AUDIO'); return; }
           job.done = true; finished();
         }).catch(function (cause) { if (valid()) failed(cause && cause.name === 'AbortError' ? 'M2_CANCELLED' : 'M2_SYNTHESIS_FAILED'); });
-      } catch (_) { failed('M2_SYNTHESIS_FAILED'); }
+        } catch (_) { failed('M2_SYNTHESIS_FAILED'); }
+      }
+      function withReadyAudio() {
+        if (!valid()) return;
+        notice = 'Argon M2 yanıtı hazırlıyor; mikrofon kapalı.'; emit();
+        // resume is repeated after capture/focus release, even if an earlier gesture unlocked it.
+        if (m2Context && m2Context.state === 'running') {
+          resumeForJob().catch(function () { if (valid()) failed('M2_AUDIO_GESTURE_REQUIRED'); });
+          synthesizeReady();
+        } else resumeForJob().then(synthesizeReady).catch(function () { if (valid()) failed('M2_AUDIO_GESTURE_REQUIRED'); });
+      }
+      if (m2State.status === 'ready') withReadyAudio();
+      else {
+        // Join an explicitly permitted setup, or only inspect the local cache. Neither path
+        // grants permission for a new model download when the first answer races startup.
+        var readiness = m2Prepare || (typeof m2.probe === 'function' ? m2.probe() : Promise.resolve());
+        Promise.resolve(readiness).then(function () {
+          if (!valid()) return;
+          m2State = m2.snapshot();
+          if (m2State.status !== 'ready') { failed('M2_SETUP_REQUIRED'); return; }
+          withReadyAudio();
+        }).catch(function () { if (valid()) failed('M2_SETUP_REQUIRED'); });
+      }
       return { ok: true, id: input.id, engine: 'supertonic-3-M2', pending: true, completion: completion };
+    }
+    function retrySpeaking() {
+      var blocked = usable();
+      if (blocked) return Promise.resolve(blocked);
+      if (!m2Profile || !enabled || !playbackBlocked || !retrySpeech) return Promise.resolve({ ok: false, reason: 'NO_RETRY' });
+      var input = retrySpeech, capturedOwner = owner, contextReady;
+      try { contextReady = boundedAudioResume(unlockM2Audio()); } catch (_) { return Promise.resolve(fail('M2_AUDIO_UNAVAILABLE', 'Bu cihaz yanıt sesini oynatamıyor. Yazılı yanıt korunuyor.')); }
+      return Promise.resolve(contextReady).then(function () {
+        if (retrySpeech !== input || !accountCurrent(capturedOwner) || !visible() || !enabled) return { ok: false, reason: 'CANCELLED' };
+        spokenIds.delete(input.id);
+        return speak(input);
+      }).catch(function () {
+        if (retrySpeech !== input || !accountCurrent(capturedOwner) || !visible() || !enabled) return { ok: false, reason: 'CANCELLED' };
+        return fail('M2_AUDIO_GESTURE_REQUIRED', 'Telefon sesi henüz açamadı. Ses düğmesine yeniden dokun; yazılı yanıt korunuyor.');
+      });
     }
     function clearSpeechDeadline() {
       if (speechStartTimer !== null) { clearTimeout(speechStartTimer); speechStartTimer = null; }
@@ -574,10 +714,11 @@
     function startListening(input) {
       var blocked = usable();
       if (blocked) return Object.assign(blocked, { stop: function () {} });
-      if (m2Profile && enabled && m2) { try { Promise.resolve(unlockM2Audio()).catch(function () {}); } catch (_) {} }
+      if (m2Profile && m2) { try { Promise.resolve(unlockM2Audio()).catch(function () {}); } catch (_) {} }
       input = input || {};
       if (typeof Recognition !== 'function') return Object.assign(fail('RECOGNITION_UNAVAILABLE', 'Bu tarayıcı Türkçe ses tanımayı desteklemiyor. Yazabilirsin.'), { stop: function () {} });
       stopAll('restarted');
+      if (m2Profile) { playbackBlocked = false; retrySpeech = null; errorCode = null; }
       var epoch = listenEpoch;
       var account = owner;
       var current;
@@ -589,7 +730,7 @@
       current.continuous = false;
       current.interimResults = true;
       current.maxAlternatives = 1;
-      function valid() { return epoch === listenEpoch && recognition === current && accountCurrent(account); }
+      function valid() { return epoch === listenEpoch && recognition === current && accountCurrent(account) && visible(); }
       current.onstart = function () { if (valid()) { mode = 'listening'; error = null; notice = 'Dinliyorum.'; emit(); } };
       current.onresult = function (event) {
         if (!valid()) return;
@@ -611,6 +752,7 @@
         var ended = listenEnd;
         listenEnd = null;
         releaseMeasurement();
+        if (m2Profile && enabled) restoreAudioAfterCapture();
         mode = 'idle';
         notice = 'Dinleme bitti.';
         emit();
@@ -769,6 +911,7 @@
     });
     function startConversation(handlers) {
       var blocked = usable(); if (blocked) return blocked;
+      if (m2Profile) return fail('MANUAL_MIC_REQUIRED', 'Konuşmak için mikrofon düğmesine dokun. Mikrofon kendiliğinden açılmaz.');
       if (typeof Recognition !== 'function') return fail('RECOGNITION_UNAVAILABLE', 'Bu cihazda sürekli Türkçe ses tanıma yok. Yazarak konuşabilirsin.');
       handlers = handlers || {};
       stopAll('conversation');
@@ -815,6 +958,7 @@
       removers.push(function () { if (synth.onvoiceschanged === voicesHandler) synth.onvoiceschanged = previousVoicesHandler; });
     }
     bind(doc, 'visibilitychange', hidden);
+    if (m2Profile) bind(doc, 'oryvona:view-change', function () { if (!visible()) cancel(); });
     bind(doc, 'oryvona:studio-context-change', contextChanged);
     bind(win, 'pagehide', cancel);
     return Object.freeze({
@@ -835,12 +979,14 @@
       conversationActive: function () { return !!convo; },
       stopListening: function () { if (!destroyed) { stopListeningInternal('stopped'); emit(); } },
       speak: speak,
+      retrySpeaking: retrySpeaking,
       stopSpeaking: function () { if (!destroyed) { stopSpeakingInternal(); convoSpeechEnded(); emit(); } },
       cancel: cancel,
       destroy: function () {
         if (destroyed) return;
         stopConversation();
         stopAll('destroyed');
+        if (m2 && typeof m2.destroy === 'function') try { m2.destroy(); } catch (_) {}
         if (m2Context && typeof m2Context.close === 'function') { try { Promise.resolve(m2Context.close()).catch(function () {}); } catch (_) {} }
         m2Context = null;
         enabled = false;
