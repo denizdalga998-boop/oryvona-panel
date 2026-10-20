@@ -2,7 +2,7 @@
   "id": "/oryvona-panel/",
   "name": "ORYVONA ARGON",
   "short_name": "ARGON",
-  "description": "ORYVONA v26 — tüm stüdyo komuta merkezi, dört modlu Argon Orb ve Türkçe sesli asistan",
+  "description": "ORYVONA v26 STUDIO2 — Google AI Studio sohbet/ses ve iki sağlayıcılı iş akışı",
   "start_url": "/oryvona-panel/",
   "scope": "/oryvona-panel/",
   "display": "standalone",

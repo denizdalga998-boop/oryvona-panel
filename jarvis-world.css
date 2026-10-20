@@ -51,76 +51,7 @@
 .jw-message[data-role="assistant"]{padding:0}.jw-message[data-role="user"]{border-color:#315878;background:linear-gradient(140deg,#173b59,#10283f);max-width:94%}.jw-message-body{font-size:14px;line-height:1.75;user-select:text;-webkit-user-select:text}.jw-message-head{font-size:10px}.jw-project-label{border-color:#2e5f83;color:#84cde5;background:#10314a50}.jw-source{font-size:9px;color:#7b9bb7}.jw-source summary{min-height:32px}.jw-job{border-color:#31577a;background:linear-gradient(140deg,#10273edb,#09172aee);border-radius:17px}.jw-job-state{color:#8ce6f7;background:#123d54}.jw-job-field span{color:#789dba}.jw-job details{color:#84a4bf}
 .jw-composer-zone{grid-row:5;padding:8px 16px 12px;background:linear-gradient(0deg,#040a16 85%,#040a1600);min-width:0}.jw-composer{border:1px solid #346385;background:linear-gradient(135deg,#142c45,#0c1d32);box-shadow:0 7px 30px #0003,inset 0 1px #7cbceb08;min-height:56px;border-radius:29px;gap:2px;padding:5px}.jw-composer:focus-within{border-color:#53bedd}.jw-input{font-size:16px;line-height:24px;color:#e5f5ff;max-height:120px}.jw-input::placeholder{color:#83a3be}.jw-icon-button{color:#9cc3df;min-width:44px;min-height:44px;width:44px;height:44px;flex-basis:44px}.jw-icon-button:hover{background:#1a3e5a}.jw-send{background:#4dd8f5;color:#052238;box-shadow:0 0 16px #33c7ff1c}.jw-send:hover{background:#78e6ff}.jw-send:disabled{background:#17334a;color:#597e9b}.jw-mic[aria-pressed="true"]{background:#13475a;color:#8eecff;box-shadow:inset 0 0 0 1px #2a9cbb}.jw-composer-status{font-size:9px;max-height:34px;color:#7899b6;padding-top:4px;line-height:15px}.jw-composer-status[data-tone="error"]{color:#ffb4af}.jw-attachment{border-color:#285373;background:#10283e}.jw-clarify-actions button{background:#0e2c44;border-color:#2b6687;color:#b1dbf0}
 .jw-shell[data-conversation="true"]{--jw-orb-size:168px}.jw-shell[data-conversation="true"] .jw-orb-stage{padding-top:0;padding-bottom:8px}.jw-shell[data-conversation="true"] .jw-orb-hint{display:none}
-.jw-shell[data-compact="true"]{--jw-orb-size:88px}.jw-shell[data-compact="true"] .jw-header{grid-template-columns:minmax(0,1fr) auto 44px auto;padding:3px 10px;column-gap:5px;row-gap:0}.jw-shell[data-compact="true"] .jw-identity{grid-column:1}.jw-shell[data-compact="true"] .jw-daily-brief{grid-column:2;font-size:9px;padding-inline:9px}.jw-shell[data-compact="true"] .jw-output-toggle{grid-column:3}.jw-shell[data-compact="true"] .jw-activity-toggle{grid-column:4}.jw-shell[data-compact="true"] .jw-status{display:none}.jw-shell[data-compact="true"] .jw-orb-stage{padding-bottom:3px}.jw-shell[data-compact="true"] .jw-orb-label{font-size:8px;margin-top:-8px}.jw-shell[data-compact="true"] .jw-orb-hint{display:none}.jw-shell[data-compact="true"] .jw-composer-zone{padding:3px 10px 10px}.jw-shell[data-compact="true"] .jw-input{max-height:76px}.jw-shell[data-compact="true"] .jw-title{font-size:17px}.jw-shell[data-compact="true"] .jw-brand{display:none}
-.jw-shell[data-tight="true"] .jw-orb-stage{display:none}.jw-shell[data-tight="true"] .jw-header{display:none}.jw-shell[data-ultra="true"] .jw-thread{display:none}.jw-shell[data-ultra="true"] .jw-composer-zone{padding-top:0;padding-bottom:10px}
+.jw-shell[data-compact="true"]{--jw-orb-size:88px}.jw-shell[data-compact="true"] .jw-header{grid-template-columns:minmax(0,1fr) auto 44px auto;padding:3px 10px;column-gap:5px;row-gap:0}.jw-shell[data-compact="true"] .jw-identity{grid-column:1}.jw-shell[data-compact="true"] .jw-daily-brief{grid-column:2;font-size:9px;padding-inline:9px}.jw-shell[data-compact="true"] .jw-output-toggle{grid-column:3}.jw-shell[data-compact="true"] .jw-activity-toggle{grid-column:4}.jw-shell[data-compact="true"] .jw-status{display:none}.jw-shell[data-compact="true"] .jw-orb-stage{padding-bottom:3px}.jw-shell[data-compact="true"] .jw-orb-label{font-size:8px;margin-top:-8px}.jw-shell[data-compact="true"] .jw-orb-hint{display:none}.jw-shell[data-compact="true"] .jw-composer-zone{padding:3px 10px 12px}.jw-shell[data-compact="true"] .jw-input{max-height:76px}.jw-shell[data-compact="true"] .jw-title{font-size:17px}.jw-shell[data-compact="true"] .jw-brand{display:none}
+.jw-shell[data-tight="true"] .jw-orb-stage{display:none}.jw-shell[data-tight="true"] .jw-header{display:none}.jw-shell[data-ultra="true"] .jw-thread{display:none}.jw-shell[data-ultra="true"] .jw-composer-zone{padding-top:0;padding-bottom:12px}
 @media(max-width:480px){.jw-header{padding:7px 12px 3px;column-gap:6px}.jw-title{font-size:20px}.jw-daily-brief{padding:0 9px;font-size:9px}.jw-activity-toggle{padding:0 8px}.jw-timeline{padding:12px 14px 18px}.jw-composer-zone{padding:6px 10px 12px}.jw-message[data-role="user"]{max-width:96%}.jw-message-body{font-size:14px}.jw-orb-stage{padding-bottom:8px}.jw-brand{font-size:7px}.jw-status{font-size:8px}.jw-job-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(min-width:750px){.jw-shell{border-inline:1px solid #23426355}.jw-header{padding-inline:28px}.jw-shell{--jw-orb-size:248px}.jw-shell[data-conversation="true"]{--jw-orb-size:190px}.jw-shell[data-compact="true"]{--jw-orb-size:88px}}
-
-/* v27: the orbital core and conversation share one stage. The canvas is a
-   non-interactive background; scrolling, selection and controls stay above it.
-   Static translucent surfaces preserve contrast without a stack of live blurs. */
-.jw-root .jw-shell{--jw-orb-size:min(68vw,320px);grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;isolation:isolate;background:radial-gradient(ellipse at 50% 42%,#0c254c44,transparent 68%)}
-.jw-root .jw-header{grid-column:1;grid-row:1;position:relative;z-index:3;background:linear-gradient(180deg,#040a16e8,#040a1680 78%,#040a1600)}
-.jw-root .jw-banner{grid-column:1;grid-row:2;position:relative;z-index:3}
-.jw-root .jw-orb-stage{grid-column:1;grid-row:3;position:relative;z-index:0;align-self:stretch;justify-self:stretch;display:flex;align-items:center;justify-content:center;min-height:0;min-width:0;padding:0;overflow:hidden;pointer-events:none!important;user-select:none;-webkit-user-select:none}
-.jw-root .jw-energy,.jw-root .jw-shell[data-compact="true"] .jw-energy{width:var(--jw-orb-size);height:var(--jw-orb-size);max-width:none;max-height:none;margin:0;opacity:.72;background:radial-gradient(circle,#124b8124,transparent 68%);pointer-events:none!important;touch-action:auto;transition:opacity .2s ease}
-.jw-root .jw-energy canvas{pointer-events:none!important;touch-action:auto}
-.jw-root .jw-orb-label,.jw-root .jw-orb-hint{display:none}
-.jw-root .jw-thread{grid-column:1;grid-row:3;position:relative;z-index:1;align-self:stretch;min-height:0;min-width:0;border:0;background:linear-gradient(180deg,#040a1629,#040a160a 28%,#040a161a 72%,#040a164d);overscroll-behavior-y:contain;touch-action:pan-y;scroll-padding-block:18px;scrollbar-gutter:stable}
-.jw-root .jw-timeline{position:relative;min-height:100%;gap:16px;padding-block:18px 22px}
-.jw-root .jw-message{max-width:100%;border-radius:18px;box-shadow:0 3px 18px #00000012}
-.jw-root .jw-message[data-role="assistant"]{align-self:flex-start;width:fit-content;max-width:94%;padding:12px 15px;border:1px solid #6bbbd321;background:linear-gradient(135deg,#091a2ebd,#061222a8)}
-.jw-root .jw-message[data-role="user"]{align-self:flex-end;width:fit-content;max-width:90%;border-color:#70b9de33;border-radius:18px 18px 5px 18px;background:linear-gradient(140deg,#153a56cf,#10273db8)}
-.jw-root .jw-message-head{margin-bottom:6px;line-height:1.45}
-.jw-root .jw-message-body{color:#edf7ff;text-shadow:0 1px 3px #0106128c}
-.jw-root .jw-source{color:#9db7ce}
-.jw-root .jw-job{background:linear-gradient(140deg,#10273ed6,#09172ad6);border-color:#416b8a88}
-.jw-root .jw-empty{margin:auto 0;padding:24px 0;max-width:none;text-shadow:0 2px 12px #010611e6}
-.jw-root .jw-empty h2{max-width:530px;font-size:clamp(22px,5vw,30px);line-height:1.3;font-weight:500}
-.jw-root .jw-empty p{color:#b3c9dc;font-size:12px;line-height:1.65}
-.jw-root .jw-suggestions{gap:8px}
-.jw-root .jw-suggestion{background:#0c2036bf;border-color:#507da35c;color:#d2e8f7}
-.jw-root .jw-composer-zone{grid-column:1;grid-row:4;position:relative;z-index:3;min-width:0;background:linear-gradient(0deg,#040a16e8 34%,#040a16b8 78%,#040a1600)}
-.jw-root .jw-composer{background:linear-gradient(135deg,#142c45e8,#0c1d32e8);border-color:#5485a6a6;box-shadow:0 6px 24px #00000029,inset 0 1px #a8ddff0d}
-.jw-root .jw-composer-status{font-size:11px;line-height:16px;max-height:48px;color:#a8c0d5}
-.jw-root .jw-composer-status[data-tone="error"]{color:#ffc1ba}
-.jw-root .jw-shell[data-conversation="true"]{--jw-orb-size:min(68vw,320px)}
-.jw-root .jw-shell[data-conversation="true"] .jw-energy{opacity:.36}
-.jw-root .jw-shell[data-conversation="true"] .jw-orb-stage{padding:0}
-.jw-root .jw-shell[data-compact="true"]{--jw-orb-size:min(54vw,230px)}
-.jw-root .jw-shell[data-compact="true"] .jw-orb-stage{padding:0}
-.jw-root .jw-shell[data-compact="true"] .jw-energy{opacity:.28}
-.jw-root .jw-shell[data-compact="true"] .jw-timeline{padding-top:10px;padding-bottom:14px;gap:12px}
-.jw-root .jw-shell[data-compact="true"] .jw-message[data-role="assistant"],.jw-root .jw-shell[data-compact="true"] .jw-message[data-role="user"]{padding:10px 12px}
-.jw-root .jw-shell[data-compact="true"] .jw-composer-status{max-height:32px}
-.jw-root .jw-shell[data-tight="true"] .jw-orb-stage{display:flex}
-.jw-root .jw-shell[data-tight="true"] .jw-composer-status{max-height:32px}
-.jw-root .jw-shell[data-ultra="true"] .jw-orb-stage{display:none}
-.jw-root .jw-shell[data-micro="true"] .jw-composer-status{max-height:16px}
-@media(min-width:750px){.jw-root .jw-shell{--jw-orb-size:360px}.jw-root .jw-shell[data-conversation="true"]{--jw-orb-size:360px}.jw-root .jw-shell[data-compact="true"]{--jw-orb-size:230px}.jw-root .jw-message[data-role="assistant"]{max-width:88%}.jw-root .jw-message[data-role="user"]{max-width:80%}}
-@media(max-width:480px){.jw-root .jw-timeline{padding-inline:12px}.jw-root .jw-message[data-role="assistant"]{max-width:97%}.jw-root .jw-message[data-role="user"]{max-width:94%}.jw-root .jw-composer-zone{padding-inline:10px}.jw-root .jw-message-body{font-size:14px;line-height:1.7}}
-@media(max-width:359px){.jw-root .jw-shell .jw-header{grid-template-columns:minmax(0,1fr) 44px auto;gap:3px 6px}.jw-root .jw-header .jw-daily-brief{grid-column:1/-1;grid-row:3;justify-self:start;min-height:36px;padding-inline:10px}.jw-root .jw-header .jw-output-toggle{grid-column:2}.jw-root .jw-header .jw-activity-toggle{grid-column:3}.jw-root .jw-header .jw-status{grid-row:2}.jw-root .jw-timeline{padding-inline:8px}.jw-root .jw-message[data-role="assistant"],.jw-root .jw-message[data-role="user"]{padding:10px 12px}.jw-root .jw-composer-zone{padding-inline:6px}}
-@media(max-width:299px){.jw-root .jw-composer{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:2px;border-radius:20px}.jw-root .jw-input{grid-column:1/-1;grid-row:1;width:100%;padding-inline:10px}.jw-root .jw-composer>.jw-icon-button{grid-row:2}.jw-root .jw-composer>.jw-icon-button:first-child{grid-column:1}.jw-root .jw-composer>.jw-mic{grid-column:2;justify-self:end}.jw-root .jw-composer>.jw-send{grid-column:3}}
-@media(prefers-reduced-motion:reduce){.jw-root .jw-energy{transition:none}.jw-root .jw-thread{scroll-behavior:auto}}
-
-/* Persistent voice state stays with the composer; optional details float above it. */
-.jw-root .jw-voice-state{position:relative;display:flex;align-items:center;gap:8px;min-width:0;min-height:28px;margin:4px 3px 0;color:#9fbcd4;font-size:11px;line-height:1.4}
-.jw-root .jw-voice-state-label{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;word-break:normal}
-.jw-root .jw-voice-state[data-phase="speaking"] .jw-voice-state-label{color:#8de6ec}
-.jw-root .jw-voice-state[data-phase="listening"] .jw-voice-state-label{color:#f2cf8c}
-.jw-root .jw-voice-state[data-tone="error"] .jw-voice-state-label{color:#ffc1ba}
-.jw-root .jw-voice-details{flex:0 0 auto;min-width:0;max-width:100%;font-size:10px;color:#9dbbd2}
-.jw-root .jw-voice-details>summary{display:flex;align-items:center;justify-content:flex-end;gap:5px;min-height:28px;padding:3px 2px;cursor:pointer;list-style:none;white-space:nowrap;color:#a6c7df}
-.jw-root .jw-voice-details>summary::-webkit-details-marker{display:none}
-.jw-root .jw-voice-details>summary::after{content:'+';width:12px;text-align:center;color:#8de6ec;font-size:14px;line-height:1}
-.jw-root .jw-voice-details[open]>summary::after{content:'\2212'}
-.jw-root .jw-voice-details>summary:focus-visible{outline:2px solid var(--jw-accent);outline-offset:2px;border-radius:5px}
-.jw-root .jw-voice-details[open]{position:absolute;z-index:8;inset-inline-end:0;bottom:0;width:min(340px,100%);max-height:min(220px,55dvh);padding:5px 10px 8px;overflow:auto;overscroll-behavior:contain;border:1px solid #4b7391;border-radius:12px;background:#071525f5;box-shadow:0 6px 24px #00000055}
-.jw-root .jw-voice-debug{display:block;min-width:0;max-width:100%;max-height:112px;margin:2px 0 6px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;color:#c9dceb;font:10px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;user-select:text!important;-webkit-user-select:text!important;-webkit-touch-callout:default!important}
-.jw-root .jw-voice-copy,.jw-root .jw-reply-listen{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:48px;min-height:32px;padding:5px 10px;border:1px solid #4a779766;border-radius:999px;background:#12334db3;color:#bde6f8;font-size:11px;font-weight:550;line-height:1.25;white-space:nowrap;text-decoration:none;touch-action:manipulation}
-.jw-root .jw-reply-listen{margin-inline-start:auto;align-self:center}
-.jw-root .jw-voice-copy:disabled,.jw-root .jw-reply-listen:disabled{opacity:.45;cursor:default}
-.jw-root .jw-voice-copy:focus-visible,.jw-root .jw-reply-listen:focus-visible{outline:2px solid var(--jw-accent);outline-offset:2px}
-@media(max-width:359px){.jw-root .jw-voice-state{gap:6px;margin-inline:1px;font-size:10px}.jw-root .jw-voice-details>summary{font-size:10px}.jw-root .jw-reply-listen{padding-inline:8px}}
-@media(pointer:coarse){.jw-root .jw-voice-details>summary{min-height:32px}.jw-root .jw-voice-copy,.jw-root .jw-reply-listen{min-height:36px}}
-@media(prefers-reduced-motion:reduce){.jw-root .jw-voice-state *{scroll-behavior:auto}}

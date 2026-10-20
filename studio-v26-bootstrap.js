@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const VIEWS=['home','feed','tests','store','jarvis'];
-  let mountedKey=null,bridge=null,data=null,voice=null,decisions=null,disposed=false,mounting=false;
+  let mountedKey=null,bridge=null,data=null,voice=null,geminiClient=null,decisions=null,disposed=false,mounting=false;
   let timer=null,pendingSync=0,lastRefresh=0,dataUnsub=null;
   const worlds=new Map(),listeners=[];
   const host=()=>window.OryvonaStudioHost;
@@ -29,8 +29,8 @@
     syncCompatibility(true);
     if(dataUnsub)dataUnsub();dataUnsub=null;
     for(const record of worlds.values())try{record.ui.destroy();}catch{}worlds.clear();
-    try{decisions?.destroy?.();}catch{}try{voice?.destroy();}catch{}try{data?.destroy();}catch{}try{bridge?.dispose();}catch{}
-    bridge=data=voice=decisions=null;mountedKey=null;
+    try{geminiClient?.destroy?.();}catch{}try{decisions?.destroy?.();}catch{}try{voice?.destroy();}catch{}try{data?.destroy();}catch{}try{bridge?.dispose();}catch{}
+    bridge=data=voice=geminiClient=decisions=null;mountedKey=null;
     for(const view of VIEWS)rootFor(view)?.replaceChildren();
   }
   function fail(message){for(const view of VIEWS){const root=rootFor(view);if(!root)continue;root.replaceChildren();const p=document.createElement('p');p.className='sv-boot-error';p.setAttribute('role','status');p.textContent=message;root.appendChild(p);}const boot=document.getElementById('jarvisV23BootMessage');if(boot)boot.hidden=true;}
@@ -40,7 +40,7 @@
     document.body.classList.toggle('oryvona-jarvis-world',view==='jarvis');
     for(const [name,record]of worlds){const active=visible&&view===name;if(record.active!==active){record.active=active;record.ui.setActive(active);}}
     syncCompatibility();
-    if(!visible||view!=='jarvis')voice?.cancel(!visible?'page-hidden':'view-left');
+    if(!visible||view!=='jarvis')voice?.cancel();
   }
   async function refresh(force=false){
     if(disposed||document.hidden||!data||!bridge)return;
@@ -50,7 +50,7 @@
   function mount(){
     if(mounting||disposed)return;mounting=true;
     try{
-      const required=['OryvonaJarvisBridge','OryvonaStudioDataV26','OryvonaJarvisBrief','OryvonaJarvisVoice','OryvonaStudioWorldV26','OryvonaJarvisWorld','OryvonaStudioDecisionsV26'];
+      const required=['OryvonaStudioGemini','OryvonaJarvisBridge','OryvonaStudioDataV26','OryvonaJarvisBrief','OryvonaJarvisVoice','OryvonaStudioWorldV26','OryvonaJarvisWorld','OryvonaStudioDecisionsV26'];
       if(!host()||!window.OryvonaPanel||required.some(name=>!window[name]))throw Error('COMPONENT_UNAVAILABLE');
       disposeMount();
       bridge=window.OryvonaJarvisBridge.create(host());
@@ -61,19 +61,18 @@
         async refreshStudioSnapshot(){const captured=bridge.getAccountKey(),answer=await panel.refreshStudioSnapshot(captured);return captured===bridge.getAccountKey()?answer:panel.getStudioSnapshot(bridge.getAccountKey());}
       };
       data=window.OryvonaStudioDataV26.create({panel:scopedPanel,bridge,document});
-      // Approved M2 runs on this device after explicit model-download consent. No device/Google TTS fallback.
-      voice=window.OryvonaJarvisVoice.create({getAccountKey:()=>bridge?.getAccountKey()||null,getPreferenceKey:()=>bridge?.getAccountKey()?context().userId||null:null,profile:'supertonic-3-M2',localOnly:true,measureInput:true,tone:'argon',
-        // Barge-in: inside the APK Argon's own voice comes back louder through the phone speaker, so the owner must be clearly louder.
-        bargeInLevel:window.ArgonNative?0.16:0.07});
+      // Google audio is available only after an explicit phone gesture. No call runs at mount.
+      geminiClient=window.OryvonaStudioGemini.create({host:host(),getAccountKey:()=>bridge?.getAccountKey()||null,window});
+      voice=window.OryvonaJarvisVoice.create({geminiClient,getAccountKey:()=>bridge?.getAccountKey()||null,window});
       decisions=window.OryvonaStudioDecisionsV26.create({host:host(),getAccountKey:()=>bridge?.getAccountKey()||null,getSnapshot:()=>data.getSnapshot()});
       const feedback=payload=>decisions.record({...payload,kind:'feedback'});
       const approve=payload=>decisions.record({...payload,kind:'accept'});
       for(const view of VIEWS){const root=rootFor(view);if(!root)throw Error('VIEW_ROOT_MISSING');const ui=view==='jarvis'?
-        window.OryvonaJarvisWorld.mount(root,{bridge,studioData:data,voice,brief:window.OryvonaJarvisBrief,mode:'live',showActivity:true,bottomInset}):
+        window.OryvonaJarvisWorld.mount(root,{bridge,studioData:data,voice,geminiClient,brief:window.OryvonaJarvisBrief,mode:'live',showActivity:true,bottomInset}):
         window.OryvonaStudioWorldV26.mount(root,{data,bridge,view,onOpenTests:id=>panel.openTests(id),onFeedback:feedback,onApprove:approve});
         worlds.set(view,{ui,active:null});
       }
-      dataUnsub=data.subscribe(snapshot=>{if(snapshot.accountKey!==bridge?.getAccountKey())voice?.cancel('owner-data-mismatch');});
+      dataUnsub=data.subscribe(snapshot=>{if(snapshot.accountKey!==bridge?.getAccountKey())voice?.cancel();});
       mountedKey=key();window.__oryvonaJarvisV23Mounted=true;
       const old=document.getElementById('jarvisLegacySurface');if(old)old.hidden=true;
       const notice=document.getElementById('jarvisV23BootMessage');if(notice)notice.hidden=true;

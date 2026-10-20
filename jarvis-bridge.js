@@ -60,6 +60,20 @@
       close: async () => { if (ready) (await ready).close(); }
     };
   }
+  function normalizeRoute(value) {
+    if (value == null) return null;
+    if (!value || typeof value !== 'object' || Array.isArray(value) || value.schemaVersion !== 1 || value.provider !== 'claude' || value.environment !== 'local' || !['work','plan'].includes(value.executionMode) || !['low','medium','high'].includes(value.effort) || Object.keys(value).some(k => !['schemaVersion','provider','environment','executionMode','effort'].includes(k))) throw error('UNSUPPORTED_EXECUTION_ROUTE', 'Bu yürütme yolu bağlı değil. Yalnız doğrulanmış Claude / yerel işçi destekleniyor.');
+    return {schemaVersion:1,provider:value.provider,environment:value.environment,executionMode:value.executionMode,effort:value.effort};
+  }
+  function normalizeStudioFlow(value) {
+    if(value==null)return null;
+    if(!value||typeof value!=='object'||Array.isArray(value)||value.schemaVersion!==1||!UUID.test(value.sourceRequestId||'')||Object.keys(value).length!==2)throw error('STUDIO_FLOW_META_INVALID','Görev kaynağı doğrulanamadı.');
+    return {schemaVersion:1,sourceRequestId:value.sourceRequestId};
+  }
+  function cleanBrainPending(value) {
+    if (!value || !UUID.test(value.requestId || '') || typeof value.text !== 'string' || !value.text.trim() || value.text.length > 2000 || !['low','medium','high'].includes(value.mode)) return null;
+    return {requestId:value.requestId,text:value.text,mode:value.mode,...(value.terminal===true?{terminal:true}:{}),history:(Array.isArray(value.history)?value.history:[]).slice(-12).filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.text==='string').map(m=>({role:m.role,text:m.text.slice(0,1200)}))};
+  }
   function createHostPort(callbacks) {
     const map = { getConnection: callbacks.getConnection, submitIntent: callbacks.submitIntent, listIntents: callbacks.listIntents, cancelIntent: callbacks.cancelIntent, uploadEvidence: callbacks.uploadEvidence };
     return Object.freeze({
@@ -185,21 +199,15 @@
     }
     /** ARGON canlı beyin: one conversational turn answered by the model on DJ-KABIN; returns its reply and proposed tool calls. */
     async function askBrain(payload) {
+      let requestId=null;
       try {
-        requireAccountKey(payload && payload.accountKey);
-        await syncAccount(); const id = contextOwner(); if (!id || id !== ownerId) throw error('AUTH_REQUIRED', 'Sahip hesabınla giriş yap.');
-        const text = String(payload.text || '').trim(); if (!text || text.length > 2000) throw error('TEXT_INVALID', 'Mesaj 1–2000 karakter olmalı.');
-        const requestId = globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function' ? globalThis.crypto.randomUUID() : null; if (!requestId) throw error('UNAVAILABLE', 'Bu tarayıcı güvenli kimlik üretemiyor.');
-        await request('askBrain', { requestId, text, history: Array.isArray(payload.history) ? payload.history : [], mode: payload.mode }, id);
-        const deadline = now() + (Number(payload.timeoutMs) > 0 ? Number(payload.timeoutMs) : 95000), wait = ms => new Promise(r => setTimeout(r, ms));
-        while (now() < deadline) {
-          if (payload.signal && payload.signal.aborted) return { ok: false, aborted: true, requestId, answer_tr: '' };
-          await wait(Number(payload.pollMs) > 0 ? Number(payload.pollMs) : 900); requireAccountKey(payload.accountKey);
-          const answer = await request('getBrainAnswer', { requestId }, id);
-          if (answer && (answer.status === 'done' || answer.status === 'failed')) return { ok: answer.status === 'done', answer_tr: String(answer.answer_tr || ''), actions: Array.isArray(answer.actions) ? answer.actions : [], model: answer.model || null, status: answer.receipt && answer.receipt.status || null, requestId };
-        }
-        return { ok: false, timeout: true, requestId, answer_tr: 'DJ-KABIN\'deki beyin şu an yanıt vermiyor efendim (işçi kapalı ya da Claude girişi bekleniyor). Mesajın kayıtlı.' };
-      } catch (e) { return { ok: false, code: e.code || 'BRAIN_FAILED', answer_tr: e.message || 'Beyne ulaşılamadı.' }; }
+        requireAccountKey(payload&&payload.accountKey);await syncAccount();const id=requireOwner();requireAccountKey(payload.accountKey);
+        const text=String(payload.text||'').trim();if(!text||text.length>2000)throw error('TEXT_INVALID','Mesaj 1–2000 karakter olmalı.');
+        requestId=payload.requestId||globalThis.crypto?.randomUUID();if(!UUID.test(requestId||''))throw error('REQUEST_ID_REQUIRED','Geçerli istek kimliği gerekli.');
+        const answer=await request('geminiChat',{requestId,text,history:Array.isArray(payload.history)?payload.history:[],mode:payload.mode,signal:payload.signal},id);
+        requireAccountKey(payload.accountKey);
+        return {...answer,ok:answer?.ok===true,requestId,answer_tr:String(answer?.answer_tr||answer?.reply_tr||''),actions:Array.isArray(answer?.actions)?answer.actions:[]};
+      } catch(e) { return {ok:false,requestId,code:e.code||'GEMINI_FAILED',answer_tr:e.message||'Google AI Studio bağlantısı hazırlanmalı. Mesaj kod işçisine aktarılmadı.'}; }
     }
     async function submitIntent(payload) {
       try {
@@ -213,8 +221,10 @@
         if (payload.scope != null && payload.scope !== projectId) throw error('PROJECT_MISMATCH', 'Sohbet kapsamı ve hedef proje uyuşmuyor.');
         if (typeof payload.text !== 'string' || !payload.text.trim() || payload.text.length > MAX_TEXT) throw error('TEXT_INVALID', 'İsteğini 1–12.000 karakterle yaz.');
         const attachments = await refsFor(payload.attachments || [], id);
-        const fingerprint = await hash(canonical({ text: payload.text, projectId, attachments })); guardedContext(id);
-        const row = { key: key(id, requestId), ownerId: id, requestId, text: payload.text, projectId, attachments, fingerprint, status: 'pending', createdAt: now(), updatedAt: now(), attempts: 0, nextAttemptAt: 0 };
+        const route = normalizeRoute(payload.route);
+        const studioFlow = normalizeStudioFlow(payload.studioFlow);
+        const fingerprint = await hash(canonical({ text: payload.text, projectId, attachments, ...(route ? {route} : {}), ...(studioFlow ? {studioFlow} : {}) })); guardedContext(id);
+        const row = { key: key(id, requestId), ownerId: id, requestId, text: payload.text, projectId, attachments, ...(route ? {route} : {}), ...(studioFlow ? {studioFlow} : {}), fingerprint, status: 'pending', createdAt: now(), updatedAt: now(), attempts: 0, nextAttemptAt: 0 };
         const saved = await store.saveIntent(row); guardedContext(id);
         if (saved.conflict) throw error('REQUEST_CONFLICT', 'Bu istek kimliği farklı içerikle kullanılmış. Yeni bir istek oluştur.');
         if (saved.full) throw error('OUTBOX_FULL', 'Yerel kuyruk dolu. Bekleyen istekler iletilince tekrar dene.');
@@ -242,7 +252,7 @@
         const cancelling = row.status === 'cancel_pending' || row.cancelRequested === true;
         try {
           if (!cancelling) await uploadRefs(row, id);
-          const remote = await request(cancelling ? 'cancelIntent' : 'submitIntent', cancelling ? { requestId: row.requestId } : { requestId: row.requestId, text: row.text, requestedProject: row.projectId, attachments: row.attachments }, id);
+          const remote = await request(cancelling ? 'cancelIntent' : 'submitIntent', cancelling ? { requestId: row.requestId } : { requestId: row.requestId, text: row.text, requestedProject: row.projectId, attachments: row.attachments, ...(row.route ? {route:normalizeRoute(row.route)} : {}), ...(row.studioFlow ? {studioFlow:normalizeStudioFlow(row.studioFlow)} : {}) }, id);
           if (!remote || (remote.request_id || remote.requestId || remote.id) !== row.requestId || (remote.requested_project && remote.requested_project !== row.projectId)) throw error('PAYLOAD_MISMATCH', 'Sunucu istek kaydı eşleşmedi.');
           const latest = await store.get('outbox', row.key); guardedContext(id);
           await store.put('outbox', Object.assign({}, latest || row, { status: cancelling ? remote.status === 'cancelled' ? 'cancelled' : 'cancel_requested' : latest && latest.status === 'cancel_pending' ? 'cancel_pending' : 'acknowledged', updatedAt: now(), lastError: null, remote }));
@@ -302,8 +312,8 @@
       return { status: 'clarify', question: 'İsteğin hangi projeye ait?', candidates: PROJECTS.slice() };
     }
     const drafts = {
-      load: async scope => { await syncAccount(); if (!ownerId || !store) return { text: '', attachments: [] }; const id = ownerId, gen = generation, row = await store.get('drafts', key(id, scope || 'studio')); return gen === generation && id === contextOwner() && row ? { text: row.text, attachments: row.attachments } : { text: '', attachments: [] }; },
-      save: async (scope, value) => { requireAccountKey(value.accountKey); await syncAccount(); const id = requireOwner(); requireAccountKey(value.accountKey); if (scope != null && !PROJECTS.includes(scope)) throw error('PROJECT_REQUIRED', 'Geçersiz kapsam.'); if (typeof value.text !== 'string' || value.text.length > MAX_TEXT) throw error('TEXT_INVALID', 'Taslak çok uzun.'); if (!Array.isArray(value.attachments || []) || (value.attachments || []).length > MAX_FILES) throw error('ATTACHMENTS_INVALID','En fazla üç görsel.'); await store.put('drafts', { key: key(id, scope || 'studio'), ownerId: id, text: value.text, attachments: (value.attachments || []).map(x => ({ id: x.id, name: String(x.name || '').slice(0,124), mime: x.mime, size: x.size })), updatedAt: now() }); guardedContext(id); }
+      load: async scope => { await syncAccount(); if (!ownerId || !store) return { text: '', attachments: [] }; const id = ownerId, gen = generation, row = await store.get('drafts', key(id, scope || 'studio')); return gen === generation && id === contextOwner() && row ? { text: row.text, attachments: row.attachments, brainPending:cleanBrainPending(row.brainPending) } : { text: '', attachments: [] }; },
+      save: async (scope, value) => { requireAccountKey(value.accountKey); await syncAccount(); const id = requireOwner(); requireAccountKey(value.accountKey); if (scope != null && !PROJECTS.includes(scope)) throw error('PROJECT_REQUIRED', 'Geçersiz kapsam.'); if (typeof value.text !== 'string' || value.text.length > MAX_TEXT) throw error('TEXT_INVALID', 'Taslak çok uzun.'); if (!Array.isArray(value.attachments || []) || (value.attachments || []).length > MAX_FILES) throw error('ATTACHMENTS_INVALID','En fazla üç görsel.'); await store.put('drafts', { key: key(id, scope || 'studio'), ownerId: id, text: value.text, brainPending:cleanBrainPending(value.brainPending), attachments: (value.attachments || []).map(x => ({ id: x.id, name: String(x.name || '').slice(0,124), mime: x.mime, size: x.size })), updatedAt: now() }); guardedContext(id); }
     };
     async function processFile(file, id) {
       if (!file || file.size > MAX_RAW || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw error('IMAGE_INVALID', 'JPEG, PNG veya WebP seç; dosya en fazla 5 MB olabilir.');
@@ -382,5 +392,5 @@
     }
     return null;
   }
-  return Object.freeze({ create, createHostPort, PROJECTS, readImageDimensions, canonical, classifyFailure, makeIDB, limits: Object.freeze({ MAX_TEXT, MAX_ITEMS, MAX_RAW, MAX_IMAGE, MAX_TOTAL, MAX_FILES }) });
+  return Object.freeze({ create, createHostPort, PROJECTS, readImageDimensions, canonical, classifyFailure, normalizeRoute, makeIDB, limits: Object.freeze({ MAX_TEXT, MAX_ITEMS, MAX_RAW, MAX_IMAGE, MAX_TOTAL, MAX_FILES }) });
 });

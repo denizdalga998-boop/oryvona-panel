@@ -18,6 +18,7 @@
       status: row.status === 'cancelled' ? 'cancelled' : row.status === 'failed' ? 'failed' : row.status === 'done' ? 'completed' : row.status === 'running' ? 'running' : receipt ? 'claimed' : 'recorded',
       cancel_requested: row.status === 'cancelled', worker_id: receipt?.workerId || null, receipt, note_tr: String(r.note_tr || '').slice(0, 600),
       ...(r.execution && r.execution.projectId ? { workspace_label: 'izole çalışma klasörü' } : {}),
+      studioFlow: r.studioFlow || r.execution?.studioFlow || r.receipt?.studioFlow || null,
       created_at: row.created_at,
       finished_at: row.finished_at || null,
       stage: typeof r.execution?.stage === 'string' ? r.execution.stage : null,
@@ -26,14 +27,26 @@
   }
   const PROVIDER_SUFFIX = { auth_required: ' · Claude girişi bekleniyor', quota_wait: ' · Claude kotası bekleniyor', missing: ' · Claude aracı bulunamadı', auth_method_rejected: ' · Claude giriş türü reddedildi', cli_incompatible: ' · Claude aracı uyumsuz' };
   function providerSuffix(state) { return Object.prototype.hasOwnProperty.call(PROVIDER_SUFFIX, state) ? PROVIDER_SUFFIX[state] : ' · AI işçisi hazır değil'; }
+  function normalizeRoute(value) {
+    if (value == null) return null;
+    if (!value || typeof value !== 'object' || Array.isArray(value) || value.schemaVersion !== 1 || value.provider !== 'claude' || value.environment !== 'local' || !['work','plan'].includes(value.executionMode) || !['low','medium','high'].includes(value.effort) || Object.keys(value).some(k => !['schemaVersion','provider','environment','executionMode','effort'].includes(k))) throw failure('UNSUPPORTED_EXECUTION_ROUTE', 'Yürütme yolu doğrulanmadı. Bulut ve OpenAI işçisi bağlı değil; başka işçiye çevrilmedi.');
+    return {schemaVersion:1,provider:value.provider,environment:value.environment,executionMode:value.executionMode,effort:value.effort};
+  }
+  function normalizeStudioFlow(value) {
+    if(value==null)return null;
+    if(!value||typeof value!=='object'||Array.isArray(value)||value.schemaVersion!==1||!UUID.test(value.sourceRequestId||'')||Object.keys(value).length!==2)throw failure('STUDIO_FLOW_META_INVALID','Görev kaynağı doğrulanamadı.');
+    return {schemaVersion:1,sourceRequestId:value.sourceRequestId};
+  }
   function create(options) {
     const client = options.client, getContext = options.getContext;
     if (!client || typeof getContext !== 'function') throw new TypeError('Private Supabase client and getContext required');
     async function guard(payload) {
+      if (payload?.signal?.aborted) throw failure('CANCELLED', 'İstek iptal edildi.');
       const context = getContext();
       if (!context.authenticated || !context.isOwner || context.demo || !UUID.test(context.userId || '') || context.userId !== payload.expectedUserId) throw failure('AUTH_CHANGED', 'Sahip oturumu değişti.');
       const { data, error } = await client.auth.getSession(); if (error) throw error;
       const after = getContext();
+      if (payload?.signal?.aborted) throw failure('CANCELLED', 'İstek iptal edildi.');
       if (!data.session || data.session.user.id !== payload.expectedUserId || !after.authenticated || !after.isOwner || after.demo || after.userId !== payload.expectedUserId || !data.session.user.email) throw failure('AUTH_CHANGED', 'Oturum yeniden doğrulanmalı.');
       return { ...after, email: data.session.user.email.toLowerCase() };
     }
@@ -51,6 +64,63 @@
     }
     async function request(operation, payload) {
       const context = await guard(payload);
+      const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+      async function poll(getAnswer, timeoutMs = 95000, complete = answer => answer && ['done','failed','cancelled'].includes(answer.status)) {
+        const deadline = Date.now() + timeoutMs;
+        while (Date.now() < deadline) {
+          if (payload.signal?.aborted) throw failure('CANCELLED', 'İstek iptal edildi.');
+          await guard(payload);
+          const answer = await getAnswer();
+          await guard(payload);
+          if (complete(answer)) return answer;
+          await wait(400);
+        }
+        throw failure('PENDING', 'Google yanıtı bekleniyor; aynı istek kimliği korunuyor.');
+      }
+      if (operation === 'geminiChat') {
+        await request('askBrain', payload);
+        const answer = await poll(async () => (await request('getBrainAnswer', payload)).data);
+        const ok = answer.status === 'done' && answer.provider === 'google' && answer.transport === 'google-ai-studio-api' && answer.model_verified === true;
+        return { ...answer, ok, requestId: payload.requestId, terminal: answer.status !== 'done', status: answer.receipt?.status || answer.status };
+      }
+      if (operation === 'geminiTts' || operation === 'geminiLiveToken') {
+        if (!UUID.test(payload.requestId || '') || !['Puck','Charon','Fenrir'].includes(payload.voice || 'Puck')) throw failure('PAYLOAD_MISMATCH', 'Google ses isteği geçersiz.');
+        const service = operation === 'geminiTts' ? 'tts' : 'live_token';
+        if (service === 'tts' && (typeof payload.text !== 'string' || !payload.text.trim() || payload.text.length > 2400)) throw failure('PAYLOAD_MISMATCH', 'Ses metni 1–2400 karakter olmalı.');
+        const text = service === 'tts' ? payload.text : 'Argon canlı ses oturumu';
+        const servicePayload = { ...(service === 'tts' ? {text:payload.text} : {}), voice:payload.voice || 'Puck' };
+        const hash = await digest(new TextEncoder().encode(canonical({text,operation:'studio_gemini_service',service,payload:servicePayload})));
+        await guard(payload);
+        await insert({id:payload.requestId,project_id:'koza',action:'gemini_review',text,status:'queued',created_by:context.email,runner:LANE,
+          result:{operation:'studio_gemini_service',transport:'commands-isolated-v24',owner_id:context.userId,client_request_id:payload.requestId,service,servicePayload,payload_hash:hash}},context);
+        const row = await poll(() => find(payload.requestId, context));
+        await guard(payload);
+        if (row.result?.operation !== 'studio_gemini_service' || row.result?.service !== service || row.result?.payload_hash !== hash) throw failure('PAYLOAD_MISMATCH', 'Google yanıt kapsamı değişti.');
+        const answer = row.result?.serviceResult;
+        if (row.status !== 'done') return {ok:false,status:row.status === 'cancelled'?'cancelled':'service_failed'};
+        return answer && typeof answer === 'object' ? answer : {ok:false,status:'service_unavailable'};
+      }
+      if (operation === 'createWorkerTask') {
+        if (!UUID.test(payload.requestId || '') || !UUID.test(payload.sourceRequestId || '') || typeof payload.sourceText !== 'string' || payload.sourceText.length > 2000 || payload.instruction !== payload.sourceText || !PROJECTS.includes(payload.project)) throw failure('PAYLOAD_MISMATCH', 'Özgün sesli görev doğrulanamadı.');
+        // The authenticated owner's exact transcript is the command; model-written instructions never replace it.
+        const source = payload.sourceText.normalize('NFKC').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
+        const aliases = {koza:/\bkoza\b/,'charm-drop':/\bcharm[ -]?drop\b/,'forge-run':/\bforge[ -]?run\b/,aeryo:/\baeryo\b/,tupsper:/\b(?:tupsper|tuckspire)\b/,'oryvona-panel':/\b(?:oryvona[ -]?panel|panel\w*|(?:jarvis|argon)\s+(?:sistem\w*|panel\w*|uygulama\w*)|uygulama\w*)\b/};
+        const named = PROJECTS.filter(id=>aliases[id].test(source));
+        if (named.length !== 1 || named[0] !== payload.project || /\b(?:nasil|neden|desem|desek|diyelim|varsayalim|farz|ornek)\b/.test(source) || /\b(?:yapma|duzeltme|baslatma|gonderme|calistirma|istemiyorum|sadece sohbet|ornek|varsayalim|yayinla|publish|production|deploy|sil|delete|format|wipe)\b/.test(source)
+          || !/\b(?:duzelt\w*|gelistir\w*|ekle\w*|uygula\w*|guncelle\w*|onar\w*|hazirla\w*|olustur\w*|degistir\w*|test et|incele\w*|denetle\w*|calismiyor|bozuk|tasiyor|kesiliyor|donuyor|cokuyor|hata var)\b/.test(source)) throw failure('EXPLICIT_OWNER_TASK_REQUIRED', 'Sohbet işçiye gönderilmedi; açık görev ve tek proje gerekiyor.');
+        const sessionRow = await find(payload.sourceRequestId,context);
+        await guard(payload);
+        const live = sessionRow?.result;
+        const expiresAt=Date.parse(live?.serviceResult?.expiresAt || '');
+        if (sessionRow?.status !== 'done' || live?.operation !== 'studio_gemini_service' || live?.service !== 'live_token' || live?.serviceResult?.ok !== true || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) throw failure('LIVE_SESSION_REQUIRED', 'Geçerli sahip ses oturumu doğrulanamadı.');
+        const expectedHash = await digest(new TextEncoder().encode(canonical({text:payload.sourceText,requested_project:payload.project,attachments:[]})));
+        await request('submitIntent',{expectedUserId:payload.expectedUserId,signal:payload.signal,requestId:payload.requestId,requestedProject:payload.project,text:payload.sourceText,attachments:[]});
+        const row = await poll(() => find(payload.requestId,context),12000, row => !!row && (['done','failed','cancelled'].includes(row.status) || (row.runner === 'DJ-KABIN:v24-queued' && typeof row.result?.receipt?.flowId === 'string')));
+        const receipt = row.result?.receipt;
+        const r = row.result;
+        const durable = !['failed','cancelled'].includes(row.status) && row.runner === 'DJ-KABIN:v24-queued' && r?.operation === 'studio_v24_intent' && r?.owner_id === context.userId && r?.client_request_id === payload.requestId && r?.target_game === payload.project && r?.payload_hash === expectedHash && UUID.test(receipt?.flowId || '') && ['STUDIO_FLOW_QUEUED','STUDIO_FLOW_WAITING','STUDIO_FLOW_RUNNING','USER_TEST_READY'].includes(receipt.status);
+        return {accepted:durable,status:durable?'durably_queued':'not_queued',requestId:row.id,flowId:durable?receipt.flowId:null};
+      }
       if (operation === 'getConnection') {
         const [probe, status] = await Promise.all([
           client.from('commands').select('id').eq('project_id','koza').limit(1),
@@ -61,15 +131,15 @@
         const alive = worker?.host === 'DJ-KABIN' && worker?.adapter === 'commands-isolated-v24' && worker?.ingressReady === true && worker?.extraModelSpendAllowed === 0 && !worker?.stopped && Number.isFinite(age) && age >= -5000 && age < 20000;
         const provider = worker && worker.provider && typeof worker.provider === 'object' && !Array.isArray(worker.provider) ? worker.provider : null, providerState = provider && typeof provider.state === 'string' ? provider.state : null;
         const suffix = alive && provider && providerState !== 'ready' ? providerSuffix(providerState) : '';
-        return { status: alive ? 'connected' : 'waiting', label: (alive ? 'DJ-KABIN · Canlı Bağlı' : 'Güvenli kuyruk bağlı · DJ-KABIN sinyali bekleniyor') + suffix, submitAvailable: true, workerOnline: alive, attachmentsAvailable: worker?.evidenceBucketReady === true, providerState, executionEnabled: worker?.executionEnabled === true, lastSeen: worker?.lastSeen || null };
+        return { status: alive ? 'connected' : 'waiting', label: (alive ? 'DJ-KABIN · Canlı Bağlı' : 'Güvenli kuyruk bağlı · DJ-KABIN sinyali bekleniyor') + suffix, submitAvailable: true, workerOnline: alive, attachmentsAvailable: worker?.evidenceBucketReady === true, providerState, executionEnabled: worker?.executionEnabled === true, studioMode: alive && worker?.studioMode === true, studioFlow: alive && worker?.studioMode === true ? worker.studioFlow || null : null, nativeChat: alive && worker?.studioMode === true ? worker.nativeChat || null : null, lastSeen: worker?.lastSeen || null };
       }
       if (operation === 'submitIntent') {
         if (!UUID.test(payload.requestId || '') || !PROJECTS.includes(payload.requestedProject) || typeof payload.text !== 'string' || !payload.text.trim() || payload.text.length > 12000 || !Array.isArray(payload.attachments || []) || (payload.attachments || []).length > 3) throw failure('PAYLOAD_MISMATCH','İstek kapsamı geçersiz.');
-        const attachments = payload.attachments || [];
-        const hash = await digest(new TextEncoder().encode(canonical({ text: payload.text, requested_project: payload.requestedProject, attachments })));
+        const attachments = payload.attachments || [], route = normalizeRoute(payload.route), studioFlow=normalizeStudioFlow(payload.studioFlow);
+        const hash = await digest(new TextEncoder().encode(canonical({ text: payload.text, requested_project: payload.requestedProject, attachments, ...(route ? {route} : {}), ...(studioFlow ? {studioFlow} : {}) })));
         await guard(payload);
         const row = await insert({ id: payload.requestId, project_id: 'koza', action: 'gemini_review', text: payload.text, status: 'queued', created_by: context.email, runner: LANE,
-          result: { operation: 'studio_v24_intent', transport: 'commands-isolated-v24', owner_id: context.userId, client_request_id: payload.requestId, target_game: payload.requestedProject, attachments, payload_hash: hash } }, context);
+          result: { operation: 'studio_v24_intent', transport: 'commands-isolated-v24', owner_id: context.userId, client_request_id: payload.requestId, target_game: payload.requestedProject, attachments, ...(route ? {route} : {}), ...(studioFlow ? {studioFlow} : {}), payload_hash: hash } }, context);
         await guard(payload); return { data: rowToIntent(row), error: null };
       }
       if (operation === 'listIntents') {
@@ -86,15 +156,14 @@
         await guard(payload); return { data: { requestId: row.id, status: row.status }, error: null };
       }
       if (operation === 'askBrain') {
-        // ARGON canlı beyin: one conversational turn for the model on DJ-KABIN. Read-only for the phone: tool calls come back as
-        // proposals; a dispatch still becomes a real intent only through submitIntent after the owner's explicit Evet.
+        // Lightweight Google API conversation. Only a verified explicit source task may produce a durable worker receipt.
         if (!UUID.test(payload.requestId || '') || typeof payload.text !== 'string' || !payload.text.trim() || payload.text.length > 2000) throw failure('PAYLOAD_MISMATCH', 'Mesaj 1–2000 karakter olmalı.');
         const history = (Array.isArray(payload.history) ? payload.history : []).slice(-12).filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string').map(m => ({ role: m.role, text: m.text.slice(0, 1200) }));
         const mode = ['low', 'medium', 'high'].includes(payload.mode) ? payload.mode : 'medium';
-        const hash = await digest(new TextEncoder().encode(canonical({ text: payload.text, operation: 'argon_chat', mode })));
+        const hash = await digest(new TextEncoder().encode(canonical({ text: payload.text, operation: 'argon_chat', mode, history })));
         await guard(payload);
         const row = await insert({ id: payload.requestId, project_id: 'koza', action: 'gemini_review', text: payload.text, status: 'queued', created_by: context.email, runner: LANE,
-          result: { operation: 'argon_chat', transport: 'commands-isolated-v24', owner_id: context.userId, client_request_id: payload.requestId, payload_hash: hash, mode, history } }, context);
+          result: { operation: 'argon_chat', chat_schema_version: 2, transport: 'commands-isolated-v24', owner_id: context.userId, client_request_id: payload.requestId, payload_hash: hash, mode, history } }, context);
         await guard(payload); return { data: { requestId: row.id, status: row.status }, error: null };
       }
       if (operation === 'getBrainAnswer') {
@@ -102,7 +171,7 @@
         const row = await find(payload.requestId, context);
         if (!row || row.result?.operation !== 'argon_chat') return { data: { status: 'missing' }, error: null };
         const r = row.result || {};
-        return { data: { status: row.status, answer_tr: String(r.answer_tr || '').slice(0, 2400), actions: Array.isArray(r.actions) ? r.actions.slice(0, 4) : [], model: typeof r.model === 'string' ? r.model : null, receipt: r.receipt && typeof r.receipt.status === 'string' ? { status: r.receipt.status } : null }, error: null };
+        return { data: { status: row.status, answer_tr: String(r.answer_tr || '').slice(0, 2400), audio_b64:r.audio&&r.audio.mimeType==='audio/wav'&&typeof r.audio.data==='string'&&r.audio.data.length<=12*1024*1024?r.audio.data:null, audio:r.audio&&r.audio.mimeType==='audio/wav'&&typeof r.audio.data==='string'&&r.audio.data.length<=12*1024*1024?{mimeType:'audio/wav',data:r.audio.data}:null, audio_status:typeof r.audio_status==='string'?r.audio_status.slice(0,80):null, project_catalog:Array.isArray(r.project_catalog)?r.project_catalog.slice(0,128).filter(p=>p&&/^[a-z][a-z0-9-]{0,63}$/.test(p.id)).map(p=>({id:p.id,name:String(p.name||p.id).slice(0,120)})):[], actions: Array.isArray(r.actions) ? r.actions.slice(0, 4) : [], dispatchReceipt:r.dispatchReceipt || null, model: typeof r.model === 'string' ? r.model : null, provider: ['openai','claude','gemini','google'].includes(r.provider) ? r.provider : null, transport: r.receipt?.transport || null, model_verified: r.receipt?.modelVerified === true, executionCapabilities: r.executionCapabilities && typeof r.executionCapabilities === 'object' ? {claudeLocalWorker:false,googleWorker:r.executionCapabilities.googleWorker === true,openaiWorker:r.executionCapabilities.openaiWorker === true} : null, receipt: r.receipt && typeof r.receipt.status === 'string' ? { status: r.receipt.status } : null }, error: null };
       }
       if (operation === 'getArchiveAnswer') {
         if (!UUID.test(payload.requestId || '')) throw failure('PAYLOAD_MISMATCH', 'Soru kimliği geçersiz.');

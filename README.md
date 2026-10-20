@@ -1,36 +1,17 @@
-# Oryvona Games Paneli — v21 / Sürüm 3.1
+# ORYVONA STUDIO — 3.6.6-STUDIO2
 
-Jarvis komuta sekmesi, beş resmi oyun ve bağlantı kesilmelerine dayanıklı emir teslimi. v20'nin dört hızlı emri, sesli/görsel girişi, kompakt başlığı, ölçülen `--topbar-h` değeri ve oyun hapları korunur.
+Argon/Jarvis günlük sohbeti Google AI Studio API üzerinden yürütür. Metin ve TTS istekleri anahtar telefona verilmeden yerel runner üzerinden gider. Canlı ses, kısa ömürlü ve tek kullanımlı oturum anahtarı ile telefondan Google Live API'ye bağlanır. Codex ve Claude günlük sohbetin yedeği değildir. Boşta model çağrısı yapılmaz.
 
-## Emir teslimi
+Metin modeli `gemini-3.8-flash`, yalnız 503/yoğunluk durumunda yedeği `gemini-3.6-flash`; canlı model `gemini-3.8-live-extended-thinking` ve HIGH düşünmedir. Asenkron araç NON_BLOCKING kullanır; turnComplete sonrasında interaction_status dinlenmeye devam eder. TTS `gemini-3.8-flash-tts` ve uygun hatada `gemini-3.1-flash-tts-preview` kullanır; Puck, Charon ve Fenrir desteklenir. PCM yanıtına gerçek WAV/RIFF başlığı eklenir. Sabit ses denemesi aktif arayüzden kaldırılmıştır.
 
-Canlı sahip hesabının gönderdiği emir, ağ isteğinden önce IndexedDB'ye kaydedilir. Başarı mesajı bu yerel yazma işlemi tamamlandıktan sonra gösterilir. Ağ kopması veya belirsiz cevapta aynı komut UUID'si tekrar kullanılır; sunucudaki mevcut kayıt doğrulanır, üzerine yazılmaz. Tekrarlar geçici hatalarda gecikmeli yapılır; yetki ve kalıcı hatalar açıkça gösterilir. Hesap değişince eski hesabın emirleri görünmez ve gönderilmez.
+Özel ayar: D:\ORYVONA_MERKEZ\_Sistem-ve-Arsiv\studio-v23-runtime\studio-state\gemini.env. Yalnız GEMINI_API_KEY ve GEMINI_FREE_TIER_CONFIRMED kabul edilir. Ücretsiz katman doğrulaması olmadan istek gönderilmez. Google anahtarının bağlı olduğu projenin faturalandırma ayarı Google hesabından yönetilir; API isteği tek başına ücretsiz kullanım garantisi vermez. Anahtar web/site/ZIP içine konulmaz. Ayar güncellenince runner yeniden başlatılmadan okunur.
 
-Emir başına 8 MB, bekleyen kuyrukta 40 MB/100 emir sınırı vardır. Teslim edilmiş kayıtların görsel verisi yerelden çıkarılır; makbuzlar 50 adet/24 saat ile sınırlıdır. Depolama kullanılamıyorsa başarı iddia edilmez ve giriş korunur. Kullanıcı tarayıcı verilerini temizlerse yerel kuyruk silinebilir. Sunucuya henüz ulaşmamış emirler için uygulama yeniden açıldığında/bağlantı geldiğinde ve sahip rolü doğrulandığında teslim devam eder. Mobil işletim sisteminin kapattığı uygulamada sürekli arka plan çalışma garantisi verilmez.
+Yalnız Deniz'in açık geliştirme talebi veya belirli projedeki doğrudan hata bildirimi işçiye dönüşebilir. Modelin önerdiği talimat yetki sayılmaz; özgün sahip mesajı doğrulanır. Günlük sohbet, olumsuz talep ve varsayımsal soru görev üretmez. Argon ancak gerçek kalıcı requestId/flowId kaydını aldıktan sonra görevin kuyruğa alındığını söyler. Kuyruk kaydı görevin başladığı veya tamamlandığı anlamına gelmez.
 
-Sunucu tarafından alınmış emirler telefon bağlantısından bağımsız olarak DJ-KABIN runner'ında işlenir. Runner koşullu sahiplenme ve yerel sonuç günlüğü kullanır; cevap kaybolduğunda aynı işlemi yeniden çalıştırmak yerine sonucu uzlaştırır. Yarım kalmış, etkisi belirsiz geliştirme işi `needs_review` ile devredilir.
+İşçi politikası studio-runtime-config.json içindeki workerProviders alanındadır: OpenAI ve Google açık, Anthropic/Claude kapalıdır. Claude aboneliği yenilendiğinde anthropic.enabled tek bayrakla açılabilir. OpenAI geliştirmesini Google, Google geliştirmesini OpenAI inceler. Gerçek aynı-commit kaynak, bağımsız kontrol, test, derleme ve teslim kanıtları olmadan paket hazır sayılmaz. Kurulu CLI tek başına hazır işçi değildir: oturum ve izole araç sınırı doğrulanmalıdır. Eksik host kabul kaydı açık bekleme nedeni olarak gösterilir.
 
-## Dört hızlı emir
+ORYVONA-Jarvis-V24 gizli görevi ve daemon.lock PID/exclusive/standby_other_instance mekanizması korunur. DJ-KABIN'de oyun, Unity, görünür tarayıcı veya ses başlatılmaz. Gerçek oyun testi/derlemesi yetkili ayrı host gerektirir.
 
-- **Oyunu İlerlet:** Seçili oyun için gerçek Claude görev kuyruğu. CLI kapalıysa yürütülmüş veya tamamlanmış sayılmaz.
-- **Paneli Geliştir:** Görev seçili oyunun klasörüne değil sabit panel çalışma köküne gider.
-- **Durum Özeti Ver:** Yalnız ilgili oyunun kök durum kartı okunur; model çağrısı yoktur.
-- **Test Et & Yayına Al:** Hafif kart kontrolünden sonra gerçek test/yayın işi Claude kuyruğuna kaydedilir. Kart kontrolü build testi veya yapılmış yayın değildir; yayın durumu `NOT_RUN` kalır.
+npm run sync yalnız tools/shell-public-files.json listesindeki küçük kabuk dosyalarını web'den site'a eşitler. Ağır oyun dizinlerini taramaz veya kopyalamaz. npm test statik ve fixture testleridir, gerçek model çağırmaz. Headless mobil denetim sentetik sahip verisi ile beş sekmenin yerleşimini ölçer; fiziksel telefon, mikrofon, gerçek API veya oyun testi değildir.
 
-v21 ekstra ücretli Gemini/dış API yolunu kaldırır. Boşta AI çağrısı yapılmaz. Mevcut Claude CLI çalışması açıkça etkinleştirilmemişse görevler oturum kuyruğunda bekler. Görünür pencere, oyun, Unity veya ses başlatılmaz.
-
-## Beş oyun
-
-KOZA, Charm Drop, Forge Run ve AERYO'nun önceki yayın dosyaları korunur. Tupsper beşinci resmi bulut boks projesidir; kontrol edilen yerel konumda ve bağlı hesabın repo metadata'sında kaynak bulunmadığından `SOURCE_PENDING` olarak kayıtlıdır. Doğrulanmış sürüm, oynatıcı, repo veya QA sonucu uydurulmaz.
-
-`data/game-builds.json` önceki sürümlerin tarihli build/QA kayıtlarını ve Tupsper'in kaynak bekleyen durumunu taşır. Oyun paketleri v21 görevinde yeniden incelenmemiştir. KOZA/Charm/AERYO oynatıcı girişleri ve Forge inceleme ekranı korunur; bu sürümde oyun başlatma testi yapılmaz.
-
-## Kota ve disk sınırı
-
-`npm run sync` yalnız `tools/shell-public-files.json` listesindeki küçük uygulama dosyalarını eşitler. `play/`, `node_modules`, `Library`, `Temp`, oyun kaynakları ve build paketleri okunmaz/taranmaz/kopyalanmaz. `public-files.json` içindeki eski oyun yolu kayıtları yalnız provenance olarak korunur.
-
-`npm test` hafif statik kontrol, küçük fixture testleri, kalıcı kuyruk testleri ve izole runner testlerini çalıştırır. Hiçbir gerçek model, oyun, tarayıcı, Unity veya ses başlatmaz. Runtime kart kontrolü yalnız kök `DURUM-KARTI.json` dosyasının en çok 64 KB'ını okur. Eski ağır `artifact_validation` talebi açık nedenle reddedilir.
-
-Service worker uygulama kabuğunu `oryvona-panel-v21` içinde saklar; IndexedDB kuyruğunu ve önceki oyun önbelleğini silmez. Canlı Supabase hesap yanıtlarını önbelleğe almaz. Oyunlar kullanıldıkça mevcut on-demand önbelleğe alınır; tüm paketler önceden indirilmez.
-
-Yayın kökü ve manifest kapsamı `/oryvona-panel/` olarak korunmalıdır. `config.js` yalnız tarayıcıya açık istemci yapılandırmasıdır; özel servis anahtarları yayınlanmamalıdır. Oyun çerçeveleri güvenilen birinci taraf içeriktir, kötü amaçlı üçüncü taraf koduna karşı izolasyon sınırı değildir.
+Service worker kabuk anahtarı oryvona-panel-v26-argon-audio-memory-20261021-r2; önceki oyun önbelleği ve kalıcı kuyruk korunur. Supabase sahip yetkisi ve hesap değişimi kontrolleri korunur. Canlı hesap yanıtları önbelleğe alınmaz. Yayın kapsamı /oryvona-panel/ olarak kalır.
