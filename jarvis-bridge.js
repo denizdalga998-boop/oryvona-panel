@@ -204,7 +204,18 @@
         requireAccountKey(payload&&payload.accountKey);await syncAccount();const id=requireOwner();requireAccountKey(payload.accountKey);
         const text=String(payload.text||'').trim();if(!text||text.length>2000)throw error('TEXT_INVALID','Mesaj 1–2000 karakter olmalı.');
         requestId=payload.requestId||globalThis.crypto?.randomUUID();if(!UUID.test(requestId||''))throw error('REQUEST_ID_REQUIRED','Geçerli istek kimliği gerekli.');
-        const answer=await request('geminiChat',{requestId,text,history:Array.isArray(payload.history)?payload.history:[],mode:payload.mode,signal:payload.signal},id);
+        let answer=await request('geminiChat',{requestId,text,history:Array.isArray(payload.history)?payload.history:[],mode:payload.mode,signal:payload.signal},id);
+        if ((!answer || !answer.ok || answer.status === 'ambiguous_delivery') && !payload.signal?.aborted) {
+          await new Promise(r => setTimeout(r, 1200));
+          guardedContext(id);requireAccountKey(payload.accountKey);
+          if (!payload.signal?.aborted) {
+            const retryId = globalThis.crypto?.randomUUID() || requestId;
+            try {
+              const retryAnswer = await request('geminiChat', { requestId: retryId, text, history: Array.isArray(payload.history) ? payload.history : [], mode: payload.mode, signal: payload.signal }, id);
+              if (retryAnswer && retryAnswer.ok) { answer = retryAnswer; requestId = retryId; }
+            } catch (_) {}
+          }
+        }
         requireAccountKey(payload.accountKey);
         return {...answer,ok:answer?.ok===true,requestId,answer_tr:String(answer?.answer_tr||answer?.reply_tr||''),actions:Array.isArray(answer?.actions)?answer.actions:[]};
       } catch(e) { return {ok:false,requestId,code:e.code||'GEMINI_FAILED',answer_tr:e.message||'Google AI Studio bağlantısı hazırlanmalı. Mesaj kod işçisine aktarılmadı.'}; }
