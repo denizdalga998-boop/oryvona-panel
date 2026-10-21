@@ -1,5 +1,5 @@
 // v22: durable commands live in IndexedDB. Shell updates never erase that queue or existing game caches.
-const CACHE = 'oryvona-panel-v26-jarvis-vault-20261021-r7';
+const CACHE = 'oryvona-panel-v26-jarvis-vault-20261021-r8';
 // Game payloads did not change in v22: retain the v20 on-demand cache instead of forcing a download.
 const GAME_CACHE = 'oryvona-games-v20';
 const SCOPE = new URL('./', self.registration.scope);
