@@ -64,7 +64,7 @@
     function feed(s){var jobs=(s.jobs||[]).slice(-80).reverse();body.append(heading('Canlı operasyon','Geliştirme → İnceleme → Test → Paketleme → Teslim'));var list=el('div','sv-operations');jobs.forEach(function(j){list.append(operation(j));});if(!jobs.length)list.append(empty('Kayıtlı operasyon yok. Jarvis’ten verdiğin emir, kalıcı kuyruğa alındığında burada görünür.'));body.append(list);}
     function decisionReceipt(result,expected){return !!result&&result.ok===true&&result.durable===true&&result.requestId===expected.requestId&&typeof result.decisionId==='string'&&!!result.decisionId&&result.projectId===expected.projectId&&result.artifactSha256===expected.artifact.sha256&&result.kind===expected.kind;}
     function artifactHash(p){var value=p&&p.release&&p.release.artifact&&p.release.artifact.sha256;return typeof value==='string'&&/^[a-f\d]{64}$/i.test(value)?value.toLowerCase():null;}
-    function closeGameDirect(){
+    function closeGame(){
       if(gameFrame){
         gameFrame.src='about:blank';gameFrame=null;
         if(win.history.state&&win.history.state.svGame)win.history.replaceState(gameHistoryBase,'',win.location.href);
@@ -73,27 +73,27 @@
       var focus=gameReturnFocus;gameReturnFocus=null;
       if(focus&&focus.isConnected!==false&&typeof focus.focus==='function')focus.focus();
     }
-    function closeGame(){
+    function requestGameClose(){
       if(gameFrame&&win.history.state&&win.history.state.svGame)win.history.back();
-      else closeGameDirect();
+      else closeGame();
     }
     function openGame(p,url){
       if(gameFrame)return;
       var entryUrl=safeEntryUrl(url,doc.baseURI||win.location.href);
       if(!entryUrl){note('Oyun bağlantısı doğrulanamadı.','error');return;}
-      closeGameDirect();gameReturnFocus=doc.activeElement;
+      closeGame();gameReturnFocus=doc.activeElement;
       gameHistoryBase=win.history.state;
       win.history.pushState(Object.assign({},gameHistoryBase,{svGame:p.id}),'',win.location.href);
       var dialog=el('section','sv-game-window');
       dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label',NAMES[p.id]+' tam ekran oyun testi');dialog.tabIndex=-1;
-      dialog.addEventListener('oryvona:game-back',closeGameDirect);
-      dialog.addEventListener('keydown',function(e){if(e.key==='Escape'){e.preventDefault();closeGame();}});
+      dialog.addEventListener('oryvona:game-back',closeGame);
+      dialog.addEventListener('keydown',function(e){if(e.key==='Escape'){e.preventDefault();requestGameClose();}});
       var frame=el('iframe','sv-game-frame');
       frame.setAttribute('title',NAMES[p.id]+' oyun testi');frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');
       frame.setAttribute('referrerpolicy','no-referrer');frame.setAttribute('allow','fullscreen');
       frame.src=entryUrl;gameFrame=frame;dialog.append(frame);gameHost.append(dialog);gameHost.hidden=false;dialog.focus();
     }
-    function onGamePopState(e){if(gameFrame&&(!e.state||!e.state.svGame))closeGameDirect();}
+    function onGamePopState(e){if(gameFrame&&(!e.state||!e.state.svGame))closeGame();}
     win.addEventListener('popstate',onGamePopState);
     function feedbackForm(p){
       var key=identity,ticket=epoch;feedback={projectId:p.id,accountKey:key,epoch:ticket};feedbackPending=null;feedbackRoot.replaceChildren();
@@ -135,13 +135,13 @@
     }
     function update(next){
       if(destroyed)return;next=next&&typeof next==='object'?next:{};var nextOwner=next.accountKey||null;
-      if(identity!==nextOwner){closeGameDirect();identity=nextOwner;epoch++;signature=null;feedback=null;feedbackPending=null;feedbackRoot.replaceChildren();body.replaceChildren();}
+      if(identity!==nextOwner){closeGame();identity=nextOwner;epoch++;signature=null;feedback=null;feedbackPending=null;feedbackRoot.replaceChildren();body.replaceChildren();}
       snapshot=next;if(!active)return;
       notice.dataset.tone=next.state==='error'?'error':'normal';notice.textContent=next.state==='ready'?(next.stale?'Son kayıt gösteriliyor; güncellik doğrulanmadı.':'Gerçek sistem kayıtları · '+(next.loadedAt?formatTime(next.loadedAt):'Güncelleme zamanı doğrulanmadı')):next.state==='loading'?'Stüdyo kayıtları yükleniyor…':(next.state==='signed_out'||next.state==='unauthenticated')?'Sahip hesabıyla giriş yapınca gerçek stüdyo kayıtları görünür.':'Veri kapsamı eksik. Bilinmeyen alanlar doğrulanmadı olarak gösterilir.';
       var sig=semanticSignature(next);if(sig===signature)return;signature=sig;var interaction=preserveInteraction();body.replaceChildren();if(view==='home')home(next);else if(view==='feed')feed(next);else releases(next);restoreInteraction(interaction);
     }
     unsub=data.subscribe(update);Promise.resolve(data.getSnapshot()).then(update).catch(function(){update({state:'error',accountKey:null});});
-    return Object.freeze({setActive:function(value){active=!!value;root.hidden=!active;if(!active){closeGameDirect();epoch++;feedback=null;feedbackPending=null;feedbackRoot.replaceChildren();}else{signature=null;update(snapshot||{});}},refresh:function(){return typeof data.refresh==='function'?data.refresh():Promise.resolve(update(data.getSnapshot()));},destroy:function(){if(destroyed)return;destroyed=true;closeGameDirect();win.removeEventListener('popstate',onGamePopState);epoch++;if(typeof unsub==='function')unsub();root.replaceChildren();root.classList.remove('sv-root');}});
+    return Object.freeze({setActive:function(value){active=!!value;root.hidden=!active;if(!active){closeGame();epoch++;feedback=null;feedbackPending=null;feedbackRoot.replaceChildren();}else{signature=null;update(snapshot||{});}},refresh:function(){return typeof data.refresh==='function'?data.refresh():Promise.resolve(update(data.getSnapshot()));},destroy:function(){if(destroyed)return;destroyed=true;closeGame();win.removeEventListener('popstate',onGamePopState);epoch++;if(typeof unsub==='function')unsub();root.replaceChildren();root.classList.remove('sv-root');}});
   }
   return Object.freeze({mount:mount,_test:Object.freeze({safeUrl:safeUrl,safeEntryUrl:safeEntryUrl,gateLabel:gateLabel,statusLabel:statusLabel,STAGES:STAGES})});
 });
