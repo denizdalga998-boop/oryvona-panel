@@ -60,14 +60,14 @@
     if (!lab) { lab = document.createElement('section'); lab.id='gameLab'; lab.className='card game-lab'; lab.setAttribute('aria-label',text('Gerçek oyun test merkezi','Actual game test center')); target.before(lab); }
     const g = game(); if (!g) { lab.innerHTML=`<p>${text('Oyun sürüm kayıtları yükleniyor…','Loading game build records…')}</p>`; return; }
     const c=context(), latest=window.OryvonaPanel?.getBuildValidation?.(g.id), busy=pending===g.id||['queued','running'].includes(latest?.status), canValidate=c.authenticated && c.isOwner && !c.demo;
-    lab.innerHTML=`<div class="lab-heading"><div><span class="lab-eyebrow">${text('OYUN TEST MERKEZİ','GAME TEST CENTER')}</span><h2>${esc(g.name)}</h2></div><span class="chip warn">${esc(statusName(g.qa?.status))}</span></div><p class="lab-summary">${esc(summary(g.id))}</p><div class="lab-actions">${g.entry?`<button type="button" class="lab-primary" data-lab-play>${text('▶ Uygulama içinde oyna','▶ Play in app')}</button>`:`<span class="lab-no-web">${(g.id==='tupsper'?text('Kapalı test build incelemesi','Closed test build inspection'):text('Android build incelemesi','Android build inspection'))}</span>`}<button type="button" class="lab-secondary" data-lab-validate ${!canValidate || busy?'disabled':''}>${pending===g.id?text('Gönderiliyor…','Sending…'):text('Durum kartını doğrula','Validate status card')}</button></div>${!canValidate?`<small class="lab-note">${text('Arka plan komutu için sahip hesabıyla canlı giriş yap.','Sign in live as the owner to send a background command.')}</small>`:''}<div class="lab-tabs" role="tablist" aria-label="${text('Sürüm ayrıntıları','Build details')}">${[['build','Sürüm','Build'],['content','İçerik','Content'],['qa','QA','QA']].map(([id,a,b])=>`<button type="button" role="tab" aria-selected="${tab===id}" data-lab-tab="${id}">${text(a,b)}</button>`).join('')}</div><div class="lab-details" role="tabpanel">${details(g)}</div><div class="lab-result" aria-live="polite">${recentResult(g)}</div><p id="labNotice" class="lab-notice" role="status"></p>`;
+    lab.innerHTML=`<div class="lab-heading"><div><span class="lab-eyebrow">${text('OYUN TEST MERKEZİ','GAME TEST CENTER')}</span><h2>${esc(g.name)}</h2></div><span class="chip warn">${esc(statusName(g.qa?.status))}</span></div><p class="lab-summary">${esc(summary(g.id))}</p><div class="lab-actions"><button type="button" class="lab-primary" data-lab-play>${text('▶ Oyunu aç','▶ Open game')}</button><button type="button" class="lab-secondary" data-lab-validate ${!canValidate || busy?'disabled':''}>${pending===g.id?text('Gönderiliyor…','Sending…'):text('Durum kartını doğrula','Validate status card')}</button></div>${!canValidate?`<small class="lab-note">${text('Arka plan komutu için sahip hesabıyla canlı giriş yap.','Sign in live as the owner to send a background command.')}</small>`:''}<div class="lab-tabs" role="tablist" aria-label="${text('Sürüm ayrıntıları','Build details')}">${[['build','Sürüm','Build'],['content','İçerik','Content'],['qa','QA','QA']].map(([id,a,b])=>`<button type="button" role="tab" aria-selected="${tab===id}" data-lab-tab="${id}">${text(a,b)}</button>`).join('')}</div><div class="lab-details" role="tabpanel">${details(g)}</div><div class="lab-result" aria-live="polite">${recentResult(g)}</div><p id="labNotice" class="lab-notice" role="status"></p>`;
     syncHero(g);
   }
   function syncHero(g) {
     const a=document.getElementById('playNowBtn'); if(!a)return;
     a.href='#'; a.removeAttribute('target');a.removeAttribute('download');a.removeAttribute('aria-disabled');a.classList.remove('no-link');
     const title=document.getElementById('playBtnTitle'),sub=document.getElementById('playVerSub'),arrow=document.getElementById('playArr');
-    if(title)title.textContent=g.entry?text('Uygulama içinde oyna','Play in app'):text('Test ve sürüm incele','Inspect test build');
+    if(title)title.textContent=text('Oyunu aç','Open game');
     if(sub)sub.textContent=g.version;if(arrow)arrow.textContent='›';
   }
   function stopPlayer() {
@@ -78,33 +78,20 @@
     returnFocus?.focus?.();returnFocus=null;
   }
   function closePlayer() { if(history.state?.oryvonaPlayer)history.back();else stopPlayer(); }
-  async function openPlayer(g) {
-    if(!g?.entry)return window.OryvonaPanel?.openTests?.(g?.id);
-    if(dialog)return;
-    const url=new URL(g.entry,document.baseURI),scope=new URL('./',document.baseURI);
-    if(url.origin!==location.origin || !url.pathname.startsWith(scope.pathname+'play/'))return;
-    returnFocus=document.activeElement;
-    dialog=document.createElement('dialog');dialog.id='gamePlayer';dialog.className='game-player';dialog.setAttribute('aria-label',`${g.name} ${text('test oynatıcısı','test player')}`);
-    dialog.innerHTML=`<header><button type="button" data-player-back aria-label="${text('Panele geri dön','Back to panel')}">‹ ${text('Panel','Panel')}</button><div><b>${esc(g.name)}</b><small>${esc(g.version)}</small></div><span class="lab-live-dot" aria-hidden="true"></span></header><div class="player-stage"><p class="player-loading" role="status">${text('Gerçek oyun yükleniyor…','Loading the actual game…')}</p></div>`;
-    document.body.append(dialog);document.body.classList.add('game-player-open');dialog.showModal();
-    history.pushState({...history.state,oryvonaPlayer:g.id},'',location.href);
-    dialog.querySelector('[data-player-back]').addEventListener('click',closePlayer);
-    dialog.addEventListener('cancel',e=>{e.preventDefault();closePlayer();});
-    const currentDialog=dialog;
-    try {
-      if(dialog!==currentDialog)return;
-      const frame=document.createElement('iframe');frame.title=`${g.name} ${text('oyun testi','game test')}`;
-      frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');frame.setAttribute('allow',"fullscreen 'none'; gamepad");
-      frame.addEventListener('load',()=>{
-        if(dialog!==currentDialog)return;
-        clearTimeout(loadingTimer);dialog.querySelector('.player-loading')?.remove();
-      });
-      frame.src=url.href;dialog.querySelector('.player-stage').append(frame);
-      loadingTimer=setTimeout(()=>{if(dialog===currentDialog){const loading=dialog.querySelector('.player-loading');if(loading)loading.textContent=text('Yükleme sürüyor. Bağlantını kontrol edebilir veya panele dönebilirsin.','Still loading. Check connectivity or return to the panel.');}},25000);
-    }catch(error){if(dialog===currentDialog)dialog.querySelector('.player-loading').textContent=text('Oyun dosyası yüklenemedi. Panele dönüp yeniden deneyebilirsin.','The game file could not load. Return to the panel and retry.')+` (${error.message})`;}
+  async function openPlayer(g){
+    const isAndroid=/android/i.test(navigator.userAgent);
+    const links={
+      'aeryo':isAndroid?'market://details?id=games.oryvona.aeryo':'https://play.google.com/apps/testing/games.oryvona.aeryo',
+      'tupsper':isAndroid?'market://details?id=games.oryvona.tuckspire':'https://play.google.com/apps/testing/games.oryvona.tuckspire',
+      'forge-run':isAndroid?'market://details?id=com.forgerun.dtslicetest':'https://play.google.com/apps/testing/com.forgerun.dtslicetest',
+      'koza':'https://denizdalga998-boop.github.io/oryvona-panel/play/koza/k01.html?panel=1',
+      'charm-drop':'https://denizdalga998-boop.github.io/oryvona-panel/play/charm-drop/index.html'
+    };
+    const target=links[g.id]||g.entry;
+    if(target){window.open(target,target.startsWith('market:')?'_self':'_blank');}
   }
   document.addEventListener('click',async e=>{
-    const hero=e.target.closest('#playNowBtn');if(hero && game()){e.preventDefault();e.stopImmediatePropagation();const g=game();if(g.entry)openPlayer(g);else window.OryvonaPanel?.openTests?.(g.id);return;}
+    const hero=e.target.closest('#playNowBtn');if(hero && game()){e.preventDefault();e.stopImmediatePropagation();const g=game();openPlayer(g);return;}
     if(!e.target.closest('#gameLab'))return;
     const g=game();if(!g)return;
     if(e.target.closest('[data-lab-play]'))return openPlayer(g);

@@ -1903,9 +1903,21 @@ textarea{width:100%;min-height:80px;resize:vertical}
   }
   function resolveGameTargetUrl(gid){
     const id=gid||current||"koza";const sp=gameMeta(id);const ln=getGameLinks(id);
-    const order=sp.platform==="web"?[["web",ln.webUrl],["apk",ln.apkUrl],["play",ln.playUrl]]:[["apk",ln.apkUrl],["play",ln.playUrl],["web",ln.webUrl]];
-    const hit=order.find(([,u])=>u);
-    return hit?{kind:hit[0],url:hit[1]}:{kind:"missing",url:""};
+    const isAndroid=/android/i.test(navigator.userAgent);
+    const DEFAULTS={
+      'aeryo':{playUrl:isAndroid?'market://details?id=games.oryvona.aeryo':'https://play.google.com/apps/testing/games.oryvona.aeryo',webUrl:''},
+      'tupsper':{playUrl:isAndroid?'market://details?id=games.oryvona.tuckspire':'https://play.google.com/apps/testing/games.oryvona.tuckspire',webUrl:''},
+      'forge-run':{playUrl:isAndroid?'market://details?id=com.forgerun.dtslicetest':'https://play.google.com/apps/testing/com.forgerun.dtslicetest',webUrl:''},
+      'koza':{webUrl:'https://denizdalga998-boop.github.io/oryvona-panel/play/koza/k01.html?panel=1'},
+      'charm-drop':{webUrl:'https://denizdalga998-boop.github.io/oryvona-panel/play/charm-drop/index.html'}
+    };
+    const d=DEFAULTS[id]||{};
+    const web=ln.webUrl||d.webUrl||"";const play=ln.playUrl||d.playUrl||"";const apk=ln.apkUrl||"";
+    if(sp.platform==="web"&&web)return{kind:"web",url:web};
+    if(play)return{kind:"play",url:play};
+    if(apk)return{kind:"apk",url:apk};
+    if(web)return{kind:"web",url:web};
+    return{kind:"play",url:d.playUrl||""};
   }
   function updatePlayButtonUI(gid){
     const id=gid||current||"koza";const sp=gameMeta(id);const res=resolveGameTargetUrl(id);const P=S().play;
@@ -1913,7 +1925,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     for(const at of ["href","target","rel","download","aria-disabled"])a.removeAttribute(at);
     a.classList.toggle("no-link",res.kind==="missing");
     if(res.kind==="web"||res.kind==="play"){
-      a.href=res.url;a.target="_blank";a.rel="noopener noreferrer";
+      a.href=res.url;a.target=res.url.startsWith("market:")?"_self":"_blank";a.rel="noopener noreferrer";
       ic.textContent=res.kind==="web"?"🎮":"▶️";ti.textContent=res.kind==="web"?P.webTitle:P.playTitle;su.textContent=(res.kind==="web"?P.webSub:P.playSub)(sp.name);ar.textContent="↗";
     }else if(res.kind==="apk"){
       a.href=res.url;a.setAttribute("download","");a.rel="noopener";
@@ -1941,8 +1953,10 @@ textarea{width:100%;min-height:80px;resize:vertical}
   }
   $("playNowBtn")?.addEventListener("click",e=>{
     const a=$("playNowBtn");const href=a.getAttribute("href");
-    if(href&&href!=="#")return;           // a real link: let the browser open / download it directly
-    e.preventDefault();if(isOwner)openLinkModal(current);
+    if(!href||href==="#"){
+      const res=resolveGameTargetUrl(current);
+      if(res.url){window.open(res.url,res.url.startsWith("market:")?"_self":"_blank");e.preventDefault();}
+    }
   });
   $("editLinkBtn")?.addEventListener("click",()=>openLinkModal(current));
   $("linkModalClose")?.addEventListener("click",closeLinkModal);
@@ -2272,7 +2286,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
 
 <script src="native-shell.js?v=20261020-gemini1"></script>
-<script src="game-lab.js?v=20261020-gemini1"></script>
+<script src="game-lab.js?v=20261021-r10"></script>
 <script src="jarvis-energy.js?v=20261020-gemini1"></script>
 <script src="jarvis-bridge.js?v=20261021-r6"></script>
 <script src="supabase-host-port.js?v=20261021-argon3"></script>
