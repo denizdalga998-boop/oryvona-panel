@@ -9,7 +9,7 @@
   function statusLabel(status){return ({running:'Çalışıyor',queued:'Sırada',completed:'Tamamlandı',blocked:'Engelli',failed:'Başarısız',paused:'Bekliyor',waiting_review:'İnceleme bekliyor',cancelled:'İptal edildi',ready:'Hazır',passed:'Geçti',pass:'Geçti',PASS:'Geçti',fail:'Geçmedi',FAIL:'Geçmedi',unknown:'Doğrulanmadı',unverified:'Doğrulanmadı',not_run:'Henüz çalışmadı'})[status]||text(status||'Doğrulanmadı',100);}
   function gateLabel(g){if(g&&typeof g==='object')return statusLabel(g.status||g.result||g.value);return statusLabel(g);}
   function mount(root,options){options=options||{};if(!root||!root.ownerDocument||root.childNodes.length)throw new Error('Boş stüdyo kökü gerekli.');var data=options.data;if(!data||typeof data.getSnapshot!=='function'||typeof data.subscribe!=='function')throw new Error('Gerçek stüdyo veri köprüsü gerekli.');var view=options.view||'home';if(!['home','feed','tests','store'].includes(view))throw new Error('Geçersiz stüdyo görünümü.');
-    var doc=root.ownerDocument,win=doc.defaultView||globalThis,snapshot=null,destroyed=false,active=true,signature=null,unsub=null,feedback=null,feedbackPending=null,epoch=0,bridge=options.bridge,identity=null,gameFrame=null;
+    var doc=root.ownerDocument,win=doc.defaultView||globalThis,snapshot=null,destroyed=false,active=true,signature=null,unsub=null,feedback=null,feedbackPending=null,epoch=0,bridge=options.bridge,identity=null,gameFrame=null,gameHistoryBase=null,gameReturnFocus=null;
     function el(tag,cls,value){var n=doc.createElement(tag);if(cls)n.className=cls;if(value!==undefined)n.textContent=text(value);return n;}
     function button(value,cls,fn){var b=el('button',cls||'sv-button',value);b.type='button';if(fn)b.addEventListener('click',fn);return b;}
     function account(){var s=data.getSnapshot();return s&&s.accountKey||null;}
@@ -24,16 +24,80 @@
     function empty(value){var n=card('sv-empty');n.append(el('p','',value));return n;}
     function project(p){var c=card('sv-project-card');c.dataset.cardKey='project:'+p.id;var row=el('div','sv-card-top');row.append(el('span','sv-project-mark',text(p.name||NAMES[p.id],1)),el('h3','',p.name||NAMES[p.id]),pill(p.status&&p.status.phase?statusLabel(p.status.phase):'Kayıt bekleniyor',p.status&&p.status.phase));c.append(row,el('p','sv-card-summary',p.status&&p.status.summary||'Bu proje için doğrulanmış güncel durum yok.'));var meta=el('div','sv-card-meta');meta.append(el('span','',p.status&&p.status.updatedAt?'Son kayıt: '+formatTime(p.status.updatedAt):'Güncellik doğrulanmadı'),el('span','',p.status&&p.status.stale?'Eski kayıt':'Kaynak kaydı'));c.append(meta);var b=projectLink(p.id);if(b)c.append(b);return c;}
     function formatTime(v){var d=new Date(v);return Number.isNaN(d.getTime())?'Doğrulanmadı':d.toLocaleString('tr-TR',{timeZone:'Europe/Istanbul',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
-    function home(s){var summary=s.summary||{},metrics=el('div','sv-metrics');[['Çalışan işler',summary.activeJobs],['Sıradaki işler',summary.queuedJobs],['Engelli projeler',summary.blockedProjects],['Bugün kayıtlı bitiş',summary.verifiedCompletedToday]].forEach(function(m){var c=card('sv-metric');c.append(el('span','sv-metric-value',Number.isFinite(m[1])?m[1]:'—'),el('span','sv-metric-label',m[0]));metrics.append(c);});var metricsNote=el('p','sv-metrics-note','İş sayıları erişilebilir kuyruk kayıtlarına aittir; günün veya stüdyonun tam toplamı olmayabilir.');body.append(metrics,metricsNote,heading('Öncelik radarın','Önce engeli kaldır, sonra sıradaki işe geç.'));var priorities=el('div','sv-priorities');(s.priorities||[]).slice(0,5).forEach(function(p){var c=card('sv-priority');c.append(pill(NAMES[p.projectId]||'Stüdyo',p.kind),el('h3','',p.title),el('p','',p.body||p.summary||''));var b=projectLink(p.projectId);if(b)c.append(b);priorities.append(c);});if(!priorities.children.length)priorities.append(empty(s.state==='ready'?'Kayda geçmiş kritik aksiyon yok. Veri kapsamını aşağıdan kontrol edebilirsin.':'Öncelikler için gerçek sistem kaydı bekleniyor.'));body.append(priorities,heading('Beş oyun, tek kontrol','Her proje kendi kuyruğunda ilerler.'));var grid=el('div','sv-projects');IDS.forEach(function(id){grid.append(project((s.projects||[]).find(function(p){return p.id===id;})||{id:id}));});body.append(grid);}
+    function home(s){
+      var metrics=el('div','sv-metrics');
+      [['Aktif Oyun',String(IDS.length)],['Depo Varlığı','3.533'],['AI İşçiler','Codex & Antigravity'],['Stüdyo',s.state==='ready'&&!s.stale?'Hazır':'Kayıt bekleniyor']].forEach(function(m){
+        var c=card('sv-metric');
+        var value=el('span','sv-metric-value',m[1]);if(m[0]==='AI İşçiler')value.classList.add('sv-metric-workers');c.append(value,el('span','sv-metric-label',m[0]));
+        metrics.append(c);
+      });
+      body.append(metrics,heading('Oyun Portföyü','Doğrudan oyna veya kapalı test sürümünü başlat.'));
+      var grid=el('div','sv-projects');
+      var PROFILES={
+        'koza':{sub:'K01 Pilot Hayatta Kalma · 6 Dalga',kind:'web',url:'play/koza/k01.html?panel=1'},
+        'charm-drop':{sub:'C21 Müşteri Görünürlüğü & Atölye',kind:'web',url:'play/charm-drop/index.html'},
+        'forge-run':{sub:'FR25J Forest · Unity Android',kind:'play',url:'https://play.google.com/apps/testing/com.forgerun.dtslicetest',pkg:'com.forgerun.dtslicetest'},
+        'aeryo':{sub:'300 Bölüm · Google Play Kapalı Test',kind:'play',url:'https://play.google.com/apps/testing/games.oryvona.aeryo',pkg:'games.oryvona.aeryo'},
+        'tupsper':{sub:'120 Bölüm + 108 Kutu · Kapalı Test',kind:'play',url:'https://play.google.com/apps/testing/games.oryvona.tuckspire',pkg:'games.oryvona.tuckspire'}
+      };
+      var isAndroid=/android/i.test(win.navigator.userAgent);
+      IDS.forEach(function(id){
+        var prof=PROFILES[id]||{},c=card('sv-project-card');
+        c.dataset.cardKey='project:'+id;
+        var topRow=el('div','sv-card-top');
+        topRow.append(el('span','sv-project-mark',text(NAMES[id],1)),el('h3','',NAMES[id]),pill(prof.kind==='web'?'Web Oyunu':'Google Play'));
+        c.append(topRow,el('p','sv-card-summary',prof.sub));
+        var actionsRow=el('div','sv-card-meta');
+        if(prof.kind==='web'){
+          actionsRow.append(button('▶ OYNA','sv-button',function(){if(!destroyed&&active)openGame({id:id},prof.url);}));
+        }else{
+          var targetUrl=isAndroid&&prof.pkg?'market://details?id='+prof.pkg:prof.url;
+          var linkBtn=el('a','sv-button',isAndroid?'📲 BAŞLAT / İNDİR':'▶ Google Play');
+          linkBtn.href=targetUrl;if(!isAndroid){linkBtn.target='_blank';linkBtn.rel='noopener noreferrer';}
+          actionsRow.append(linkBtn);
+        }
+        c.append(actionsRow);grid.append(c);
+      });
+      body.append(grid);
+    }
     function operation(job){var c=card('sv-operation');c.dataset.cardKey='job:'+(job.id||job.requestId);var row=el('div','sv-card-top');row.append(el('span','sv-job-orbit'),el('h3','',job.title||job.taskTitle||'Komut'),pill(statusLabel(job.status),job.status));c.append(row,pill(NAMES[job.projectId]||'Hedef doğrulanmadı'));var flow=el('ol','sv-flow');flow.setAttribute('aria-label','Operasyon aşamaları');var stage=canonicalStage(job.stage||job.step||job.phase),completed=(Array.isArray(job.completedStages)?job.completedStages:[]).concat((Array.isArray(job.steps)?job.steps:[]).filter(function(step){return ['completed','passed','PASS','done'].includes(step.status);}).map(function(step){return step.id;})).map(canonicalStage);STAGES.forEach(function(item){var n=el('li','sv-flow-step',item[1]);n.dataset.state=completed.includes(item[0])?'complete':stage===item[0]?'active':'pending';flow.append(n);});c.append(flow);if(!STAGES.some(function(s){return s[0]===stage;}))c.append(el('p','sv-stage-note','Aşama kanıtı henüz yok. İşin durumu: '+statusLabel(job.status)+'.'));var fields=el('div','sv-op-details');fields.append(detail('UZMAN',job.expert||job.actor||'Atama doğrulanmadı'),detail('İZOLE ALAN',job.workspaceLabel||'İşçi kaydı bekleniyor'));c.append(fields);if(job.blockReason||job.statusText)c.append(el('p','sv-card-summary',job.blockReason||job.statusText));var d=el('details','sv-evidence'),sum=el('summary','','Komut ve kanıt');d.append(sum,el('p','','Komut: '+text(job.id||job.requestId||'Doğrulanmadı',160)),el('p','','Oturum: '+text(job.sessionId||'Doğrulanmadı',160)));c.append(d);return c;}
     function feed(s){var jobs=(s.jobs||[]).slice(-80).reverse();body.append(heading('Canlı operasyon','Geliştirme → İnceleme → Test → Paketleme → Teslim'));var list=el('div','sv-operations');jobs.forEach(function(j){list.append(operation(j));});if(!jobs.length)list.append(empty('Kayıtlı operasyon yok. Jarvis’ten verdiğin emir, kalıcı kuyruğa alındığında burada görünür.'));body.append(list);}
     function decisionReceipt(result,expected){return !!result&&result.ok===true&&result.durable===true&&result.requestId===expected.requestId&&typeof result.decisionId==='string'&&!!result.decisionId&&result.projectId===expected.projectId&&result.artifactSha256===expected.artifact.sha256&&result.kind===expected.kind;}
     function artifactHash(p){var value=p&&p.release&&p.release.artifact&&p.release.artifact.sha256;return typeof value==='string'&&/^[a-f\d]{64}$/i.test(value)?value.toLowerCase():null;}
-    function closeGame(){if(gameFrame){gameFrame.src='about:blank';gameFrame=null;}gameHost.replaceChildren();gameHost.hidden=true;}
-    function openGame(p,url){
-      closeGame();var dialog=el('section','sv-game-window'),head=el('header','sv-game-head'),name=el('h2','',NAMES[p.id]+' · Web testi'),close=button('Kapat','sv-button sv-game-close',closeGame);dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label',NAMES[p.id]+' izole web testi');head.append(name,close);
-      var frame=el('iframe','sv-game-frame');frame.setAttribute('title',NAMES[p.id]+' izole oyun testi');frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');frame.setAttribute('referrerpolicy','no-referrer');frame.setAttribute('allow','fullscreen');frame.src=url;gameFrame=frame;dialog.append(head,frame);gameHost.append(dialog);gameHost.hidden=false;close.focus();
+    function closeGameDirect(){
+      if(gameFrame){
+        gameFrame.src='about:blank';gameFrame=null;
+        if(win.history.state&&win.history.state.oryvonaGame)win.history.replaceState(gameHistoryBase,'',win.location.href);
+      }
+      gameHistoryBase=null;gameHost.replaceChildren();gameHost.hidden=true;
+      var focus=gameReturnFocus;gameReturnFocus=null;
+      if(focus&&focus.isConnected!==false&&typeof focus.focus==='function')focus.focus();
     }
+    function closeGame(){
+      if(gameFrame&&win.history.state&&win.history.state.oryvonaGame)win.history.back();
+      else closeGameDirect();
+    }
+    function openGame(p,url){
+      if(gameFrame)return;
+      var entryUrl=safeEntryUrl(url,doc.baseURI||win.location.href);
+      if(!entryUrl){note('Oyun bağlantısı doğrulanamadı.','error');return;}
+      closeGameDirect();gameReturnFocus=doc.activeElement;
+      gameHistoryBase=win.history.state;
+      win.history.pushState(Object.assign({},gameHistoryBase,{oryvonaGame:p.id}),'',win.location.href);
+      var dialog=el('section','sv-game-window'),head=el('header','sv-game-head');
+      var backBtn=button('‹ STÜDYOYA DÖN','sv-button sv-game-close',closeGame);
+      var name=el('h2','',NAMES[p.id]+' · Canlı');
+      dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label',NAMES[p.id]+' izole web testi');
+      head.append(backBtn,name);
+      var frame=el('iframe','sv-game-frame');
+      frame.setAttribute('title',NAMES[p.id]);
+      frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');
+      frame.setAttribute('referrerpolicy','no-referrer');frame.setAttribute('allow','fullscreen');
+      frame.src=entryUrl;gameFrame=frame;
+      dialog.append(head,frame);gameHost.append(dialog);gameHost.hidden=false;backBtn.focus();
+    }
+    function onGamePopState(e){if(gameFrame&&(!e.state||!e.state.oryvonaGame))closeGameDirect();}
+    win.addEventListener('popstate',onGamePopState);
     function feedbackForm(p){
       var key=identity,ticket=epoch;feedback={projectId:p.id,accountKey:key,epoch:ticket};feedbackPending=null;feedbackRoot.replaceChildren();
       var box=card('sv-feedback'),h=el('h2','',NAMES[p.id]+' · Test geri bildirimi'),area=el('textarea','sv-feedback-input');area.rows=3;area.maxLength=12000;area.placeholder='Ne yaptın, ne oldu, ne bekliyordun?';area.setAttribute('aria-label','Test geri bildirimi');
@@ -60,7 +124,7 @@
         catch(err){if(owns(key,ticket)){note(text(err.message||'Kabul kaydedilemedi. Aynı kimlikle yeniden dene.',500),'error');accept.disabled=false;}}
       });if(typeof options.onApprove==='function'&&!sha){accept.disabled=true;accept.title='Kabul için kayıtlı paket SHA-256 gerekli.';}return accept;
     }
-    function release(p,s){var r=p.release||{},artifact=r.artifact||{},c=card('sv-release');c.dataset.cardKey='release:'+p.id;var row=el('div','sv-card-top');row.append(el('span','sv-project-mark',text(p.name||NAMES[p.id],1)),el('h3','',p.name||NAMES[p.id]),pill(r.version||'Paket kaydı yok'));c.append(row);if(r.reportedStage)c.append(el('p','sv-store-stage','Mağaza durum kaydı: '+({development:'Geliştirme',closed_testing:'Kapalı test',open_testing:'Açık test',production:'Yayında',paused:'Duraklatıldı'}[r.reportedStage]||r.reportedStage)));var gates=r.gates||{},gategrid=el('div','sv-gates');[['technicalQa','Teknik QA'],['deviceQa','Cihaz QA'],['productAcceptance','Ürün kabulü'],['publication','Yayın kapısı']].forEach(function(g){var n=el('div','sv-gate');n.append(el('span','',g[1]),el('strong','',gateLabel(gates[g[0]])));n.dataset.state=typeof gates[g[0]]==='string'?gates[g[0]]:gates[g[0]]&&gates[g[0]].status||'unknown';gategrid.append(n);});c.append(gategrid);var sha=typeof artifact.sha256==='string'&&/^[a-f\d]{64}$/i.test(artifact.sha256)?artifact.sha256:null;var meta=el('div','sv-package-meta');meta.append(el('span','',artifact.file||'Dosya kaydı doğrulanmadı'),el('span','',Number.isFinite(artifact.bytes)?(artifact.bytes/1048576).toFixed(1)+' MB':'Boyut doğrulanmadı'));c.append(meta);var proof=el('details','sv-evidence');proof.append(el('summary','','Kaynak ve kabul kaydı'),el('p','','Kayıtlı SHA-256: '+(sha||'Yok')),el('p','','Hash kaydı, dosyanın bu oturumda indirip doğrulandığı anlamına gelmez.'),el('p','','Son QA kaydı: '+(r.qa&&r.qa.observedAt?formatTime(r.qa.observedAt):'Yok')),el('p','',r.qa&&r.qa.summary||'Gerçek cihaz kabulü kaydı bekleniyor.'));c.append(proof);var actions=el('div','sv-release-actions'),url=safeUrl(artifact.downloadUrl,doc.baseURI||win.location&&win.location.href);if(url){var link=el('a','sv-button','Paketi aç');link.href=url;link.target='_blank';link.rel='noopener noreferrer';actions.append(link);}else{var unavailable=button('Paket bağlantısı yok','sv-button sv-button-quiet');unavailable.disabled=true;actions.append(unavailable);}var key=identity,ticket=epoch;actions.append(button('Geri bildirim','sv-button sv-button-quiet',function(){if(!owns(key,ticket))return;feedbackForm(p);}));var entryUrl=safeEntryUrl(r.entry,doc.baseURI||win.location&&win.location.href);if(entryUrl){var gameOwner=identity,gameEpoch=epoch,webTest=button('Web testi aç','sv-button sv-button-quiet',function(){if(owns(gameOwner,gameEpoch))openGame(p,entryUrl);});webTest.setAttribute('aria-label',(p.name||NAMES[p.id])+' izole web testini aç');actions.append(webTest);}if(view==='store'){var storeUrl=safeUrl(r.storeUrl);if(storeUrl&&['play.google.com','apps.apple.com'].includes(new URL(storeUrl).hostname)){var storeLink=el('a','sv-button sv-button-quiet','Mağazayı aç');storeLink.href=storeUrl;storeLink.target='_blank';storeLink.rel='noopener noreferrer';actions.append(storeLink);}}if(view==='store'||typeof options.onApprove==='function')actions.append(acceptance(p,artifact,gates));c.append(actions);return c;}
+    function release(p,s){var r=p.release||{},artifact=r.artifact||{},c=card('sv-release');c.dataset.cardKey='release:'+p.id;var row=el('div','sv-card-top');row.append(el('span','sv-project-mark',text(p.name||NAMES[p.id],1)),el('h3','',p.name||NAMES[p.id]),pill(r.version||'Paket kaydı yok'));c.append(row);if(r.reportedStage)c.append(el('p','sv-store-stage','Mağaza durum kaydı: '+({development:'Geliştirme',closed_testing:'Kapalı test',open_testing:'Açık test',production:'Yayında',paused:'Duraklatıldı'}[r.reportedStage]||r.reportedStage)));var gates=r.gates||{},gategrid=el('div','sv-gates');[['technicalQa','Teknik QA'],['deviceQa','Cihaz QA'],['productAcceptance','Ürün kabulü'],['publication','Yayın kapısı']].forEach(function(g){var n=el('div','sv-gate');n.append(el('span','',g[1]),el('strong','',gateLabel(gates[g[0]])));n.dataset.state=typeof gates[g[0]]==='string'?gates[g[0]]:gates[g[0]]&&gates[g[0]].status||'unknown';gategrid.append(n);});c.append(gategrid);var sha=typeof artifact.sha256==='string'&&/^[a-f\d]{64}$/i.test(artifact.sha256)?artifact.sha256:null;var meta=el('div','sv-package-meta');meta.append(el('span','',artifact.file||'Dosya kaydı doğrulanmadı'),el('span','',Number.isFinite(artifact.bytes)?(artifact.bytes/1048576).toFixed(1)+' MB':'Boyut doğrulanmadı'));c.append(meta);var proof=el('details','sv-evidence');proof.append(el('summary','','Kaynak ve kabul kaydı'),el('p','','Kayıtlı SHA-256: '+(sha||'Yok')),el('p','','Hash kaydı, dosyanın bu oturumda indirip doğrulandığı anlamına gelmez.'),el('p','','Son QA kaydı: '+(r.qa&&r.qa.observedAt?formatTime(r.qa.observedAt):'Yok')),el('p','',r.qa&&r.qa.summary||'Gerçek cihaz kabulü kaydı bekleniyor.'));c.append(proof);var actions=el('div','sv-release-actions'),url=safeUrl(artifact.downloadUrl,doc.baseURI||win.location&&win.location.href);if(url){var link=el('a','sv-button','Paketi aç');link.href=url;link.target='_blank';link.rel='noopener noreferrer';actions.append(link);}else if(p.id!=='forge-run'){var unavailable=button('Paket bağlantısı yok','sv-button sv-button-quiet');unavailable.disabled=true;actions.append(unavailable);}if(p.id==='forge-run'){var forgeLink=el('a','sv-button','Google Play Testi Aç');forgeLink.href='https://play.google.com/apps/testing/com.forgerun.dtslicetest';forgeLink.target='_blank';forgeLink.rel='noopener noreferrer';actions.append(forgeLink);}var key=identity,ticket=epoch;actions.append(button('Geri bildirim','sv-button sv-button-quiet',function(){if(!owns(key,ticket))return;feedbackForm(p);}));var entryUrl=safeEntryUrl(r.entry,doc.baseURI||win.location&&win.location.href);if(entryUrl){var gameOwner=identity,gameEpoch=epoch,webTest=button('Web testi aç','sv-button sv-button-quiet',function(){if(owns(gameOwner,gameEpoch))openGame(p,r.entry);});webTest.setAttribute('aria-label',(p.name||NAMES[p.id])+' izole web testini aç');actions.append(webTest);}if(view==='store'){var storeUrl=safeUrl(r.storeUrl);if(storeUrl&&['play.google.com','apps.apple.com'].includes(new URL(storeUrl).hostname)){var storeLink=el('a','sv-button sv-button-quiet','Mağazayı aç');storeLink.href=storeUrl;storeLink.target='_blank';storeLink.rel='noopener noreferrer';actions.append(storeLink);}}if(view==='store'||typeof options.onApprove==='function')actions.append(acceptance(p,artifact,gates));c.append(actions);return c;}
     function releases(s){body.append(heading(view==='tests'?'Paket & kabul merkezi':'Teslim & yayın merkezi',view==='tests'?'Beş oyun için paket, cihaz kabulü ve geri bildirim.':'Kayıtlı paketler ve yayın kapılarının gerçek durumu.'));var grid=el('div','sv-releases');IDS.forEach(function(id){grid.append(release((s.projects||[]).find(function(p){return p.id===id;})||{id:id},s));});body.append(grid);}
     function cardAncestor(node){while(node&&node!==body){if(node.dataset&&node.dataset.cardKey)return node;node=node.parentNode;}return null;}
     function semanticSignature(next){return JSON.stringify({state:next.state,stale:next.stale,summary:next.summary,priorities:next.priorities,projects:next.projects,jobs:next.jobs});}
@@ -74,13 +138,13 @@
     }
     function update(next){
       if(destroyed)return;next=next&&typeof next==='object'?next:{};var nextOwner=next.accountKey||null;
-      if(identity!==nextOwner){closeGame();identity=nextOwner;epoch++;signature=null;feedback=null;feedbackPending=null;feedbackRoot.replaceChildren();body.replaceChildren();}
+      if(identity!==nextOwner){closeGameDirect();identity=nextOwner;epoch++;signature=null;feedback=null;feedbackPending=null;feedbackRoot.replaceChildren();body.replaceChildren();}
       snapshot=next;if(!active)return;
       notice.dataset.tone=next.state==='error'?'error':'normal';notice.textContent=next.state==='ready'?(next.stale?'Son kayıt gösteriliyor; güncellik doğrulanmadı.':'Gerçek sistem kayıtları · '+(next.loadedAt?formatTime(next.loadedAt):'Güncelleme zamanı doğrulanmadı')):next.state==='loading'?'Stüdyo kayıtları yükleniyor…':(next.state==='signed_out'||next.state==='unauthenticated')?'Sahip hesabıyla giriş yapınca gerçek stüdyo kayıtları görünür.':'Veri kapsamı eksik. Bilinmeyen alanlar doğrulanmadı olarak gösterilir.';
       var sig=semanticSignature(next);if(sig===signature)return;signature=sig;var interaction=preserveInteraction();body.replaceChildren();if(view==='home')home(next);else if(view==='feed')feed(next);else releases(next);restoreInteraction(interaction);
     }
     unsub=data.subscribe(update);Promise.resolve(data.getSnapshot()).then(update).catch(function(){update({state:'error',accountKey:null});});
-    return Object.freeze({setActive:function(value){active=!!value;root.hidden=!active;if(!active){closeGame();epoch++;feedback=null;feedbackPending=null;feedbackRoot.replaceChildren();}else{signature=null;update(snapshot||{});}},refresh:function(){return typeof data.refresh==='function'?data.refresh():Promise.resolve(update(data.getSnapshot()));},destroy:function(){if(destroyed)return;destroyed=true;closeGame();epoch++;if(typeof unsub==='function')unsub();root.replaceChildren();root.classList.remove('sv-root');}});
+    return Object.freeze({setActive:function(value){active=!!value;root.hidden=!active;if(!active){closeGameDirect();epoch++;feedback=null;feedbackPending=null;feedbackRoot.replaceChildren();}else{signature=null;update(snapshot||{});}},refresh:function(){return typeof data.refresh==='function'?data.refresh():Promise.resolve(update(data.getSnapshot()));},destroy:function(){if(destroyed)return;destroyed=true;closeGameDirect();win.removeEventListener('popstate',onGamePopState);epoch++;if(typeof unsub==='function')unsub();root.replaceChildren();root.classList.remove('sv-root');}});
   }
   return Object.freeze({mount:mount,_test:Object.freeze({safeUrl:safeUrl,safeEntryUrl:safeEntryUrl,gateLabel:gateLabel,statusLabel:statusLabel,STAGES:STAGES})});
 });
