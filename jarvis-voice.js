@@ -3,7 +3,7 @@
   'use strict'; var api = factory(); if (typeof module === 'object' && module.exports) module.exports = api; else root.OryvonaJarvisVoice = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  var STYLE = 'tok ve sakin erkek anlatımı; ağırbaşlı, nazik ve kendinden emin bir asistan tavrı; net ve doğal Türkçe, ölçülü tempo ve kısa doğal duraklamalar; ince kuru mizahı hafif ve abartısız bir tonla aktar';
+  var STYLE = "Iron Man J.A.R.V.I.S. tarzı: sakin, tok, kendinden emin, ölçülü bir İngiliz beyefendisi nezaketi ve hafif kuru zeki bir mizah taşıyan asistan tonu";
   function pcmWav(pcm, rate, channels) {
     rate = Number(rate) || 24000; channels = Number(channels) || 1;
     if (!(pcm instanceof Uint8Array) || !pcm.byteLength || pcm.byteLength % (2 * channels) || ![1, 2].includes(channels) || rate < 8000 || rate > 96000) throw Error('INVALID_PCM');
@@ -32,7 +32,7 @@
     function visible() { return !doc || doc.hidden !== true; }
     function gesture() { return phone() && visible() && !!(win.navigator && win.navigator.userActivation && win.navigator.userActivation.isActive); }
     function available() { return phone() && typeof (win.AudioContext || win.webkitAudioContext) === 'function'; }
-    function snapshot() { return Object.freeze({ enabled: enabled, ttsAvailable: available(), recognitionAvailable: available() && !!(win.navigator && win.navigator.mediaDevices && win.navigator.mediaDevices.getUserMedia), mode: state.mode, voiceName: 'Gemini · Charon', voiceProfile: { voiceId: 'Charon', fallbackVoiceId: 'Fenrir', provider: 'google-ai-studio', speech_metadata: { style: STYLE } }, localVoice: false, needsVoiceSetup: false, voiceSetupPending: false, voicePending: state.mode === 'tts-loading', audioLevel: state.audioLevel, notice: state.notice, error: state.error, conversationActive: !!live }); }
+    function snapshot() { return Object.freeze({ enabled: enabled, ttsAvailable: available(), recognitionAvailable: available() && !!(win.navigator && win.navigator.mediaDevices && win.navigator.mediaDevices.getUserMedia), mode: state.mode, voiceName: 'Charon', voiceProfile: { voiceId: 'Charon', fallbackVoiceId: 'Fenrir', provider: 'google-ai-studio', speech_metadata: { style: STYLE } }, localVoice: false, needsVoiceSetup: false, voiceSetupPending: false, voicePending: state.mode === 'tts-loading', audioLevel: state.audioLevel, notice: state.notice, error: state.error, conversationActive: !!live }); }
     function emit() { listeners.forEach(function (fn) { try { fn(snapshot()); } catch (_) {} }); }
     function fail(reason, text) { state.error = text; state.notice = text; emit(); return { ok: false, reason: reason }; }
     function current(ticket, captured) { return !destroyed && ticket === epoch && captured && captured === options.getAccountKey() && visible(); }
