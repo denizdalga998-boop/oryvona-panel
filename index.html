@@ -1331,7 +1331,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   $("themeSeg").addEventListener("click",e=>{const b=e.target.closest("button[data-t]");if(!b)return;try{localStorage.setItem("oryvona.theme",b.dataset.t);}catch{}applyTheme(b.dataset.t);});
 
   // ---------- navigation & horizontal game switcher bar ----------
-  const VIEWS=["games","home","jarvis","feed","tests","store","game","settings","detail"];let view="home",detailKey=null;
+  const VIEWS=["games","home","jarvis","feed","tests","store","game","settings","detail"];let view="home",detailKey=null,handlingPwaBack=false,pwaGestureArmed=false;
   const tabOf=v=>v==="detail"||v==="games"?"home":v==="game"?"store":v;
   function renderGameBar(){
     ensureStudioCatalog();
@@ -1348,9 +1348,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(chip){chip.hidden=!txt;chip.className="loc-chip"+(cm.locState==="transfer"?" transfer":"");if($("topLocTxt"))$("topLocTxt").textContent=txt;}
     const p=projects.find(x=>x.id===cur);if($("topTitle"))$("topTitle").textContent=p?p.name:cm.name;
   }
-  function showView(v){if(!VIEWS.includes(v))v="home";view=v;document.body.dataset.oryvonaView=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===tabOf(v))));window.scrollTo({top:0});
+  function showView(v){if(!VIEWS.includes(v))v="home";const changed=view!==v;view=v;document.body.dataset.oryvonaView=v;for(const k of VIEWS)$("view-"+k).hidden=k!==v;document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.view===tabOf(v))));window.scrollTo({top:0});
     renderGameBar();renderV22StudioCards();
-    if(v==="games")renderGames();if(v==="jarvis")renderJarvis();if(v==="feed"){renderDigest();renderWeek();renderFeedList();}if(v==="tests")renderTestsBody();if(v==="settings")renderSettings();if(v==="store")renderStore();if(v==="game")renderGame();document.dispatchEvent(new CustomEvent("oryvona:view-change",{detail:{view:v,id:current}}));}
+    if(v==="games")renderGames();if(v==="jarvis")renderJarvis();if(v==="feed"){renderDigest();renderWeek();renderFeedList();}if(v==="tests")renderTestsBody();if(v==="settings")renderSettings();if(v==="store")renderStore();if(v==="game")renderGame();document.dispatchEvent(new CustomEvent("oryvona:view-change",{detail:{view:v,id:current}}));if(changed&&!handlingPwaBack)pushPwaGuard();}
   function turnChip(s){const h=s?.handoff||{};const t=turnInfo(h.status);const cls=h.status==="BLOCKED"?"bad":h.status==="USER_TEST_READY"?"deniz":t.who||"";return {cls,text:s?.handoff?turnLabel(t):T("games.notLinked")};}
   function renderDrawer(){ensureStudioCatalog();$("drawerUser").textContent=session?.user?.email||T("ui.studio");
     $("drawerGames").innerHTML=projects.map(p=>{const sp=gameMeta(p.id);const s=allStatus[p.id];const c=turnChip(s);const sub=[locOf(sp),humanText(s?.phaseTr)].filter(Boolean).join(" · ");
@@ -1367,26 +1367,40 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function openDetail(key){fillDetail(key);const navigate=()=>{history.pushState({view:"detail",key},"");showView("detail");};if(window.OryvonaNativeShell?.isClosing())window.OryvonaNativeShell.afterClose(navigate);else navigate();}
   document.addEventListener("click",e=>{const b=e.target.closest("[data-detail]");if(b)openDetail(b.dataset.detail);});
   $("backBtn").addEventListener("click",()=>history.back());$("gameBack").addEventListener("click",()=>history.back());
+  function pushPwaGuard(){
+    try{history.pushState({pwaGuard:true,view:view||"home"},"",location.href);}catch(_e){}
+  }
+  function armPwaGuard(e){
+    if(pwaGestureArmed||!e.isTrusted)return;pwaGestureArmed=true;pushPwaGuard();
+    document.removeEventListener("pointerdown",armPwaGuard);document.removeEventListener("keydown",armPwaGuard);
+  }
+  document.addEventListener("pointerdown",armPwaGuard,{passive:true});document.addEventListener("keydown",armPwaGuard);
   addEventListener("popstate",e=>{
-    const labPlayer=document.getElementById("gamePlayer");
-    if(labPlayer){labPlayer.dispatchEvent(new CustomEvent("oryvona:player-back"));return;}
-    const svGame=document.querySelector(".sv-game-window");
-    if(svGame){svGame.dispatchEvent(new CustomEvent("oryvona:game-back"));return;}
-    // The native shell must release focus/background locks before generic dismissal.
-    if(window.OryvonaNativeShell?.handlePopState(e))return;
-    const openDialog=document.querySelector("dialog[open], .modal-backdrop:not([hidden])");
-    if(openDialog){openDialog.hidden=true;openDialog.close?.();return;}
-    const s=e.state||{view:"home"};
-    if(s.view==="detail"&&s.key)fillDetail(s.key);
-    if(s.view==="game")gameId=s.game||gameId;
-    showView(s.view||"home");
+    handlingPwaBack=true;
+    try{
+      const labPlayer=document.getElementById("gamePlayer");
+      if(labPlayer){labPlayer.dispatchEvent(new CustomEvent("oryvona:player-back"));return;}
+      const svGame=document.querySelector(".sv-game-window");
+      if(svGame){svGame.dispatchEvent(new CustomEvent("oryvona:game-back"));return;}
+      if(window.OryvonaNativeShell?.handlePopState(e))return;
+      const openDialog=document.querySelector("dialog[open], .modal-backdrop:not([hidden]), #linkModal:not([hidden])");
+      if(openDialog){openDialog.hidden=true;openDialog.close?.();return;}
+      if(view&&view!=="home")showView("home");
+    }finally{handlingPwaBack=false;pushPwaGuard();}
   });
-  window.launchForgeRun=function(){
-    const fallback="https://play.google.com/apps/testing/com.forgerun.dtslicetest";
-    if(!/android/i.test(navigator.userAgent)){window.open(fallback,"_blank","noopener,noreferrer");return;}
-    window.location.href="intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.forgerun.dtslicetest;S.browser_fallback_url="+encodeURIComponent(fallback)+";end";
+  const APK_INTENTS={
+    "forge-run":"intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.forgerun.dtslicetest;end",
+    "aeryo":"intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=games.oryvona.aeryo;end",
+    "tupsper":"intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=games.oryvona.tuckspire;end"
   };
-  history.replaceState({view:"home"},"");
+  window.launchInstalledGame=function(gid){
+    const intentUri=APK_INTENTS[gid];if(!intentUri)return false;
+    if(/android/i.test(navigator.userAgent))window.location.href=intentUri;
+    else{const pkg={"forge-run":"com.forgerun.dtslicetest",aeryo:"games.oryvona.aeryo",tupsper:"games.oryvona.tuckspire"}[gid];window.open("https://play.google.com/apps/testing/"+pkg,"_blank","noopener,noreferrer");}
+    return true;
+  };
+  window.launchForgeRun=()=>window.launchInstalledGame("forge-run");
+  history.replaceState({view:"home"},"");pushPwaGuard();
   function refreshOpen(){renderV22StudioCards();if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="jarvis")renderJarvis();if(view==="tests")renderTestsBody();if(view==="feed"){renderDigest();renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();if(view==="store")renderStore();if(view==="game")renderGame();}
   function rerenderAll(){freshness();renderGameBar();renderDigest();renderV22StudioCards();if(status)renderHome(status);else applyStatus(null);renderTimeline("tl",24);refreshOpen();renderStoreBadge();renderGemini();renderCmd();renderJarvis();renderReadiness();updatePlayButtonUI(current);renderRunner();}
 
@@ -1926,6 +1940,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function resolveGameTargetUrl(gid){
     const id=gid||current||"koza";const sp=gameMeta(id);const ln=getGameLinks(id);
     const isAndroid=/android/i.test(navigator.userAgent);
+    if(isAndroid&&APK_INTENTS[id])return{kind:"intent",url:APK_INTENTS[id]};
     const DEFAULTS={
       'aeryo':{playUrl:isAndroid?'market://details?id=games.oryvona.aeryo':'https://play.google.com/apps/testing/games.oryvona.aeryo',webUrl:''},
       'tupsper':{playUrl:isAndroid?'market://details?id=games.oryvona.tuckspire':'https://play.google.com/apps/testing/games.oryvona.tuckspire',webUrl:''},
@@ -1946,9 +1961,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
     const a=$("playNowBtn"),ic=$("playBtnIcon"),ti=$("playBtnTitle"),su=$("playVerSub"),ar=$("playArr"),ed=$("editLinkBtn");if(!a)return;
     for(const at of ["href","target","rel","download","aria-disabled"])a.removeAttribute(at);
     a.classList.toggle("no-link",res.kind==="missing");
-    if(res.kind==="web"||res.kind==="play"){
-      a.href=res.url;a.target=res.url.startsWith("market:")?"_self":"_blank";a.rel="noopener noreferrer";
-      ic.textContent=res.kind==="web"?"🎮":"▶️";ti.textContent=res.kind==="web"?P.webTitle:P.playTitle;su.textContent=(res.kind==="web"?P.webSub:P.playSub)(sp.name);ar.textContent="↗";
+    if(res.kind==="web"||res.kind==="play"||res.kind==="intent"){
+      a.href=res.url;a.target=/^(?:market|intent):/.test(res.url)?"_self":"_blank";a.rel="noopener noreferrer";
+      ic.textContent=res.kind==="web"?"🎮":"▶️";ti.textContent=res.kind==="web"?P.webTitle:P.playTitle;su.textContent=(res.kind==="web"?P.webSub:P.playSub)(sp.name);ar.textContent="↗";if(res.kind==="intent"){ic.textContent="📲";ti.textContent=lang==="tr"?"Oyunu başlat":"Launch game";su.textContent=sp.name;ar.textContent="›";}
     }else if(res.kind==="apk"){
       a.href=res.url;a.setAttribute("download","");a.rel="noopener";
       ic.textContent="📲";ti.textContent=P.apkTitle;su.textContent=P.apkSub(sp.name);ar.textContent="⬇";
@@ -1974,6 +1989,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(linkModalReturn&&linkModalReturn.focus){try{linkModalReturn.focus();}catch{}}linkModalReturn=null;
   }
   $("playNowBtn")?.addEventListener("click",e=>{
+    if(APK_INTENTS[current]){e.preventDefault();window.launchInstalledGame(current);return;}
     const a=$("playNowBtn");const href=a.getAttribute("href");
     if(!href||href==="#"){
       const res=resolveGameTargetUrl(current);
@@ -2308,7 +2324,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
 
 <script src="native-shell.js?v=20261020-gemini1"></script>
-<script src="game-lab.js?v=20261021-r12"></script>
+<script src="game-lab.js?v=20261021-r13"></script>
 <script src="jarvis-energy.js?v=20261020-gemini1"></script>
 <script src="jarvis-bridge.js?v=20261021-r6"></script>
 <script src="supabase-host-port.js?v=20261021-argon3"></script>
@@ -2316,8 +2332,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
 <script src="jarvis-brief.js?v=20261020-gemini1"></script>
 <script src="studio-gemini-client.js?v=20261021-argon3"></script>
 <script src="jarvis-voice.js?v=20261021-jarvis-vault1"></script>
-<script src="studio-world-v26.js?v=20261021-r12"></script>
-<script src="jarvis-world.js?v=20261021-mic1"></script>
+<script src="studio-world-v26.js?v=20261021-r13"></script>
+<script src="jarvis-world.js?v=20261021-r13"></script>
 <script src="studio-v26-bootstrap.js?v=20261021-argon3"></script>
 <script src="studio-flow.js?v=20261021-argon3"></script>
 <script src="studio-flow-bootstrap.js?v=20261021-argon3"></script>

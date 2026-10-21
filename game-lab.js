@@ -80,10 +80,7 @@
   }
   function closePlayer() { if(history.state?.oryvonaPlayer)history.back();else stopPlayer(); }
   async function openPlayer(g){
-    if(g.id==='forge-run'){window.launchForgeRun?.();return;}
-    const isAndroid=/android/i.test(navigator.userAgent);
-    const packages={aeryo:'games.oryvona.aeryo',tupsper:'games.oryvona.tuckspire'};
-    if(packages[g.id]){const target=isAndroid?'market://details?id='+packages[g.id]:'https://play.google.com/apps/testing/'+packages[g.id];window.open(target,isAndroid?'_self':'_blank');return;}
+    if(['forge-run','aeryo','tupsper'].includes(g.id)){window.launchInstalledGame?.(g.id);return;}
     if(dialog||!g.entry)return;
     const url=new URL(g.entry,document.baseURI),scope=new URL('./',document.baseURI);
     if(url.origin!==scope.origin||!url.pathname.startsWith(scope.pathname+'play/'))return;
