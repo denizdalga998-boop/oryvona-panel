@@ -4,7 +4,7 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const tr = () => (window.OryvonaPanel?.getContext().locale || document.documentElement.lang || 'tr').startsWith('tr');
   const text = (a,b) => tr() ? a : b;
-  let games = [], selected = 'koza', tab = 'build', dialog = null, returnFocus = null, loadingTimer = null, pending = '', lastSignature = '';
+  let games = [], selected = 'koza', tab = 'build', dialog = null, returnFocus = null, loadingTimer = null, playerHistoryBase = null, pending = '', lastSignature = '';
   const context = () => window.OryvonaPanel?.getContext() || {};
   const game = () => games.find(g => g.id === (context().projectId || selected)) || games.find(g => g.id === selected);
   const size = bytes => Number.isFinite(bytes) ? `${(bytes / 1e6).toLocaleString(tr() ? 'tr' : 'en', {maximumFractionDigits:2})} MB` : '—';
@@ -75,20 +75,32 @@
     if(!dialog)return;
     const frame=dialog.querySelector('iframe');if(frame){frame.src='about:blank';frame.remove();}
     dialog.close();dialog.remove();dialog=null;document.body.classList.remove('game-player-open');
+    if(history.state?.oryvonaPlayer)history.replaceState(playerHistoryBase,'',location.href);playerHistoryBase=null;
     returnFocus?.focus?.();returnFocus=null;
   }
   function closePlayer() { if(history.state?.oryvonaPlayer)history.back();else stopPlayer(); }
   async function openPlayer(g){
+    if(g.id==='forge-run'){window.launchForgeRun?.();return;}
     const isAndroid=/android/i.test(navigator.userAgent);
-    const links={
-      'aeryo':isAndroid?'market://details?id=games.oryvona.aeryo':'https://play.google.com/apps/testing/games.oryvona.aeryo',
-      'tupsper':isAndroid?'market://details?id=games.oryvona.tuckspire':'https://play.google.com/apps/testing/games.oryvona.tuckspire',
-      'forge-run':isAndroid?'market://details?id=com.forgerun.dtslicetest':'https://play.google.com/apps/testing/com.forgerun.dtslicetest',
-      'koza':'https://denizdalga998-boop.github.io/oryvona-panel/play/koza/k01.html?panel=1',
-      'charm-drop':'https://denizdalga998-boop.github.io/oryvona-panel/play/charm-drop/index.html'
-    };
-    const target=links[g.id]||g.entry;
-    if(target){window.open(target,target.startsWith('market:')?'_self':'_blank');}
+    const packages={aeryo:'games.oryvona.aeryo',tupsper:'games.oryvona.tuckspire'};
+    if(packages[g.id]){const target=isAndroid?'market://details?id='+packages[g.id]:'https://play.google.com/apps/testing/'+packages[g.id];window.open(target,isAndroid?'_self':'_blank');return;}
+    if(dialog||!g.entry)return;
+    const url=new URL(g.entry,document.baseURI),scope=new URL('./',document.baseURI);
+    if(url.origin!==scope.origin||!url.pathname.startsWith(scope.pathname+'play/'))return;
+    returnFocus=document.activeElement;
+    dialog=document.createElement('dialog');dialog.id='gamePlayer';dialog.className='game-player';
+    dialog.setAttribute('aria-label',g.name+' '+text('tam ekran oyun testi','full-screen game test'));
+    dialog.innerHTML='<div class="player-stage" style="width:100vw;height:100vh;margin:0;padding:0;"><p class="player-loading" role="status">'+text('Gerçek oyun yükleniyor…','Loading the actual game…')+'</p></div>';
+    dialog.addEventListener('oryvona:player-back',stopPlayer);
+    dialog.addEventListener('cancel',e=>{e.preventDefault();closePlayer();});
+    document.body.append(dialog);document.body.classList.add('game-player-open');dialog.showModal();
+    playerHistoryBase=history.state;
+    history.pushState({...history.state,oryvonaPlayer:g.id,view:'tests'},'',location.href);
+    const frame=document.createElement('iframe');frame.title=g.name+' '+text('oyun testi','game test');
+    frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');frame.setAttribute('referrerpolicy','no-referrer');frame.setAttribute('allow','fullscreen');
+    frame.addEventListener('load',()=>{if(dialog){clearTimeout(loadingTimer);dialog.querySelector('.player-loading')?.remove();}});
+    frame.src=url.href;dialog.querySelector('.player-stage').append(frame);
+    loadingTimer=setTimeout(()=>{const loading=dialog?.querySelector('.player-loading');if(loading)loading.textContent=text('Yükleme sürüyor. Bağlantını kontrol edebilir veya geri tuşuyla panele dönebilirsin.','Still loading. Check connectivity or use Back to return to the panel.');},25000);
   }
   document.addEventListener('click',async e=>{
     const hero=e.target.closest('#playNowBtn');if(hero && game()){e.preventDefault();e.stopImmediatePropagation();const g=game();openPlayer(g);return;}

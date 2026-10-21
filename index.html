@@ -367,7 +367,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 <link rel="stylesheet" href="native-shell.css?v=20261020-gemini1">
 <link rel="stylesheet" href="jarvis-world.css?v=20261021-r6">
 <link rel="stylesheet" href="jarvis-v23-shell.css?v=20261020-gemini1">
-<link rel="stylesheet" href="studio-v26.css?v=20261021-r11">
+<link rel="stylesheet" href="studio-v26.css?v=20261021-r12">
 <link rel="stylesheet" href="studio-integration-v26.css?v=20261020-gemini1">
 <script src="studio-facade-v26.js?v=20261020-gemini1"></script>
 <script src="studio-decisions-v26.js?v=20261020-gemini1"></script>
@@ -1167,7 +1167,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   }
   // Readiness is computed from real signals only: cloud test results, touch status, a saved test link, a real store record, Play sync.
   // Items we cannot know (null) are shown as "–" and are left out of the percentage.
-  const playConnected=()=>!!(store.status&&store.status.play&&store.status.play.connected&&!store.status.play.error);
+  const playConnected=()=>!!(store.status&&store.status.play&&store.status.play.connected&&store.status.play.verified!==false&&store.status.play.source!=="owner_seed"&&!store.status.play.error);
   function getReadiness(gid){
     const id=gid||current||"koza";const st=(id===current&&status)?status:allStatus[id];const q=(st&&st.lastQa)||{};const R=S().rdy;
     const items=[];
@@ -1367,7 +1367,25 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function openDetail(key){fillDetail(key);const navigate=()=>{history.pushState({view:"detail",key},"");showView("detail");};if(window.OryvonaNativeShell?.isClosing())window.OryvonaNativeShell.afterClose(navigate);else navigate();}
   document.addEventListener("click",e=>{const b=e.target.closest("[data-detail]");if(b)openDetail(b.dataset.detail);});
   $("backBtn").addEventListener("click",()=>history.back());$("gameBack").addEventListener("click",()=>history.back());
-  addEventListener("popstate",e=>{if(window.OryvonaNativeShell?.handlePopState(e))return;const s=e.state||{view:"home"};if(s.view==="detail"&&s.key)fillDetail(s.key);if(s.view==="game")gameId=s.game||gameId;showView(s.view||"home");});
+  addEventListener("popstate",e=>{
+    const labPlayer=document.getElementById("gamePlayer");
+    if(labPlayer){labPlayer.dispatchEvent(new CustomEvent("oryvona:player-back"));return;}
+    const svGame=document.querySelector(".sv-game-window");
+    if(svGame){svGame.dispatchEvent(new CustomEvent("oryvona:game-back"));return;}
+    // The native shell must release focus/background locks before generic dismissal.
+    if(window.OryvonaNativeShell?.handlePopState(e))return;
+    const openDialog=document.querySelector("dialog[open], .modal-backdrop:not([hidden])");
+    if(openDialog){openDialog.hidden=true;openDialog.close?.();return;}
+    const s=e.state||{view:"home"};
+    if(s.view==="detail"&&s.key)fillDetail(s.key);
+    if(s.view==="game")gameId=s.game||gameId;
+    showView(s.view||"home");
+  });
+  window.launchForgeRun=function(){
+    const fallback="https://play.google.com/apps/testing/com.forgerun.dtslicetest";
+    if(!/android/i.test(navigator.userAgent)){window.open(fallback,"_blank","noopener,noreferrer");return;}
+    window.location.href="intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.forgerun.dtslicetest;S.browser_fallback_url="+encodeURIComponent(fallback)+";end";
+  };
   history.replaceState({view:"home"},"");
   function refreshOpen(){renderV22StudioCards();if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="jarvis")renderJarvis();if(view==="tests")renderTestsBody();if(view==="feed"){renderDigest();renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();if(view==="store")renderStore();if(view==="game")renderGame();}
   function rerenderAll(){freshness();renderGameBar();renderDigest();renderV22StudioCards();if(status)renderHome(status);else applyStatus(null);renderTimeline("tl",24);refreshOpen();renderStoreBadge();renderGemini();renderCmd();renderJarvis();renderReadiness();updatePlayButtonUI(current);renderRunner();}
@@ -1556,6 +1574,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
   const unseenReviews=gid=>store.reviews.filter(r=>!r.seen&&(!gid||r.game_id===gid)).length;
   function renderStoreBadge(){const n=unreadMail()+unseenReviews();const b=$("storeBadge");b.hidden=!n;b.textContent=n>99?"99+":String(n);}
   function connChip(key){const Sm=S().store;const st=store.status[key];if(!st)return `<span class="chip sm warn">${esc(Sm.notConnected)}</span>`;
+    if(key==="play"&&(st.source==="owner_seed"||st.verified===false))return `<span class="chip sm warn">${esc(lang==="tr"?"Manuel kayıt · API doğrulanmadı":"Manual record · API unverified")}</span>`;
+    if(!st.connected&&!st.error)return `<span class="chip sm warn">${esc(Sm.notConnected)}</span>`;
     if(st.error&&!st.connected)return `<span class="chip sm warn" title="${esc(st.error)}">${esc(Sm.notConnected)}</span>`;if(st.error)return `<span class="chip sm bad" title="${esc(st.error)}">${esc(Sm.syncErr)}</span>`;return `<span class="chip sm good">${esc(Sm.connected)}</span>`;}
   function storeSubtitle(gm){
     const sp=gameMeta(gm.id);const raw=gm.meta?.subtitleTr||"";
@@ -1571,11 +1591,11 @@ textarea{width:100%;min-height:80px;resize:vertical}
       <div class="tile flat"><span class="ic ${unseenReviews()?"warn":""}">${I.star}</span><span class="k">${esc(Sm.newReviews)}</span><span class="v num">${unseenReviews()}</span><span class="s">${newest?esc((newest.title_tr||newest.kind)+" · "+ago(newest.at)):esc(T("ui.none"))}</span></div>`;
     $("storeGames").innerHTML=storeGameList().map(gm=>{
       const rv=store.reviews.filter(r=>r.game_id===gm.id);const rated=rv.filter(r=>r.rating);const avg=rated.length?(rated.reduce((a,r)=>a+r.rating,0)/rated.length).toFixed(1):null;const um=store.mail.filter(m=>m.game_id===gm.id&&!m.read).length;
-      const tracks=playConnected()?(gm.meta?.tracks||[]):[];
+      const tracks=(playConnected()||gm.meta?.source==="owner_seed")?(gm.meta?.tracks||[]):[];
       const trackLine=tracks.filter(t=>t.releases?.length).map(t=>`${S().track[t.track]||t.trackTr||t.track}: ${t.releases.map(r=>r.name||"").filter(Boolean).join(", ")||"–"}`).join(" · ");
       const subTr=storeSubtitle(gm);
       const stageChip=gm.virtual?`<span class="chip sm warn">${esc(Sm.noRecordShort)}</span>`:`<span class="chip sm ${STAGE_CLS[gm.stage]||""}">${esc(S().stage[gm.stage]||gm.stage)}</span>`;
-      const line2=gm.virtual?Sm.noRecord:trackLine?trackLine:(gm.stage==="closed_testing"||gm.stage==="development"?Sm.reviewsLocked:Sm.noTracks);
+      const line2=gm.virtual?Sm.noRecord:trackLine?((gm.meta?.source==="owner_seed"?(lang==="tr"?"Deniz bildirimi · ":"Owner reported · "):"")+trackLine):(gm.stage==="closed_testing"||gm.stage==="development"?Sm.reviewsLocked:Sm.noTracks);
       const line3=gm.virtual?"":`<span class="s">${avg?`${stars(Math.round(avg))} ${avg} · ${rv.length}`:esc(Sm.noReviews)}${um?` · <b style="color:var(--brand)">${um} ${esc(Sm.unread.toLowerCase())}</b>`:""}</span>`;
       return `<button class="tile wide" data-sgame="${esc(gm.id)}"><span class="ic ${gm.virtual?"warn":STAGE_CLS[gm.stage]||"brand"}">${esc(gm.name.slice(0,2).toUpperCase())}</span><span class="tx"><span class="v">${esc(gm.name)}</span><span class="s">${stageChip}${subTr?` · ${esc(subTr)}`:""}</span><span class="s">${esc(line2)}</span>${line3}${renderReadinessHtml(gm.id,true)}</span></button>`;}).join("");
     renderMailList();renderStoreBadge();}
@@ -1639,7 +1659,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
   async function loadStore(){if(demo||!sb)return;
     const [g,r,m,n,ev,st]=await Promise.all([sb.from("store_games").select("*").order("sort_order").order("name"),sb.from("store_reviews").select("*").order("created_at",{ascending:false}).limit(300),sb.from("mail_items").select("*").order("received_at",{ascending:false}).limit(150),sb.from("store_notes").select("*").order("at",{ascending:false}).limit(300),sb.from("store_events").select("*").order("at",{ascending:false}).limit(150),sb.from("store_status").select("key,value")]);
     if(g.error){console.warn(g.error);return;}
-    store={games:g.data||[],reviews:r.data||[],mail:m.data||[],notes:n.data||[],events:ev.data||[],status:Object.fromEntries((st.data||[]).map(x=>[x.key,x.value]))};
+    const statusMap=Object.fromEntries((st.data||[]).map(x=>[x.key,x.value]));
+    if(!statusMap.play)statusMap.play={connected:false,lastRun:null,account:"oryvonagames@gmail.com",developerId:"Oryvona Games",serviceAccount:"unverified",source:"owner_seed",verified:false};
+    store={games:g.data||[],reviews:r.data||[],mail:m.data||[],notes:n.data||[],events:ev.data||[],status:statusMap};
     renderStoreBadge();renderRunner();updatePlayButtonUI(current);renderReadiness();renderDigest();if(view==="store")renderStore();if(view==="game")renderGame();}
   function watchStore(){if(!sb||storeChannel)return;let tm=null,ts=null;const bump=()=>{clearTimeout(tm);tm=setTimeout(loadStore,400);};
     // komut-runner rewrites its heartbeat row (store_status "runner") every 30 s: refresh only that row, not all six tables.
@@ -2286,7 +2308,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
 
 <script src="native-shell.js?v=20261020-gemini1"></script>
-<script src="game-lab.js?v=20261021-r10"></script>
+<script src="game-lab.js?v=20261021-r12"></script>
 <script src="jarvis-energy.js?v=20261020-gemini1"></script>
 <script src="jarvis-bridge.js?v=20261021-r6"></script>
 <script src="supabase-host-port.js?v=20261021-argon3"></script>
@@ -2294,7 +2316,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 <script src="jarvis-brief.js?v=20261020-gemini1"></script>
 <script src="studio-gemini-client.js?v=20261021-argon3"></script>
 <script src="jarvis-voice.js?v=20261021-jarvis-vault1"></script>
-<script src="studio-world-v26.js?v=20261021-r11"></script>
+<script src="studio-world-v26.js?v=20261021-r12"></script>
 <script src="jarvis-world.js?v=20261021-mic1"></script>
 <script src="studio-v26-bootstrap.js?v=20261021-argon3"></script>
 <script src="studio-flow.js?v=20261021-argon3"></script>

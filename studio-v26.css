@@ -25,3 +25,13 @@ body.oryvona-v26 .tabs button{min-width:0;min-height:54px;height:100%;padding:4p
 @media(prefers-reduced-motion:reduce){body.oryvona-v26 *,body.oryvona-v26 *::before,body.oryvona-v26 *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 .sv-metric-value.sv-metric-workers{font-size:16px;line-height:1.45}
+
+/* r12: edge-to-edge web tests; return uses Android/browser history or Escape. */
+.sv-game-window, #gamePlayer {
+  position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;
+  max-width:100vw!important;max-height:100vh!important;margin:0!important;padding:0!important;
+  border:none!important;background:#000!important;z-index:99999!important;
+}
+.sv-game-frame, #gamePlayer iframe {width:100vw!important;height:100vh!important;border:none!important;display:block!important}
+#gamePlayer .player-stage{width:100%!important;height:100%!important}
+@supports(height:100dvh){.sv-game-window,#gamePlayer{height:100dvh!important;max-height:100dvh!important}.sv-game-frame,#gamePlayer iframe{height:100dvh!important}}

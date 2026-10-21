@@ -15,7 +15,7 @@
     function account(){var s=data.getSnapshot();return s&&s.accountKey||null;}
     function owns(key,ticket){return !destroyed&&active&&key&&key===identity&&account()===key&&ticket===epoch;}
     function note(value,tone){notice.textContent=text(value,800);notice.dataset.tone=tone||'normal';}
-    root.classList.add('sv-root');root.dataset.studioView=view;root.dataset.studioVersion='26';var top=el('header','sv-page-head'),eyebrow=el('p','sv-eyebrow','ORYVONA / COMMAND CENTER'),title=el('h1','sv-title',({home:'Stüdyo',feed:'İşler',tests:'Test',store:'Yayınlar'})[view]),description=el('p','sv-subtitle',({home:'Beş oyunun tek, net operasyon görünümü.',feed:'Ayrı projeler. İzole işler. Görünür sonuçlar.',tests:'Doğru paket, gerçek kabul kaydı, tek geri bildirim.',store:'Her teslimin kaynağı ve yayın kapıları aynı yerde.'})[view]),headText=el('div');headText.append(eyebrow,title,description);var refresh=button('Yenile','sv-button sv-refresh',async function(){refresh.disabled=true;try{if(typeof data.refresh==='function')await data.refresh();}catch(_e){note('Veriler yenilenemedi. Son kayıt korunuyor.','error');}finally{if(!destroyed)refresh.disabled=false;}});top.append(headText,refresh);var notice=el('p','sv-notice');notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');var body=el('div','sv-body'),feedbackRoot=el('div','sv-feedback-host'),gameHost=el('div','sv-game-host');gameHost.hidden=true;root.append(top,notice,body,feedbackRoot,gameHost);
+    root.classList.add('sv-root');root.dataset.studioView=view;root.dataset.studioVersion='26';var top=el('header','sv-page-head'),eyebrow=el('p','sv-eyebrow','ORYVONA / COMMAND CENTER'),title=el('h1','sv-title',({home:'Stüdyo',feed:'İşler',tests:'Test',store:'Yayınlar'})[view]),description=el('p','sv-subtitle',({home:'Beş oyunun tek, net operasyon görünümü.',feed:'Ayrı projeler. İzole işler. Görünür sonuçlar.',tests:'Doğru paket, gerçek kabul kaydı, tek geri bildirim.',store:'Her teslimin kaynağı ve yayın kapıları aynı yerde.'})[view]),headText=el('div');headText.append(eyebrow,title,description);var refresh=button('Yenile','sv-button sv-refresh',async function(){refresh.disabled=true;try{if(typeof data.refresh==='function')await data.refresh();}catch(_e){note('Veriler yenilenemedi. Son kayıt korunuyor.','error');}finally{if(!destroyed)refresh.disabled=false;}});top.append(headText,refresh);var notice=el('p','sv-notice');notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');var body=el('div','sv-body'),feedbackRoot=el('div','sv-feedback-host'),gameHost=el('div','sv-game-host');gameHost.id='studioWorld-gameHost-'+view;gameHost.hidden=true;root.append(top,notice,body,feedbackRoot,gameHost);
     function card(cls){return el('article','sv-card '+(cls||''));}
     function pill(value,state){var p=el('span','sv-pill',value);if(state)p.dataset.state=state;return p;}
     function heading(titleText,sub){var h=el('div','sv-section-head');h.append(el('h2','',titleText));if(sub)h.append(el('p','',sub));return h;}
@@ -53,7 +53,7 @@
         }else{
           var targetUrl=isAndroid&&prof.pkg?'market://details?id='+prof.pkg:prof.url;
           var linkBtn=el('a','sv-button',isAndroid?'📲 BAŞLAT / İNDİR':'▶ Google Play');
-          linkBtn.href=targetUrl;if(!isAndroid){linkBtn.target='_blank';linkBtn.rel='noopener noreferrer';}
+          linkBtn.href=targetUrl;if(id==='forge-run')linkBtn.addEventListener('click',function(e){e.preventDefault();win.launchForgeRun?.();});if(!isAndroid){linkBtn.target='_blank';linkBtn.rel='noopener noreferrer';}
           actionsRow.append(linkBtn);
         }
         c.append(actionsRow);grid.append(c);
@@ -67,14 +67,14 @@
     function closeGameDirect(){
       if(gameFrame){
         gameFrame.src='about:blank';gameFrame=null;
-        if(win.history.state&&win.history.state.oryvonaGame)win.history.replaceState(gameHistoryBase,'',win.location.href);
+        if(win.history.state&&win.history.state.svGame)win.history.replaceState(gameHistoryBase,'',win.location.href);
       }
       gameHistoryBase=null;gameHost.replaceChildren();gameHost.hidden=true;
       var focus=gameReturnFocus;gameReturnFocus=null;
       if(focus&&focus.isConnected!==false&&typeof focus.focus==='function')focus.focus();
     }
     function closeGame(){
-      if(gameFrame&&win.history.state&&win.history.state.oryvonaGame)win.history.back();
+      if(gameFrame&&win.history.state&&win.history.state.svGame)win.history.back();
       else closeGameDirect();
     }
     function openGame(p,url){
@@ -83,20 +83,17 @@
       if(!entryUrl){note('Oyun bağlantısı doğrulanamadı.','error');return;}
       closeGameDirect();gameReturnFocus=doc.activeElement;
       gameHistoryBase=win.history.state;
-      win.history.pushState(Object.assign({},gameHistoryBase,{oryvonaGame:p.id}),'',win.location.href);
-      var dialog=el('section','sv-game-window'),head=el('header','sv-game-head');
-      var backBtn=button('‹ STÜDYOYA DÖN','sv-button sv-game-close',closeGame);
-      var name=el('h2','',NAMES[p.id]+' · Canlı');
-      dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label',NAMES[p.id]+' izole web testi');
-      head.append(backBtn,name);
+      win.history.pushState(Object.assign({},gameHistoryBase,{svGame:p.id}),'',win.location.href);
+      var dialog=el('section','sv-game-window');
+      dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.setAttribute('aria-label',NAMES[p.id]+' tam ekran oyun testi');dialog.tabIndex=-1;
+      dialog.addEventListener('oryvona:game-back',closeGameDirect);
+      dialog.addEventListener('keydown',function(e){if(e.key==='Escape'){e.preventDefault();closeGame();}});
       var frame=el('iframe','sv-game-frame');
-      frame.setAttribute('title',NAMES[p.id]);
-      frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');
+      frame.setAttribute('title',NAMES[p.id]+' oyun testi');frame.setAttribute('sandbox','allow-scripts allow-pointer-lock');
       frame.setAttribute('referrerpolicy','no-referrer');frame.setAttribute('allow','fullscreen');
-      frame.src=entryUrl;gameFrame=frame;
-      dialog.append(head,frame);gameHost.append(dialog);gameHost.hidden=false;backBtn.focus();
+      frame.src=entryUrl;gameFrame=frame;dialog.append(frame);gameHost.append(dialog);gameHost.hidden=false;dialog.focus();
     }
-    function onGamePopState(e){if(gameFrame&&(!e.state||!e.state.oryvonaGame))closeGameDirect();}
+    function onGamePopState(e){if(gameFrame&&(!e.state||!e.state.svGame))closeGameDirect();}
     win.addEventListener('popstate',onGamePopState);
     function feedbackForm(p){
       var key=identity,ticket=epoch;feedback={projectId:p.id,accountKey:key,epoch:ticket};feedbackPending=null;feedbackRoot.replaceChildren();
@@ -124,7 +121,7 @@
         catch(err){if(owns(key,ticket)){note(text(err.message||'Kabul kaydedilemedi. Aynı kimlikle yeniden dene.',500),'error');accept.disabled=false;}}
       });if(typeof options.onApprove==='function'&&!sha){accept.disabled=true;accept.title='Kabul için kayıtlı paket SHA-256 gerekli.';}return accept;
     }
-    function release(p,s){var r=p.release||{},artifact=r.artifact||{},c=card('sv-release');c.dataset.cardKey='release:'+p.id;var row=el('div','sv-card-top');row.append(el('span','sv-project-mark',text(p.name||NAMES[p.id],1)),el('h3','',p.name||NAMES[p.id]),pill(r.version||'Paket kaydı yok'));c.append(row);if(r.reportedStage)c.append(el('p','sv-store-stage','Mağaza durum kaydı: '+({development:'Geliştirme',closed_testing:'Kapalı test',open_testing:'Açık test',production:'Yayında',paused:'Duraklatıldı'}[r.reportedStage]||r.reportedStage)));var gates=r.gates||{},gategrid=el('div','sv-gates');[['technicalQa','Teknik QA'],['deviceQa','Cihaz QA'],['productAcceptance','Ürün kabulü'],['publication','Yayın kapısı']].forEach(function(g){var n=el('div','sv-gate');n.append(el('span','',g[1]),el('strong','',gateLabel(gates[g[0]])));n.dataset.state=typeof gates[g[0]]==='string'?gates[g[0]]:gates[g[0]]&&gates[g[0]].status||'unknown';gategrid.append(n);});c.append(gategrid);var sha=typeof artifact.sha256==='string'&&/^[a-f\d]{64}$/i.test(artifact.sha256)?artifact.sha256:null;var meta=el('div','sv-package-meta');meta.append(el('span','',artifact.file||'Dosya kaydı doğrulanmadı'),el('span','',Number.isFinite(artifact.bytes)?(artifact.bytes/1048576).toFixed(1)+' MB':'Boyut doğrulanmadı'));c.append(meta);var proof=el('details','sv-evidence');proof.append(el('summary','','Kaynak ve kabul kaydı'),el('p','','Kayıtlı SHA-256: '+(sha||'Yok')),el('p','','Hash kaydı, dosyanın bu oturumda indirip doğrulandığı anlamına gelmez.'),el('p','','Son QA kaydı: '+(r.qa&&r.qa.observedAt?formatTime(r.qa.observedAt):'Yok')),el('p','',r.qa&&r.qa.summary||'Gerçek cihaz kabulü kaydı bekleniyor.'));c.append(proof);var actions=el('div','sv-release-actions'),url=safeUrl(artifact.downloadUrl,doc.baseURI||win.location&&win.location.href);if(url){var link=el('a','sv-button','Paketi aç');link.href=url;link.target='_blank';link.rel='noopener noreferrer';actions.append(link);}else if(p.id!=='forge-run'){var unavailable=button('Paket bağlantısı yok','sv-button sv-button-quiet');unavailable.disabled=true;actions.append(unavailable);}if(p.id==='forge-run'){var forgeLink=el('a','sv-button','Google Play Testi Aç');forgeLink.href='https://play.google.com/apps/testing/com.forgerun.dtslicetest';forgeLink.target='_blank';forgeLink.rel='noopener noreferrer';actions.append(forgeLink);}var key=identity,ticket=epoch;actions.append(button('Geri bildirim','sv-button sv-button-quiet',function(){if(!owns(key,ticket))return;feedbackForm(p);}));var entryUrl=safeEntryUrl(r.entry,doc.baseURI||win.location&&win.location.href);if(entryUrl){var gameOwner=identity,gameEpoch=epoch,webTest=button('Web testi aç','sv-button sv-button-quiet',function(){if(owns(gameOwner,gameEpoch))openGame(p,r.entry);});webTest.setAttribute('aria-label',(p.name||NAMES[p.id])+' izole web testini aç');actions.append(webTest);}if(view==='store'){var storeUrl=safeUrl(r.storeUrl);if(storeUrl&&['play.google.com','apps.apple.com'].includes(new URL(storeUrl).hostname)){var storeLink=el('a','sv-button sv-button-quiet','Mağazayı aç');storeLink.href=storeUrl;storeLink.target='_blank';storeLink.rel='noopener noreferrer';actions.append(storeLink);}}if(view==='store'||typeof options.onApprove==='function')actions.append(acceptance(p,artifact,gates));c.append(actions);return c;}
+    function release(p,s){var r=p.release||{},artifact=r.artifact||{},c=card('sv-release');c.dataset.cardKey='release:'+p.id;var row=el('div','sv-card-top');row.append(el('span','sv-project-mark',text(p.name||NAMES[p.id],1)),el('h3','',p.name||NAMES[p.id]),pill(r.version||'Paket kaydı yok'));c.append(row);if(r.reportedStage)c.append(el('p','sv-store-stage','Mağaza durum kaydı: '+({development:'Geliştirme',closed_testing:'Kapalı test',open_testing:'Açık test',production:'Yayında',paused:'Duraklatıldı'}[r.reportedStage]||r.reportedStage)));var gates=r.gates||{},gategrid=el('div','sv-gates');[['technicalQa','Teknik QA'],['deviceQa','Cihaz QA'],['productAcceptance','Ürün kabulü'],['publication','Yayın kapısı']].forEach(function(g){var n=el('div','sv-gate');n.append(el('span','',g[1]),el('strong','',gateLabel(gates[g[0]])));n.dataset.state=typeof gates[g[0]]==='string'?gates[g[0]]:gates[g[0]]&&gates[g[0]].status||'unknown';gategrid.append(n);});c.append(gategrid);var sha=typeof artifact.sha256==='string'&&/^[a-f\d]{64}$/i.test(artifact.sha256)?artifact.sha256:null;var meta=el('div','sv-package-meta');meta.append(el('span','',artifact.file||'Dosya kaydı doğrulanmadı'),el('span','',Number.isFinite(artifact.bytes)?(artifact.bytes/1048576).toFixed(1)+' MB':'Boyut doğrulanmadı'));c.append(meta);var proof=el('details','sv-evidence');proof.append(el('summary','','Kaynak ve kabul kaydı'),el('p','','Kayıtlı SHA-256: '+(sha||'Yok')),el('p','','Hash kaydı, dosyanın bu oturumda indirip doğrulandığı anlamına gelmez.'),el('p','','Son QA kaydı: '+(r.qa&&r.qa.observedAt?formatTime(r.qa.observedAt):'Yok')),el('p','',r.qa&&r.qa.summary||'Gerçek cihaz kabulü kaydı bekleniyor.'));c.append(proof);var actions=el('div','sv-release-actions'),url=safeUrl(artifact.downloadUrl,doc.baseURI||win.location&&win.location.href);if(url){var link=el('a','sv-button','Paketi aç');link.href=url;link.target='_blank';link.rel='noopener noreferrer';actions.append(link);}else if(p.id!=='forge-run'){var unavailable=button('Paket bağlantısı yok','sv-button sv-button-quiet');unavailable.disabled=true;actions.append(unavailable);}if(p.id==='forge-run'){actions.append(button('Forge Run başlat / indir','sv-button',function(){if(!destroyed&&active)win.launchForgeRun?.();}));}var key=identity,ticket=epoch;actions.append(button('Geri bildirim','sv-button sv-button-quiet',function(){if(!owns(key,ticket))return;feedbackForm(p);}));var entryUrl=safeEntryUrl(r.entry,doc.baseURI||win.location&&win.location.href);if(entryUrl){var gameOwner=identity,gameEpoch=epoch,webTest=button('Web testi aç','sv-button sv-button-quiet',function(){if(owns(gameOwner,gameEpoch))openGame(p,r.entry);});webTest.setAttribute('aria-label',(p.name||NAMES[p.id])+' izole web testini aç');actions.append(webTest);}if(view==='store'){var storeUrl=safeUrl(r.storeUrl);if(storeUrl&&['play.google.com','apps.apple.com'].includes(new URL(storeUrl).hostname)){var storeLink=el('a','sv-button sv-button-quiet','Mağazayı aç');storeLink.href=storeUrl;storeLink.target='_blank';storeLink.rel='noopener noreferrer';actions.append(storeLink);}}if(view==='store'||typeof options.onApprove==='function')actions.append(acceptance(p,artifact,gates));c.append(actions);return c;}
     function releases(s){body.append(heading(view==='tests'?'Paket & kabul merkezi':'Teslim & yayın merkezi',view==='tests'?'Beş oyun için paket, cihaz kabulü ve geri bildirim.':'Kayıtlı paketler ve yayın kapılarının gerçek durumu.'));var grid=el('div','sv-releases');IDS.forEach(function(id){grid.append(release((s.projects||[]).find(function(p){return p.id===id;})||{id:id},s));});body.append(grid);}
     function cardAncestor(node){while(node&&node!==body){if(node.dataset&&node.dataset.cardKey)return node;node=node.parentNode;}return null;}
     function semanticSignature(next){return JSON.stringify({state:next.state,stale:next.stale,summary:next.summary,priorities:next.priorities,projects:next.projects,jobs:next.jobs});}
