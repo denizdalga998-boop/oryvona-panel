@@ -23,8 +23,8 @@
       return {voiceLabel:'Türkçe Android sesi ('+vName+')',suffix:' · Ses: Türkçe Android TTS ('+vName+', '+why+').'};
     }
     if(voiceMeta.provider==='google-ai-studio'){
-      var gName=safeText(voiceMeta.voiceName||'Charon',60);
-      return {voiceLabel:'Google TTS ('+gName+')',suffix:' · Ses: Google TTS ('+gName+').'};
+      var gName=safeText(voiceMeta.voiceName||'Charon',60),gTag=(voiceMeta.voiceSource==='google-cloud'?'Google Cloud TTS (':'Google TTS (')+gName+')';
+      return {voiceLabel:gTag,suffix:' · Ses: '+gTag+'.'};
     }
     return {voiceLabel:null,suffix:''};
   }

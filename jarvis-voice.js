@@ -13,6 +13,8 @@
     function ascii(offset, str) { for (var i = 0; i < str.length; i++) data[offset + i] = str.charCodeAt(i); }
     ascii(0, 'RIFF'); view.setUint32(4, 36 + pcm.byteLength, true); ascii(8, 'WAVE'); ascii(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, channels, true); view.setUint32(24, rate, true); view.setUint32(28, rate * channels * 2, true); view.setUint16(32, channels * 2, true); view.setUint16(34, 16, true); ascii(36, 'data'); view.setUint32(40, pcm.byteLength, true); data.set(pcm, 44); return data;
   }
+  // v1.2: Google Cloud Charon is MP3: an ID3 tag or an MPEG frame sync must open the data.
+  function mp3Valid(b) { return !!b && b.length > 4 && ((b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) || (b[0] === 0xff && (b[1] & 0xe0) === 0xe0)); }
   function wavValid(bytes) {
     if (!(bytes instanceof Uint8Array) || bytes.length < 44 || bytes.length > 8 * 1024 * 1024) return false;
     var v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -278,13 +280,14 @@
           if (!current(charonTicket, captured)) return { ok: false, reason: 'CANCELLED' };
           if ((!r || r.ok !== true) && r && (r.status === 'quota_exhausted' || r.reason === 'QUOTA_EXHAUSTED')) throw Object.assign(Error('GOOGLE_TTS_QUOTA'), { code: 'GOOGLE_TTS_QUOTA' });
           if (!r || r.ok !== true) throw Object.assign(Error('TTS_UNAVAILABLE'), { code: 'SERVER_TTS_' + String(r && (r.status || r.error || r.reason) || 'unavailable').replace(/[^A-Za-z0-9_]+/g, '_').toUpperCase().slice(0, 40) });
-          if (!r.audio || r.audio.mimeType !== 'audio/wav') throw Error('INVALID_AUDIO');
-          var wav = bytes(r.audio.data); if (!wavValid(wav)) throw Error('INVALID_WAV');
+          var mp3 = !!r.audio && r.audio.mimeType === 'audio/mpeg';
+          if (!r.audio || (r.audio.mimeType !== 'audio/wav' && !mp3)) throw Error('INVALID_AUDIO');
+          var wav = bytes(r.audio.data); if (mp3 ? !mp3Valid(wav) : !wavValid(wav)) throw Error(mp3 ? 'INVALID_MP3' : 'INVALID_WAV');
           var buffer = await context.decodeAudioData(wav.buffer.slice(wav.byteOffset, wav.byteOffset + wav.byteLength));
           if (!current(charonTicket, captured)) return { ok: false, reason: 'CANCELLED' };
           playbackPrepareMs = Math.round(clock() - began);
           if (!playBuffer(buffer, charonTicket, captured, false, input.onStart)) return { ok: false, reason: 'CANCELLED' };
-          spoken.add(input.id); return { ok: true, provider: 'google-ai-studio', voiceName: 'Charon', voiceLang: 'tr-TR', localVoice: false, timings: { playback_prepare_ms: playbackPrepareMs } };
+          spoken.add(input.id); return { ok: true, provider: 'google-ai-studio', voiceSource: mp3 ? 'google-cloud' : 'google-ai-studio', voiceName: 'Charon', voiceLang: 'tr-TR', localVoice: false, timings: { playback_prepare_ms: playbackPrepareMs } };
         })(ticket);
         return await Promise.race([work, new Promise(function (_resolve, reject) { timer = setTimeout(function () { reject(Error('AUDIO_PREPARATION_TIMEOUT')); }, options.preparationTimeoutMs || 12000); })]);
       } catch (error) {

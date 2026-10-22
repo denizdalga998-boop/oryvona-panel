@@ -73,7 +73,7 @@
     if(config.getView()!=='home'){config.goHome();return 'handled';}
     return 'home'; // Android requests explicit exit confirmation. Browser PWA retains its guard.
   }
-  var WEB_BUILD='Argon v1.1 stabil (2026-10-22)';
+  var WEB_BUILD='Argon v1.2 stabil (2026-10-22)';
   function renderVersion() {
     var target=doc.getElementById('verInfo');if(!target)return;
     var info=win.ArgonNative && win.ArgonNative.getAppInfo();
