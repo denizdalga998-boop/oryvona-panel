@@ -40,8 +40,11 @@
       steps: Array.isArray(r.execution?.stages) ? r.execution.stages.slice(0,6).map(s=>({id:String(s.id||'').slice(0,40),title:String(s.title_tr||'').slice(0,100),status:String(s.status||'').slice(0,40),detail:String(s.detail_tr||'').slice(0,300)})) : [],
       updated_at: r.execution?.updatedAt || row.finished_at || r.received_at || row.started_at || row.created_at };
   }
+  // Chat history is read without `result` (each reply carries its ~1.3 MB voice recording there): only the fields shown are selected.
+  const CHAT_HISTORY_COLUMNS = 'id,text,status,created_at,started_at,finished_at,answer_tr:result->>answer_tr,provider:result->>provider,model:result->>model,audio_status:result->>audio_status,actions:result->actions,transport:result->receipt->>transport,model_verified:result->receipt->>modelVerified';
   function rowToChatTurn(row) {
-    const r = row.result || {}, receipt = r.receipt || null;
+    const slim = !row.result || typeof row.result !== 'object';
+    const r = slim ? row : row.result, receipt = slim ? { transport: row.transport || null, modelVerified: row.model_verified === true || row.model_verified === 'true' } : (r.receipt || null);
     return {
       request_id: row.id,
       operation: 'argon_chat',
@@ -195,7 +198,7 @@
         return { data: result.data?.map(rowToIntent) || [], error: result.error };
       }
       if (operation === 'listChatHistory') {
-        const result = await client.from('commands').select(COLUMNS).eq('project_id','koza').eq('created_by', context.email).eq('result->>owner_id', context.userId).eq('result->>operation','argon_chat').order('created_at',{ascending:false}).limit(Math.min(40,Math.max(1,payload.limit || 30)));
+        const result = await client.from('commands').select(CHAT_HISTORY_COLUMNS).eq('project_id','koza').eq('created_by', context.email).eq('result->>owner_id', context.userId).eq('result->>operation','argon_chat').order('created_at',{ascending:false}).limit(Math.min(40,Math.max(1,payload.limit || 30)));
         return { data: (result.data || []).map(rowToChatTurn).reverse(), error: result.error };
       }
       if (operation === 'askArchive') {

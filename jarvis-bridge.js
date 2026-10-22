@@ -346,29 +346,59 @@
       inflight = flushOnce().catch(e => { if (!disposed) { refreshError = e.code === 'AUTH_CHANGED' ? '' : 'Bağlantı bekleniyor · istekler cihazda güvende'; emit(); } }).finally(() => { inflight = null; });
       return inflight;
     }
-    async function refresh() {
+    // v1.1 rationed server reads. The 2 s poll used to pull the full chat history with every reply's embedded voice recording
+    // (~1.3 MB each) and overlap with itself; that exhausted the free Supabase connection pool ("Timed out acquiring connection from
+    // connection pool") and stalled DJ-KABIN's intake. Now one refresh runs at a time: connection 5 s, jobs 15 s, chat history at
+    // start and then every 60 s. A forced refresh (after an action, on resume) reads connection and jobs at once.
+    const REFRESH_EVERY = { connection: 5000, intents: 15000, history: 60000 };
+    let refreshing = null, refreshingForced = false, queuedForce = null, lastRead = { connection: 0, intents: 0, history: 0 }, readScope = null;
+    function refresh(force) {
+      force = force === true;
+      if (refreshing) {
+        if (!force || refreshingForced) return refreshing;
+        // An action wants fresh jobs while a rationed read is running: read once more right after it, never in parallel.
+        const again = () => { queuedForce = null; return refresh(true); };
+        return queuedForce || (queuedForce = refreshing.then(again, again));
+      }
+      refreshingForced = force;
+      refreshing = refreshOnce(force).finally(() => { refreshing = null; refreshingForced = false; });
+      return refreshing;
+    }
+    async function refreshOnce(force) {
       await syncAccount(); const id = ownerId;
       if (!id || !online() || !visible() || disposed || authPaused || refreshBlocked) return;
+      if (readScope !== id + ':' + generation) { readScope = id + ':' + generation; lastRead = { connection: 0, intents: 0, history: 0 }; }
+      const t = now(), due = kind => t - lastRead[kind] >= REFRESH_EVERY[kind];
+      const wantIntents = force || due('intents'), wantConnection = force || due('connection'), wantHistory = due('history');
+      if (!wantIntents && !wantConnection && !wantHistory) return;
       const sequence = ++refreshSequence, epoch = generation;
-      try {
-        const [result, connection, chatResult] = await Promise.all([
-          request('listIntents', { limit: 50 }, id),
-          request('getConnection', {}, id),
-          request('listChatHistory', { limit: 30 }, id).catch(() => null)
-        ]);
-        if (sequence !== refreshSequence || epoch !== generation) return;
-        connectionInfo = connection;
-        const incoming = Array.isArray(result) ? result : result && result.rows || [];
-        serverRows = incoming.map(row => newerRemote(serverRows.find(old => (old.request_id || old.requestId) === (row.request_id || row.requestId)), row));
-        if (Array.isArray(chatResult)) serverChatRows = chatResult;
-        refreshError = ''; emit();
+      const [intents, connection, history] = await Promise.allSettled([
+        wantIntents ? request('listIntents', { limit: 50 }, id) : Promise.resolve(undefined),
+        wantConnection ? request('getConnection', {}, id) : Promise.resolve(undefined),
+        wantHistory ? request('listChatHistory', { limit: 30 }, id) : Promise.resolve(undefined)
+      ]);
+      if (sequence !== refreshSequence || epoch !== generation || contextOwner() !== id) return;
+      // Each read stands alone: a failing connection probe no longer discards the job list or the chat history.
+      if (wantConnection && connection.status === 'fulfilled') { connectionInfo = connection.value; lastRead.connection = t; }
+      if (wantHistory && history.status === 'fulfilled' && Array.isArray(history.value)) { serverChatRows = history.value; lastRead.history = t; }
+      let failure = wantIntents && intents.status === 'rejected' ? intents.reason : null;
+      if (wantIntents && !failure) {
+        try {
+          const result = intents.value, incoming = (Array.isArray(result) ? result : result && result.rows || []).filter(row => row && typeof row === 'object');
+          serverRows = incoming.map(row => newerRemote(serverRows.find(old => (old.request_id || old.requestId) === (row.request_id || row.requestId)), row));
+          lastRead.intents = t; refreshError = '';
+        } catch (e) { failure = e; }
       }
-      catch (e) { if (sequence === refreshSequence && epoch === generation && contextOwner() === id) { const kind = classifyFailure(e); if (kind === 'auth') authPaused = true; if (kind === 'permanent') refreshBlocked = true; refreshError = kind === 'permanent' ? 'Sunucu kuyruğu doğrulanamadı · istekler cihazda korunuyor' : 'Sunucu durumu alınamadı · cihazdaki kayıt korunuyor'; emit(); } }
+      if (failure) {
+        const kind = classifyFailure(failure); if (kind === 'auth') authPaused = true; if (kind === 'permanent') refreshBlocked = true;
+        refreshError = kind === 'permanent' ? 'Sunucu kuyruğu doğrulanamadı · istekler cihazda korunuyor' : 'Sunucu durumu alınamadı · cihazdaki kayıt korunuyor';
+      }
+      emit();
     }
     async function resume() {
       await syncAccount(); const id = requireOwner(); authPaused = false; refreshBlocked = false;
       for (const row of await store.all('outbox', id)) if (row.status === 'auth_paused') await store.put('outbox', Object.assign({}, row, { status: row.cancelRequested ? 'cancel_pending' : 'pending', nextAttemptAt: 0 }));
-      await loadRows(); await flush(); await refresh();
+      await loadRows(); await flush(); await refresh(true);
     }
     async function cancelJob(payload) {
       requireAccountKey(payload && payload.accountKey);
@@ -464,8 +494,8 @@
     if (typeof globalThis.addEventListener === 'function') { globalThis.addEventListener('online', onlineHandler); globalThis.addEventListener('offline', emit); }
     const timer = options.noTimers ? null : setInterval(() => { void loadRows().then(flush).catch(() => {}); }, 2000);
     const poll = options.noTimers ? null : setInterval(() => { if (!host.context().view || host.context().view === 'jarvis') void refresh(); }, 2000);
-    const ready = loadRows().then(() => Promise.all([flush(), refresh()]));
-    return { getSnapshot, getAccountKey, subscribe: fn => { listeners.add(fn); fn(getSnapshot()); return () => listeners.delete(fn); }, submitIntent, askArchive, askBrain, cancelJob, resolveIntent, drafts, attachments, speech, refresh, resume, ready, flush, dispose: () => { disposed = true; generation++; if (timer) clearInterval(timer); if (poll) clearInterval(poll); if (recognition) recognition.abort(); listeners.clear(); rows = []; serverRows = []; serverChatRows = []; if (typeof globalThis.removeEventListener === 'function') { globalThis.removeEventListener('online', onlineHandler); globalThis.removeEventListener('offline', emit); } } };
+    const ready = loadRows().then(() => Promise.all([flush(), refresh(true)]));
+    return { getSnapshot, getAccountKey, subscribe: fn => { listeners.add(fn); fn(getSnapshot()); return () => listeners.delete(fn); }, submitIntent, askArchive, askBrain, cancelJob, resolveIntent, drafts, attachments, speech, refresh: () => refresh(true), refreshDue: () => refresh(false), resume, ready, flush, dispose: () => { disposed = true; generation++; if (timer) clearInterval(timer); if (poll) clearInterval(poll); if (recognition) recognition.abort(); listeners.clear(); rows = []; serverRows = []; serverChatRows = []; if (typeof globalThis.removeEventListener === 'function') { globalThis.removeEventListener('online', onlineHandler); globalThis.removeEventListener('offline', emit); } } };
   }
   // Read dimensions BEFORE image decoding/canvas allocation. Reject unknown encodings.
   function readImageDimensions(bytes, mime) {
