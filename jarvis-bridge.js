@@ -72,10 +72,30 @@
   }
   function cleanBrainPending(value) {
     if (!value || !UUID.test(value.requestId || '') || typeof value.text !== 'string' || !value.text.trim() || value.text.length > 2000 || !['low','medium','high'].includes(value.mode)) return null;
-    return {requestId:value.requestId,text:value.text,mode:value.mode,...(value.terminal===true?{terminal:true}:{}),history:(Array.isArray(value.history)?value.history:[]).slice(-12).filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.text==='string').map(m=>({role:m.role,text:m.text.slice(0,1200)}))};
+    return {requestId:value.requestId,...(UUID.test(value.ttsRequestId||'')?{ttsRequestId:value.ttsRequestId}:{}),text:value.text,mode:value.mode,...(typeof value.audioOutput==='boolean'?{audioOutput:value.audioOutput}:{}),...(value.terminal===true?{terminal:true}:{}),history:(Array.isArray(value.history)?value.history:[]).slice(-12).filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.text==='string').map(m=>({role:m.role,text:m.text.slice(0,1200)}))};
+  }
+  function cleanChatHistory(items) {
+    if (!Array.isArray(items)) return [];
+    return items.slice(-60).filter(m => m && typeof m.id === 'string' && m.id.length <= 160 && ['user', 'assistant', 'system'].includes(m.role) && typeof m.body === 'string' && m.body.trim() && !m.pending).map(m => ({
+      id: m.id,
+      ...(typeof m.requestId === 'string' && m.requestId.length <= 160 ? { requestId: m.requestId } : {}),
+      role: m.role,
+      body: m.body.slice(0, 2400),
+      ...(m.projectId && PROJECTS.includes(m.projectId) ? { projectId: m.projectId } : {}),
+      ...(m.failed === true ? { failed: true } : {}),
+      createdAt: m.createdAt || null,
+      origin: m.origin && typeof m.origin === 'object' ? {
+        kind: String(m.origin.kind || 'local').slice(0, 40),
+        ...(typeof m.origin.provider === 'string' ? { provider: m.origin.provider.slice(0, 60) } : {}),
+        ...(typeof m.origin.model === 'string' ? { model: m.origin.model.slice(0, 100) } : {}),
+        ...(typeof m.origin.modelVerified === 'boolean' ? { modelVerified: m.origin.modelVerified } : {}),
+        ...(typeof m.origin.voiceLabel === 'string' ? { voiceLabel: m.origin.voiceLabel.slice(0, 120) } : {}),
+        ...(typeof m.origin.evidenceLabel === 'string' ? { evidenceLabel: m.origin.evidenceLabel.slice(0, 240) } : {})
+      } : { kind: 'local' }
+    }));
   }
   function createHostPort(callbacks) {
-    const map = { getConnection: callbacks.getConnection, submitIntent: callbacks.submitIntent, listIntents: callbacks.listIntents, cancelIntent: callbacks.cancelIntent, uploadEvidence: callbacks.uploadEvidence };
+    const map = { getConnection: callbacks.getConnection, submitIntent: callbacks.submitIntent, listIntents: callbacks.listIntents, listChatHistory: callbacks.listChatHistory, cancelIntent: callbacks.cancelIntent, uploadEvidence: callbacks.uploadEvidence };
     return Object.freeze({
       context: callbacks.getContext,
       request: async (operation, payload) => {
@@ -99,7 +119,7 @@
     const store = options.store || (globalThis.indexedDB ? makeIDB(globalThis.indexedDB) : null);
     const now = options.now || Date.now;
     const listeners = new Set();
-    let ownerId = null, generation = 0, disposed = false, revision = 0, refreshSequence = 0, rows = [], serverRows = [], authPaused = false, refreshBlocked = false, refreshError = '', inflight = null;
+    let ownerId = null, generation = 0, disposed = false, revision = 0, refreshSequence = 0, rows = [], serverRows = [], serverChatRows = [], authPaused = false, refreshBlocked = false, refreshError = '', inflight = null;
     let online = options.online || (() => typeof navigator === 'undefined' || navigator.onLine !== false);
     let energy = null, connectionInfo = null;
     const Speech = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -110,7 +130,7 @@
     function emit() { revision++; for (const fn of listeners) { try { fn(getSnapshot()); } catch (_) {} } }
     async function syncAccount() {
       const next = contextOwner();
-      if (next !== ownerId) { ownerId = next; generation++; rows = []; serverRows = []; authPaused = false; refreshBlocked = false; refreshError = ''; energy = null; connectionInfo = null; if (recognition) recognition.abort(); emit(); }
+      if (next !== ownerId) { ownerId = next; generation++; rows = []; serverRows = []; serverChatRows = []; authPaused = false; refreshBlocked = false; refreshError = ''; energy = null; connectionInfo = null; if (recognition) recognition.abort(); emit(); }
       return ownerId;
     }
     async function loadRows() {
@@ -122,7 +142,7 @@
     }
     function requireOwner() { const current = contextOwner(); if (!current || current !== ownerId) throw error('AUTH_REQUIRED', 'Sahip hesabınla giriş yap.'); if (!store) throw error('STORAGE_UNAVAILABLE', 'Bu tarayıcıda kalıcı kayıt kullanılamıyor. Metnin korunuyor.'); return current; }
     function guardedContext(expected) { if (disposed || contextOwner() !== expected || ownerId !== expected) throw error('AUTH_CHANGED', 'Hesap değişti; işlem bekletildi.'); }
-    async function request(operation, payload, expected) { guardedContext(expected); const answer = await host.request(operation, Object.assign({}, payload, { expectedUserId: expected })); guardedContext(expected); return normalizeResult(answer, operation === 'listIntents'); }
+    async function request(operation, payload, expected) { guardedContext(expected); const answer = await host.request(operation, Object.assign({}, payload, { expectedUserId: expected })); guardedContext(expected); return normalizeResult(answer, operation === 'listIntents' || operation === 'listChatHistory'); }
     function allVisible() {
       if (!ownerId || contextOwner() !== ownerId) return [];
       const map = new Map(serverRows.map(x => [x.request_id || x.requestId || x.id, x]));
@@ -134,6 +154,49 @@
       if (['completed','failed','cancelled'].includes(previous.status) && !['completed','failed','cancelled'].includes(incoming.status)) return previous;
       const a = Date.parse(previous.updated_at || previous.created_at || ''), b = Date.parse(incoming.updated_at || incoming.created_at || '');
       return Number.isFinite(a) && Number.isFinite(b) && a > b ? previous : incoming;
+    }
+    function chatRowMessages(chat) {
+      if (!chat || typeof chat !== 'object' || !UUID.test(chat.request_id || chat.requestId || '') || typeof chat.text !== 'string' || !chat.text.trim()) return [];
+      const id = chat.request_id || chat.requestId;
+      const out = [{
+        id: 'chat:' + id + ':user',
+        requestId: id,
+        role: 'user',
+        body: chat.text.slice(0, 2000),
+        createdAt: chat.created_at || null,
+        origin: { kind: 'user-input', evidenceLabel: 'Canlı beyne gönderildi.' }
+      }];
+      const answerText = typeof chat.answer_tr === 'string' ? chat.answer_tr.trim() : '';
+      if (answerText) {
+        const providerLabel = ({ groq: 'Groq', google: 'Google AI Studio', gemini: 'Gemini', openai: 'OpenAI Codex', claude: 'Claude' })[chat.provider] || null;
+        const verifiedGroq = chat.provider === 'groq' && chat.transport === 'groq-api' && chat.model_verified === true;
+        const verifiedGoogle = ['google', 'gemini'].includes(chat.provider) && chat.transport === 'google-ai-studio-api' && chat.model_verified === true;
+        const origin = (verifiedGroq || verifiedGoogle)
+          ? {
+              kind: 'model',
+              provider: verifiedGroq ? 'Groq' : 'Google AI Studio',
+              model: String(chat.model || (verifiedGroq ? 'openai/gpt-oss-120b' : 'gemini-3.8-flash')).slice(0, 100),
+              modelVerified: true,
+              evidenceLabel: verifiedGroq
+                ? 'Groq API yanıtında doğrulanan model (düşünme: düşük). Günlük sohbet Codex işçisine gönderilmez.'
+                : 'Google API yanıtında bildirilen model. Günlük sohbet Codex işçisine gönderilmez.'
+            }
+          : chat.status === 'done' && providerLabel && chat.model
+          ? { kind: 'model', provider: providerLabel, model: String(chat.model).slice(0, 100), evidenceLabel: 'Sunucu sohbet kaydından geri yüklendi.' }
+          : chat.status !== 'done'
+          ? { kind: 'provider-error', provider: providerLabel || 'Groq', evidenceLabel: 'Önceki sohbet kaydı hata ile sonuçlandı.' }
+          : { kind: 'local', evidenceLabel: 'Sunucu sohbet kaydından geri yüklendi.' };
+        out.push({
+          id: 'chat:' + id,
+          requestId: id,
+          role: 'assistant',
+          body: answerText.slice(0, 2400),
+          failed: chat.status === 'failed' || chat.status === 'cancelled',
+          createdAt: chat.finished_at || chat.created_at || null,
+          origin
+        });
+      }
+      return out;
     }
     function getSnapshot() {
       const id = contextOwner(), active = id && id === ownerId;
@@ -149,7 +212,10 @@
         const note = remote && typeof remote.note_tr === 'string' ? remote.note_tr.trim().slice(0, 240) : '';
         if (note && (terminalRemote || runningRemote)) statusText = note;
         if (remote?.receipt?.status === 'DURABLY_QUEUED' && !terminalRemote && !runningRemote) statusText = 'DJ-KABIN izole kalıcı kuyruğa aldı · ajan başlatılmadı';
-        if (remote?.receipt?.status === 'WAITING' && note) statusText = note;
+        if (remote?.receipt?.status === 'STUDIO_FLOW_QUEUED' && !terminalRemote && !runningRemote) statusText = 'DJ-KABIN kalıcı işçi kuyruğuna aldı · sırası bekleniyor';
+        if ((remote?.receipt?.status === 'WAITING' || remote?.receipt?.status === 'STUDIO_FLOW_WAITING') && !terminalRemote) statusText = note || 'DJ-KABIN işçi sırası bekleniyor';
+        if (remote?.receipt?.status === 'STUDIO_FLOW_RUNNING' && !terminalRemote) { status = 'running'; statusText = note || 'DJ-KABIN üzerinde işçi çalışıyor'; }
+        if (remote?.receipt?.status === 'USER_TEST_READY') { status = 'waiting_review'; statusText = note || 'Test paketi hazır · Deniz incelemesi bekleniyor'; }
         if (remote?.receipt?.status === 'NEEDS_CLARIFICATION' && !terminalRemote) { status = 'blocked'; statusText = 'DJ-KABIN kaydetti · işlem netleştirme bekliyor'; }
         if (!terminalRemote) {
           if (row.status === 'retry') statusText = 'Bağlantı kesildi · güvenli tekrar bekleniyor';
@@ -166,6 +232,11 @@
           receipt: remote?.receipt ? JSON.parse(JSON.stringify(remote.receipt)) : null,
           stage: remote?.stage || null,
           steps: Array.isArray(remote?.steps) ? remote.steps.map(s=>({...s})) : [] });
+      }
+      if (active && Array.isArray(serverChatRows) && serverChatRows.length) {
+        for (const chat of serverChatRows.slice(-40)) {
+          for (const m of chatRowMessages(chat)) messages.push(m);
+        }
       }
       return { revision, accountKey: getAccountKey(), connection, messages, jobs, energyState: energy || (!online() ? 'offline' : authPaused ? 'blocked' : 'idle'), capabilities: { attachments: !!store && !!active && connectionInfo?.attachmentsAvailable === true && typeof createImageBitmap === 'function', speech: !!Speech, maxAttachments: MAX_FILES }, projects: PROJECTS.slice() };
     }
@@ -204,18 +275,7 @@
         requireAccountKey(payload&&payload.accountKey);await syncAccount();const id=requireOwner();requireAccountKey(payload.accountKey);
         const text=String(payload.text||'').trim();if(!text||text.length>2000)throw error('TEXT_INVALID','Mesaj 1–2000 karakter olmalı.');
         requestId=payload.requestId||globalThis.crypto?.randomUUID();if(!UUID.test(requestId||''))throw error('REQUEST_ID_REQUIRED','Geçerli istek kimliği gerekli.');
-        let answer=await request('geminiChat',{requestId,text,history:Array.isArray(payload.history)?payload.history:[],mode:payload.mode,signal:payload.signal},id);
-        if ((!answer || !answer.ok || answer.status === 'ambiguous_delivery') && !payload.signal?.aborted) {
-          await new Promise(r => setTimeout(r, 1200));
-          guardedContext(id);requireAccountKey(payload.accountKey);
-          if (!payload.signal?.aborted) {
-            const retryId = globalThis.crypto?.randomUUID() || requestId;
-            try {
-              const retryAnswer = await request('geminiChat', { requestId: retryId, text, history: Array.isArray(payload.history) ? payload.history : [], mode: payload.mode, signal: payload.signal }, id);
-              if (retryAnswer && retryAnswer.ok) { answer = retryAnswer; requestId = retryId; }
-            } catch (_) {}
-          }
-        }
+        const answer=await request('geminiChat',{requestId,text,history:Array.isArray(payload.history)?payload.history:[],mode:payload.mode,...(typeof payload.audioOutput==='boolean'?{audioOutput:payload.audioOutput}:{}),signal:payload.signal,onTextReady:value=>{guardedContext(id);requireAccountKey(payload.accountKey);if(typeof payload.onTextReady==='function')payload.onTextReady(value);}},id);
         requireAccountKey(payload.accountKey);
         return {...answer,ok:answer?.ok===true,requestId,answer_tr:String(answer?.answer_tr||answer?.reply_tr||''),actions:Array.isArray(answer?.actions)?answer.actions:[]};
       } catch(e) { return {ok:false,requestId,code:e.code||'GEMINI_FAILED',answer_tr:e.message||'Google AI Studio bağlantısı hazırlanmalı. Mesaj kod işçisine aktarılmadı.'}; }
@@ -290,7 +350,19 @@
       await syncAccount(); const id = ownerId;
       if (!id || !online() || !visible() || disposed || authPaused || refreshBlocked) return;
       const sequence = ++refreshSequence, epoch = generation;
-      try { const [result, connection] = await Promise.all([request('listIntents', { limit: 50 }, id), request('getConnection', {}, id)]); if (sequence !== refreshSequence || epoch !== generation) return; connectionInfo = connection; const incoming = Array.isArray(result) ? result : result && result.rows || []; serverRows = incoming.map(row => newerRemote(serverRows.find(old => (old.request_id || old.requestId) === (row.request_id || row.requestId)), row)); refreshError = ''; emit(); }
+      try {
+        const [result, connection, chatResult] = await Promise.all([
+          request('listIntents', { limit: 50 }, id),
+          request('getConnection', {}, id),
+          request('listChatHistory', { limit: 30 }, id).catch(() => null)
+        ]);
+        if (sequence !== refreshSequence || epoch !== generation) return;
+        connectionInfo = connection;
+        const incoming = Array.isArray(result) ? result : result && result.rows || [];
+        serverRows = incoming.map(row => newerRemote(serverRows.find(old => (old.request_id || old.requestId) === (row.request_id || row.requestId)), row));
+        if (Array.isArray(chatResult)) serverChatRows = chatResult;
+        refreshError = ''; emit();
+      }
       catch (e) { if (sequence === refreshSequence && epoch === generation && contextOwner() === id) { const kind = classifyFailure(e); if (kind === 'auth') authPaused = true; if (kind === 'permanent') refreshBlocked = true; refreshError = kind === 'permanent' ? 'Sunucu kuyruğu doğrulanamadı · istekler cihazda korunuyor' : 'Sunucu durumu alınamadı · cihazdaki kayıt korunuyor'; emit(); } }
     }
     async function resume() {
@@ -323,8 +395,8 @@
       return { status: 'clarify', question: 'İsteğin hangi projeye ait?', candidates: PROJECTS.slice() };
     }
     const drafts = {
-      load: async scope => { await syncAccount(); if (!ownerId || !store) return { text: '', attachments: [] }; const id = ownerId, gen = generation, row = await store.get('drafts', key(id, scope || 'studio')); return gen === generation && id === contextOwner() && row ? { text: row.text, attachments: row.attachments, brainPending:cleanBrainPending(row.brainPending) } : { text: '', attachments: [] }; },
-      save: async (scope, value) => { requireAccountKey(value.accountKey); await syncAccount(); const id = requireOwner(); requireAccountKey(value.accountKey); if (scope != null && !PROJECTS.includes(scope)) throw error('PROJECT_REQUIRED', 'Geçersiz kapsam.'); if (typeof value.text !== 'string' || value.text.length > MAX_TEXT) throw error('TEXT_INVALID', 'Taslak çok uzun.'); if (!Array.isArray(value.attachments || []) || (value.attachments || []).length > MAX_FILES) throw error('ATTACHMENTS_INVALID','En fazla üç görsel.'); await store.put('drafts', { key: key(id, scope || 'studio'), ownerId: id, text: value.text, brainPending:cleanBrainPending(value.brainPending), attachments: (value.attachments || []).map(x => ({ id: x.id, name: String(x.name || '').slice(0,124), mime: x.mime, size: x.size })), updatedAt: now() }); guardedContext(id); }
+      load: async scope => { await syncAccount(); if (!ownerId || !store) return { text: '', attachments: [] }; const id = ownerId, gen = generation, row = await store.get('drafts', key(id, scope || 'studio')); return gen === generation && id === contextOwner() && row ? { text: row.text, attachments: row.attachments, brainPending: cleanBrainPending(row.brainPending), ...(Array.isArray(row.chatHistory) ? { chatHistory: cleanChatHistory(row.chatHistory) } : {}) } : { text: '', attachments: [] }; },
+      save: async (scope, value) => { requireAccountKey(value.accountKey); await syncAccount(); const id = requireOwner(); requireAccountKey(value.accountKey); if (scope != null && !PROJECTS.includes(scope)) throw error('PROJECT_REQUIRED', 'Geçersiz kapsam.'); if (typeof value.text !== 'string' || value.text.length > MAX_TEXT) throw error('TEXT_INVALID', 'Taslak çok uzun.'); if (!Array.isArray(value.attachments || []) || (value.attachments || []).length > MAX_FILES) throw error('ATTACHMENTS_INVALID','En fazla üç görsel.'); const targetKey = key(id, scope || 'studio'); const existing = value.chatHistory === undefined ? await store.get('drafts', targetKey) : null; guardedContext(id); const chatHistory = Array.isArray(value.chatHistory) ? cleanChatHistory(value.chatHistory) : (existing && Array.isArray(existing.chatHistory) ? cleanChatHistory(existing.chatHistory) : undefined); await store.put('drafts', { key: targetKey, ownerId: id, text: value.text, brainPending: cleanBrainPending(value.brainPending), ...(chatHistory ? { chatHistory } : {}), attachments: (value.attachments || []).map(x => ({ id: x.id, name: String(x.name || '').slice(0,124), mime: x.mime, size: x.size })), updatedAt: now() }); guardedContext(id); }
     };
     async function processFile(file, id) {
       if (!file || file.size > MAX_RAW || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw error('IMAGE_INVALID', 'JPEG, PNG veya WebP seç; dosya en fazla 5 MB olabilir.');
@@ -385,7 +457,7 @@
     const timer = options.noTimers ? null : setInterval(() => { void loadRows().then(flush).catch(() => {}); }, 2000);
     const poll = options.noTimers ? null : setInterval(() => { if (!host.context().view || host.context().view === 'jarvis') void refresh(); }, 2000);
     const ready = loadRows().then(() => Promise.all([flush(), refresh()]));
-    return { getSnapshot, getAccountKey, subscribe: fn => { listeners.add(fn); fn(getSnapshot()); return () => listeners.delete(fn); }, submitIntent, askArchive, askBrain, cancelJob, resolveIntent, drafts, attachments, speech, refresh, resume, ready, flush, dispose: () => { disposed = true; generation++; if (timer) clearInterval(timer); if (poll) clearInterval(poll); if (recognition) recognition.abort(); listeners.clear(); rows = []; serverRows = []; if (typeof globalThis.removeEventListener === 'function') { globalThis.removeEventListener('online', onlineHandler); globalThis.removeEventListener('offline', emit); } } };
+    return { getSnapshot, getAccountKey, subscribe: fn => { listeners.add(fn); fn(getSnapshot()); return () => listeners.delete(fn); }, submitIntent, askArchive, askBrain, cancelJob, resolveIntent, drafts, attachments, speech, refresh, resume, ready, flush, dispose: () => { disposed = true; generation++; if (timer) clearInterval(timer); if (poll) clearInterval(poll); if (recognition) recognition.abort(); listeners.clear(); rows = []; serverRows = []; serverChatRows = []; if (typeof globalThis.removeEventListener === 'function') { globalThis.removeEventListener('online', onlineHandler); globalThis.removeEventListener('offline', emit); } } };
   }
   // Read dimensions BEFORE image decoding/canvas allocation. Reject unknown encodings.
   function readImageDimensions(bytes, mime) {

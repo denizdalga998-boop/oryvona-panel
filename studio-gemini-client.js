@@ -5,7 +5,7 @@
   else root.OryvonaStudioGemini = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  var LIVE_MODEL = 'gemini-3.8-live-extended-thinking';
+  var LIVE_MODEL = 'gemini-3.8-live';
   var ENDPOINT = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained';
   function fold(v) { return String(v || '').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ı/g, 'i'); }
 function classifyOwnerSource(text, catalog) {
@@ -107,25 +107,53 @@ function classifyOwnerSource(text, catalog) {
       var status = value.interaction_status || value.interactionStatus || content.interaction_status || content.interactionStatus;
       if (status && typeof status === 'object') status = status.status;
       if (status === 'IN_PROGRESS' || status === 'IDLE') { state.interactionStatus = status; emit(); if (typeof c.handlers.onInteraction === 'function') c.handlers.onInteraction(status); }
+      if (content.interrupted) {
+        c.turnInterrupted = true;
+        c.newInput = true;
+        if (c.currentTurn) { c.currentTurn.finalized = true; c.currentTurn.interrupted = true; }
+        if (c.output && typeof c.handlers.onReply === 'function') c.handlers.onReply(c.output, { final: true, interrupted: true, turnId: c.turnId || 1 });
+        if (typeof c.handlers.onInterrupted === 'function') c.handlers.onInterrupted({ turnId: c.turnId || 1 });
+      }
       var input = content.inputTranscription || content.input_transcription;
       if (input && typeof input.text === 'string') {
-        if (c.newInput || !c.input) { c.input = ''; c.output = ''; c.newInput = false; c.turnId++; c.currentTurn = { id: c.turnId, source: '', finalized: false, project: null, consumed: false }; c.turns.push(c.currentTurn); if (c.turns.length > 12) c.turns.shift(); }
+        var bargeIn = (c.output || c.audioStarted) && !c.turnInterrupted && !c.newInput;
+        if (bargeIn) {
+          if (c.output && typeof c.handlers.onReply === 'function') c.handlers.onReply(c.output, { final: true, interrupted: true, turnId: c.turnId || 1 });
+          if (typeof c.handlers.onInterrupted === 'function') c.handlers.onInterrupted({ turnId: c.turnId || 1 });
+        }
+        if (c.newInput || !c.input || (c.currentTurn && c.currentTurn.finalized) || bargeIn) {
+          c.input = ''; c.output = ''; c.audioStarted = false; c.turnInterrupted = false; c.newInput = false;
+          c.turnId++; c.currentTurn = { id: c.turnId, source: '', finalized: false, project: null, consumed: false };
+          c.turns.push(c.currentTurn); if (c.turns.length > 12) c.turns.shift();
+        }
         c.input += input.text;
         c.currentTurn.source = c.input.trim(); c.currentTurn.project = sourceProject(c.input,catalog); if (input.finished === true) c.currentTurn.finalized = true;
-        if (typeof c.handlers.onTranscript === 'function') c.handlers.onTranscript(c.input, { final: input.finished === true });
+        if (typeof c.handlers.onTranscript === 'function') c.handlers.onTranscript(c.input, { final: input.finished === true, turnId: c.turnId });
       }
       var output = content.outputTranscription || content.output_transcription;
-      if (output && typeof output.text === 'string') { c.output += output.text; if (typeof c.handlers.onReply === 'function') c.handlers.onReply(c.output, { final: output.finished === true }); }
-      if (content.interrupted && typeof c.handlers.onInterrupted === 'function') c.handlers.onInterrupted();
-      var parts = (content.modelTurn || content.model_turn || {}).parts || [];
-      parts.forEach(function (part) { var audio = part.inlineData || part.inline_data; if (audio && /^audio\/pcm(?:;|$)/i.test(audio.mimeType || audio.mime_type || '') && typeof c.handlers.onAudio === 'function') c.handlers.onAudio(audio.data, audio.mimeType || audio.mime_type); });
+      if (output && typeof output.text === 'string' && !c.turnInterrupted) {
+        if (!c.turnId) c.turnId = 1;
+        c.output += output.text;
+        if (typeof c.handlers.onReply === 'function') c.handlers.onReply(c.output, { final: output.finished === true, interrupted: false, turnId: c.turnId });
+      }
+      var parts = !c.turnInterrupted ? ((content.modelTurn || content.model_turn || {}).parts || []) : [];
+      parts.forEach(function (part) {
+        var audio = part.inlineData || part.inline_data;
+        if (audio && /^audio\/pcm(?:;|$)/i.test(audio.mimeType || audio.mime_type || '') && typeof c.handlers.onAudio === 'function') {
+          if (!c.turnId) c.turnId = 1;
+          c.audioStarted = true;
+          c.handlers.onAudio(audio.data, audio.mimeType || audio.mime_type, { turnId: c.turnId });
+        }
+      });
       if (content.turnComplete || content.turn_complete) {
         if (c.currentTurn) c.currentTurn.finalized = true;
-        if (typeof c.handlers.onTranscript === 'function' && c.input) c.handlers.onTranscript(c.input, { final: true });
-        if (typeof c.handlers.onReply === 'function' && c.output) c.handlers.onReply(c.output, { final: true });
+        if (!c.turnInterrupted) {
+          if (typeof c.handlers.onTranscript === 'function' && c.input) c.handlers.onTranscript(c.input, { final: true, turnId: c.turnId || 1 });
+          if (typeof c.handlers.onReply === 'function' && c.output) c.handlers.onReply(c.output, { final: true, interrupted: false, turnId: c.turnId || 1 });
+        }
         c.newInput = true;
-        // Extended thinking may still be IN_PROGRESS. Never close the session at turnComplete.
-        if (typeof c.handlers.onTurnComplete === 'function') c.handlers.onTurnComplete({ interactionStatus: state.interactionStatus });
+        // Retain connection across turns; never close the session at turnComplete.
+        if (typeof c.handlers.onTurnComplete === 'function') c.handlers.onTurnComplete({ turnId: c.turnId || 1, interactionStatus: state.interactionStatus });
       }
       var tools = value.toolCall || value.tool_call; if (tools) onTools(c, tools.functionCalls || tools.function_calls || []).catch(function () {});
       if (c.currentTurn && c.currentTurn.finalized && c.deferredCalls.length) { var deferred = c.deferredCalls.splice(0); onTools(c, deferred).catch(function () {}); }
@@ -134,13 +162,13 @@ function classifyOwnerSource(text, catalog) {
       handlers = handlers || {};
       if (handlers.gesture !== true) return { ok: false, reason: 'EXPLICIT_PHONE_GESTURE_REQUIRED' };
       close('restarted'); var key = owner(), ticket = epoch, attempt = liveAttempt, id = win.crypto.randomUUID();
-      var token = await request('geminiLiveToken', { requestId: id, voice: handlers.voice || 'Puck' });
+      var token = await request('geminiLiveToken', { requestId: id, voice: handlers.voice || 'Charon' });
       if (!current(key, ticket) || attempt !== liveAttempt || !token || token.ok !== true || typeof token.token !== 'string' || token.websocketUrl !== ENDPOINT) return { ok: false, reason: 'GOOGLE_LIVE_UNAVAILABLE' };
       var setup = token.setup; if (!setup || String(setup.model || '').replace(/^models\//, '') !== LIVE_MODEL) return { ok: false, reason: 'GOOGLE_LIVE_SETUP_INVALID' };
       return new Promise(function (resolve) {
         var socket; try { socket = new win.WebSocket(ENDPOINT + '?access_token=' + encodeURIComponent(token.token)); } catch (_) { resolve({ ok: false, reason: 'WEBSOCKET_UNAVAILABLE' }); return; }
         token = null; // The ephemeral credential is never persisted or exposed on window.
-        var c = { socket: socket, handlers: handlers, owner: key, requestId: id, resolve: resolve, ready: false, closed: false, input: '', output: '', newInput: false, turnId: 0, currentTurn: null, turns: [], deferredCalls: [], pendingTools: new Set(), sourceTasks: new Map(), timer: null };
+        var c = { socket: socket, handlers: handlers, owner: key, requestId: id, resolve: resolve, ready: false, closed: false, input: '', output: '', audioStarted: false, turnInterrupted: false, newInput: false, turnId: 0, currentTurn: null, turns: [], deferredCalls: [], pendingTools: new Set(), sourceTasks: new Map(), timer: null };
         live = c; state.live = true; state.model = LIVE_MODEL; state.error = null; state.interactionStatus = 'IDLE'; emit();
         c.timer = setTimeout(function () { if (live === c && !c.ready) { resolve({ ok: false, reason: 'LIVE_SETUP_TIMEOUT' }); close('error'); } }, 20000);
         socket.onopen = function () { if (live === c && current(key, ticket)) send(c, { setup: setup }); else try { socket.close(); } catch (_) {} };
@@ -151,6 +179,7 @@ function classifyOwnerSource(text, catalog) {
     }
     function bind(target, name, fn) { if (target && typeof target.addEventListener === 'function') { target.addEventListener(name, fn); removers.push(function () { target.removeEventListener(name, fn); }); } }
     bind(win.document, 'visibilitychange', function () { if (win.document.hidden) close('hidden'); });
+    bind(win.document, 'oryvona:lifecycle-pause', function () { close('pause'); });
     bind(win.document, 'oryvona:studio-context-change', function () { if (live && live.owner !== owner()) { epoch++; close('account-change'); } });
     bind(win, 'pagehide', function () { close('pagehide'); });
     return Object.freeze({ requestChat: function (p) { return request('geminiChat', p); }, synthesize: function (p) { return request('geminiTts', p); }, startLive: startLive, stopLive: close, getSnapshot: snapshot, subscribe: function (fn) { listeners.add(fn); fn(snapshot()); return function () { listeners.delete(fn); }; }, destroy: function () { close('destroyed'); disposed = true; epoch++; removers.forEach(function (off) { off(); }); listeners.clear(); } });

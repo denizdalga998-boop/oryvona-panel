@@ -69,7 +69,7 @@
       const approve=payload=>decisions.record({...payload,kind:'accept'});
       for(const view of VIEWS){const root=rootFor(view);if(!root)throw Error('VIEW_ROOT_MISSING');const ui=view==='jarvis'?
         window.OryvonaJarvisWorld.mount(root,{bridge,studioData:data,voice,geminiClient,brief:window.OryvonaJarvisBrief,mode:'live',showActivity:true,bottomInset}):
-        window.OryvonaStudioWorldV26.mount(root,{data,bridge,view,onOpenTests:id=>panel.openTests(id),onFeedback:feedback,onApprove:approve});
+        window.OryvonaStudioWorldV26.mount(root,{data,bridge,view,onOpenTests:id=>panel.openTests(id),onRefresh:()=>panel.getAccessStatus?.()?panel.reconnectAccess():data.refresh(),onFeedback:feedback,onApprove:approve});
         worlds.set(view,{ui,active:null});
       }
       dataUnsub=data.subscribe(snapshot=>{if(snapshot.accountKey!==bridge?.getAccountKey())voice?.cancel();});
@@ -85,7 +85,7 @@
   let syncTimer=0;
   function runSync(){if(pendingSync)window.cancelAnimationFrame(pendingSync);if(syncTimer)window.clearTimeout(syncTimer);pendingSync=0;syncTimer=0;sync();}
   function schedule(){if((pendingSync||syncTimer)||disposed)return;pendingSync=window.requestAnimationFrame(runSync);syncTimer=window.setTimeout(runSync,60);}
-  function refreshClick(event){if(!event.target.closest?.('#refreshBtn'))return;event.preventDefault();event.stopImmediatePropagation();refresh(true).catch(()=>{});}
+  function refreshClick(event){if(!event.target.closest?.('#refreshBtn'))return;event.preventDefault();event.stopImmediatePropagation();const panel=window.OryvonaPanel;if(panel?.getAccessStatus?.())panel.reconnectAccess().catch(()=>{});else refresh(true).catch(()=>{});}
   on(document,'oryvona:ready',schedule);on(document,'oryvona:view-change',()=>{syncCompatibility();schedule();});on(document,'oryvona:studio-context-change',()=>{syncCompatibility(true);schedule();});
   const compatibility=document.getElementById('v26StoreCompatibility');if(compatibility)on(compatibility,'toggle',()=>syncCompatibility());
   on(document,'visibilitychange',()=>{applyActive();if(!document.hidden){schedule();refresh().catch(()=>{});}});

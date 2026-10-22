@@ -84,6 +84,12 @@
       dismiss();
       if (ownsHistory) { closing = true; history.back(); } else flushAfterClose();
     },
+    dismissActive() {
+      if(!active)return false;
+      dismiss();closing=false;
+      const state={...history.state};delete state.oryvonaOverlay;history.replaceState(state,'');
+      flushAfterClose();return true;
+    },
     isClosing:()=>closing,
     afterClose(callback) { if (closing) afterClose.push(callback); else callback(); },
     handlePopState(event) {

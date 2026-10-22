@@ -12,10 +12,14 @@
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="game-lab.css?v=20261020-gemini1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Lora:ital,wght@1,500;1,600&display=swap">
+<script src="argon-native.js?v=20261021-web1"></script>
 <script src="vendor/supabase-2.45.4.min.js?v=20261020-gemini1"></script>
 <script src="config.js?v=20261021-argon3"></script>
+<script src="studio-bootstrap.js?v=20261021-personal2"></script>
+<script src="personal-access.js?v=20261021-session1"></script>
+<script src="game-navigation.js?v=20261021-android1"></script>
 <script src="command-outbox.js?v=20261020-gemini1"></script>
-<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{}));}</script>
+<script>if("serviceWorker" in navigator){if(window.__ARGON_NATIVE_BOOT__){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});}else{addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{}));}}</script>
 <style>
 /* Oryvona Games Paneli v3.6.6-STUDIO2 (v26) — Doğrulanmış Teslim & Argon Stüdyo Merkezi, dark navy app shell, real game links, honest data, TR/EN. */
 :root{
@@ -369,7 +373,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 <link rel="stylesheet" href="jarvis-v23-shell.css?v=20261020-gemini1">
 <link rel="stylesheet" href="studio-v26.css?v=20261021-r12">
 <link rel="stylesheet" href="studio-integration-v26.css?v=20261020-gemini1">
-<script src="studio-facade-v26.js?v=20261020-gemini1"></script>
+<script src="studio-facade-v26.js?v=20261021-personal2"></script>
 <script src="studio-decisions-v26.js?v=20261020-gemini1"></script>
 <link rel="stylesheet" href="studio-flow.css?v=20261021-argon3">
 </head>
@@ -640,8 +644,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
     </div>
     <div class="secthead" data-i18n="set.app">Uygulama</div>
     <div class="list">
-      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>ORYVONA ARGON</b><span id="verInfo" data-i18n="set.ver">Sürüm 3.6.6-STUDIO2 (v26) · Doğrulanmış Teslim & Argon Stüdyo Merkezi</span></div></div>
-      <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b data-i18n="set.apk">Android kurulum dosyası</b><span data-i18n="set.apkSub">Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/latest/download/oryvona-panel.apk" download rel="noopener" data-i18n="ui.download">İndir</a></div>
+      <div class="item"><span class="ic" id="icApp"></span><div class="tx"><b>ORYVONA ARGON</b><span id="verInfo">Web arayüzü R14 + Android kişisel erişim 1 · APK bilgisi yok</span></div></div>
+      <div class="item"><span class="ic" id="icApk"></span><div class="tx"><b data-i18n="set.apk">Android kurulum dosyası</b><span data-i18n="set.apkSub">Telefona kurmak için APK</span></div><a class="act" href="https://github.com/denizdalga998-boop/oryvona-panel/releases/download/argon-groq-v37/ORYVONA-Argon-3.6.13-GROQ1-vc37.apk" download rel="noopener" data-i18n="ui.download">İndir</a></div>
       <div class="item"><span class="ic" id="icHelp"></span><div class="tx"><b data-i18n="ui.terms">Terimler ve roller</b><span data-i18n="set.termsSub">Claude, OpenAI, Gemini ve süreç adımları</span></div><button class="act" type="button" data-detail="terms" data-i18n="ui.open">Aç</button></div>
     </div>
   </section>
@@ -1317,6 +1321,26 @@ textarea{width:100%;min-height:80px;resize:vertical}
   }
 
   // ---------- state ----------
+  const PERSONAL_MODE=false;
+  let personalAccess=null;
+  if(PERSONAL_MODE){document.body.classList.add('oryvona-personal');
+    const style=document.createElement('style');style.textContent='body.oryvona-personal #gate,body.oryvona-personal #teamSection,body.oryvona-personal #signOut{display:none!important}#personalAccessStatus{margin:12px 0;padding:16px;background:#10243a;color:#edf7ff;border:1px solid #426381;border-radius:16px;overflow-wrap:anywhere}#personalAccessStatus p{color:#edf7ff}#personalPairCode{display:block;color:#65ecff;background:#081727;padding:10px;border-radius:10px;font-size:1.4rem;letter-spacing:.1em;margin:10px 0}#personalPairCode:empty{display:none}#personalAccessDiagnostic{white-space:pre-wrap;font:12px/1.5 monospace;color:#ffd3ab}#personalAccessStatus button{color:#edf7ff;background:#173b59;border:1px solid #739ab9;min-height:44px}#personalAccessStatus button:disabled{opacity:.75}';document.head.append(style);
+  }
+  function personalStatus(state){
+    if(!PERSONAL_MODE)return;let card=$('personalAccessStatus');
+    if(!card){card=document.createElement('aside');card.id='personalAccessStatus';card.setAttribute('role','status');card.setAttribute('aria-live','polite');
+      const message=document.createElement('p');message.id='personalAccessMessage';const code=document.createElement('b');code.id='personalPairCode';
+      const hint=document.createElement('p');hint.id='personalAccessHint';const detail=document.createElement('pre');detail.id='personalAccessDiagnostic';
+      const retry=document.createElement('button');retry.id='personalAccessRetry';retry.type='button';retry.className='act';retry.textContent='Yeniden bağlan';retry.addEventListener('click',()=>personalAccess?.reconnect());card.append(message,code,hint,detail,retry);document.querySelector('main').prepend(card);}
+    card.hidden=state.state==='ready';card.dataset.state=state.state;card.dataset.stage=state.stage||'session';card.setAttribute('aria-busy',String(!!state.busy));
+    const names={device:'Cihaz erişimi',challenge:'Cihaz doğrulaması',signature:'Cihaz imzası',session:'Gerçek oturum',auth_user:'Supabase kullanıcı doğrulaması',owner:'Sahip yetkisi',panel:'Stüdyo başlangıcı',projects:'Projeler',records:'Stüdyo kayıtları',connection:'Argon / işçi komut portu'};
+    const stageName=names[state.stage]||state.stage||'Bağlantı';
+    $('personalAccessMessage').textContent=state.state==='connecting'?stageName+' doğrulanıyor…':({pairing_required:'İlk kullanım: bu cihazı DJ-KABIN’den bir kez eşleştir.',pairing_wait:'Cihaz onayı veya bağlantı bekleniyor. E-posta gerekmez.',connection_wait:stageName+' aşaması tamamlanamadı. Cihaz kimliğin korunuyor; yeniden denenecek.',access_revoked:'Bu cihazın erişimi kapalı. DJ-KABIN’den yeniden yetkilendirme gerekli.'})[state.state]||'';
+    $('personalPairCode').textContent=state.pairingCode||'';
+    $('personalAccessHint').textContent=state.pairingCode?'Eşleştirme kodu: '+state.pairingCode+'. Deniz olarak DJ-KABIN’de onaylat. Cihaz izi: '+String(state.fingerprint||'').slice(0,12)+'.':'';
+    const d=state.diagnostic;$('personalAccessDiagnostic').textContent=d?[names[d.stage]||d.stage,d.source,d.http?'HTTP '+d.http:'HTTP yanıtı yok',d.code,d.message].filter(Boolean).join(' · '):'';
+    $('personalAccessRetry').disabled=!!state.busy;
+  }
   let status=null,feedDocs=[],runsDocs=[],projects=[],current=null,session=null,team=[],isOwner=false,feedFilter="all",demo=false,allStatus={};
   let shadow=null,commands=[]; // Faz 1: son Gemini gölge incelemesi + Komut Kutusu satırları (commands===null → tablo yok)
   let sb=null,channel=null,storeChannel=null;
@@ -1368,6 +1392,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   document.addEventListener("click",e=>{const b=e.target.closest("[data-detail]");if(b)openDetail(b.dataset.detail);});
   $("backBtn").addEventListener("click",()=>history.back());$("gameBack").addEventListener("click",()=>history.back());
   function pushPwaGuard(){
+    if(window.__ARGON_NATIVE_BOOT__)return;
     try{history.pushState({pwaGuard:true,view:view||"home"},"",location.href);}catch(_e){}
   }
   function armPwaGuard(e){
@@ -1375,30 +1400,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
     document.removeEventListener("pointerdown",armPwaGuard);document.removeEventListener("keydown",armPwaGuard);
   }
   document.addEventListener("pointerdown",armPwaGuard,{passive:true});document.addEventListener("keydown",armPwaGuard);
+  window.OryvonaGameNavigation.configure({getView:()=>view,goHome:()=>showView("home")});
   addEventListener("popstate",e=>{
     handlingPwaBack=true;
-    try{
-      const labPlayer=document.getElementById("gamePlayer");
-      if(labPlayer){labPlayer.dispatchEvent(new CustomEvent("oryvona:player-back"));return;}
-      const svGame=document.querySelector(".sv-game-window");
-      if(svGame){svGame.dispatchEvent(new CustomEvent("oryvona:game-back"));return;}
-      if(window.OryvonaNativeShell?.handlePopState(e))return;
-      const openDialog=document.querySelector("dialog[open], .modal-backdrop:not([hidden]), #linkModal:not([hidden])");
-      if(openDialog){openDialog.hidden=true;openDialog.close?.();return;}
-      if(view&&view!=="home")showView("home");
-    }finally{handlingPwaBack=false;pushPwaGuard();}
+    try{window.OryvonaGameNavigation.handleBack(e);}finally{handlingPwaBack=false;pushPwaGuard();}
   });
-  const APK_INTENTS={
-    "forge-run":"intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.forgerun.dtslicetest;end",
-    "aeryo":"intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=games.oryvona.aeryo;end",
-    "tupsper":"intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=games.oryvona.tuckspire;end"
-  };
-  window.launchInstalledGame=function(gid){
-    const intentUri=APK_INTENTS[gid];if(!intentUri)return false;
-    if(/android/i.test(navigator.userAgent))window.location.href=intentUri;
-    else{const pkg={"forge-run":"com.forgerun.dtslicetest",aeryo:"games.oryvona.aeryo",tupsper:"games.oryvona.tuckspire"}[gid];window.open("https://play.google.com/apps/testing/"+pkg,"_blank","noopener,noreferrer");}
-    return true;
-  };
+  const APK_INTENTS={"forge-run":true,"aeryo":true,"tupsper":true};
+  window.launchInstalledGame=gid=>window.OryvonaGameNavigation.open({id:gid});
   window.launchForgeRun=()=>window.launchInstalledGame("forge-run");
   history.replaceState({view:"home"},"");pushPwaGuard();
   function refreshOpen(){renderV22StudioCards();if(view==="detail"&&detailKey)fillDetail(detailKey);if(view==="jarvis")renderJarvis();if(view==="tests")renderTestsBody();if(view==="feed"){renderDigest();renderWeek();renderFeedList();}if(view==="settings")renderSettings();if(view==="games")renderGames();if(view==="store")renderStore();if(view==="game")renderGame();}
@@ -1559,9 +1567,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
   $("feedFilters").addEventListener("click",e=>{const b=e.target.closest("button[data-f]");if(!b)return;feedFilter=b.dataset.f;feedLimit=20;document.querySelectorAll("#feedFilters button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderFeedList();});
 
   // ---------- settings ----------
-  function renderSettings(){const St=S().set;$("accEmail").textContent=session?.user?.email||(demo?St.demoView:"—");$("accRole").textContent=demo?St.notSignedIn:isOwner?St.ownerRole:St.memberRole;
+  function renderSettings(){window.OryvonaGameNavigation.renderVersion();const St=S().set;$("accEmail").textContent=PERSONAL_MODE?"Deniz · Kişisel cihaz":session?.user?.email||(demo?St.demoView:"—");$("accRole").textContent=demo?St.notSignedIn:isOwner?St.ownerRole:St.memberRole;
     $("liveInfo").textContent=status?St.liveInfo(fmt(status.updatedAt),status.source==="github-webhook"?St.ghSignal:St.ghSignal):St.noDataYet;
-    $("teamSection").hidden=!isOwner;if(isOwner)$("teamBody").innerHTML=sheetTeam();renderRunner();renderPush();}
+    $("teamSection").hidden=PERSONAL_MODE||!isOwner;if(isOwner&&!PERSONAL_MODE)$("teamBody").innerHTML=sheetTeam();renderRunner();renderPush();}
 
   // ---------- store (Play Store tracking: games, tracks, reviews, mail, notes) ----------
   const STAGE_CLS={development:"warn",closed_testing:"info",open_testing:"brand",production:"good",paused:"warn"};
@@ -1689,7 +1697,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
   // ---------- push notifications (Web Push; Supabase functions send them) ----------
   const b64ToU8=s=>{const pad="=".repeat((4-s.length%4)%4);const bin=atob((s+pad).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(bin,c=>c.charCodeAt(0));};
-  const pushOk=()=>"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window&&!!(window.ORYVONA||{}).vapidPublicKey;
+  const pushOk=()=>!window.__ARGON_NATIVE_BOOT__&&"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window&&!!(window.ORYVONA||{}).vapidPublicKey;
   let pushSub=null,pushPrefs={mine:true,blocked:true,turns:false,runs:false,store:true};
   function renderPush(){const St=S().set;const on=!!pushSub;$("pushToggle").textContent=on?St.pushOn:St.pushOff;$("pushToggle").className="act"+(on?" on":"");$("pushPrefs").hidden=!on;
     $("pushInfo").textContent=demo?St.pushDemo:!pushOk()?St.pushUnsup:Notification.permission==="denied"?St.pushDenied:on?St.pushActive:St.pushIdle;
@@ -1714,8 +1722,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
   $("pushTest").addEventListener("click",async()=>{const St=S().set;if(!sb||!session)return;$("pushTest").disabled=true;$("pushInfo").textContent=St.pushSending;
     const {data,error}=await sb.functions.invoke("push-notify",{body:{test:true}});$("pushTest").disabled=false;
     $("pushInfo").textContent=error?St.pushSendFail+error.message:St.pushSent(data?.sent??0);});
-  $("reloadBtn").addEventListener("click",()=>{if(current)loadAll(current);loadStore();});$("refreshBtn").addEventListener("click",()=>{if(current)loadAll(current);loadStore();});
-  $("signOut").addEventListener("click",async()=>{if(sb)await sb.auth.signOut();});
+  function reconnectPanel(){if(PERSONAL_MODE){personalAccess?.reconnect();return;}if(current)loadAll(current);loadStore();}
+  $("reloadBtn").addEventListener("click",reconnectPanel);$("refreshBtn").addEventListener("click",reconnectPanel);
+  $("signOut").addEventListener("click",async()=>{if(typeof window.ArgonNative?.ownerStorage==="function"){try{const k='sb-'+new URL(CFG.url).hostname.split('.')[0]+'-auth-token';await window.ArgonNative.ownerStorage("remove",k);}catch{}}if(sb)await sb.auth.signOut();});
 
   // ---------- team (owners) ----------
   function sheetTeam(){const Tm=S().team;const me=(session?.user?.email||"").toLowerCase();
@@ -1728,9 +1737,9 @@ textarea{width:100%;min-height:80px;resize:vertical}
       out+=`<div class="block" style="flex-direction:row;align-items:center;justify-content:space-between;gap:10px"><div><div class="t">${esc(m.name||m.email)}${m.role==="owner"?` <span class="chip brand sm">${esc(T("ui.owner"))}</span>`:""}</div><div class="d">${esc(m.email)} · ${esc(seen)}</div></div>${m.email!==me?`<button type="button" class="btn ghost" data-remove="${esc(m.email)}">${esc(Tm.remove)}</button>`:`<span class="chip brand">${esc(T("ui.you"))}</span>`}</div>`;}
     return out+'</div>';}
   document.addEventListener("submit",async e=>{const Tm=S().team,G=S().gate;
-    if(e.target.id==="teamForm"){e.preventDefault();if(!sb)return;const email=$("teamEmail").value.trim().toLowerCase(),name=$("teamName").value.trim();if(!email){$("teamMsg").textContent=Tm.writeEmail;return;}const {error}=await sb.from("team_members").insert({email,name:name||null,role:"member"});$("teamMsg").textContent=error?Tm.addFail+error.message:Tm.added+email;if(!error)loadTeam();}
-    if(e.target.id==="inviteForm"){e.preventDefault();if(!sb){$("inviteMsg").textContent=Tm.demoInvite;return;}const hours=Number($("inviteHours").value),forEmail=$("inviteEmail").value.trim()||null;$("inviteMsg").textContent=Tm.creating;const {data,error}=await sb.rpc("create_invite",{hours,for_email:forEmail,note:null});if(error){$("inviteMsg").textContent=Tm.createFail+error.message;return;}const row=Array.isArray(data)?data[0]:data;const link=location.origin+location.pathname+"#davet="+row.token;$("inviteLink").value=link;$("inviteOut").hidden=false;$("inviteMsg").textContent=Tm.valid(fmt(row.expires_at),forEmail);}
-    if(e.target.id==="gateForm"){e.preventDefault();const email=$("gateEmail").value.trim();if(!email){gateMsg(G.writeEmail,true);return;}$("gateBtn").disabled=true;gateMsg(G.sending);const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname,shouldCreateUser:true}});$("gateBtn").disabled=false;if(error){gateMsg(G.sendFail+error.message,true);return;}gateMsg(G.sent);}});
+    if(e.target.id==="teamForm"){if(PERSONAL_MODE)return;e.preventDefault();if(!sb)return;const email=$("teamEmail").value.trim().toLowerCase(),name=$("teamName").value.trim();if(!email){$("teamMsg").textContent=Tm.writeEmail;return;}const {error}=await sb.from("team_members").insert({email,name:name||null,role:"member"});$("teamMsg").textContent=error?Tm.addFail+error.message:Tm.added+email;if(!error)loadTeam();}
+    if(e.target.id==="inviteForm"){if(PERSONAL_MODE)return;e.preventDefault();if(!sb){$("inviteMsg").textContent=Tm.demoInvite;return;}const hours=Number($("inviteHours").value),forEmail=$("inviteEmail").value.trim()||null;$("inviteMsg").textContent=Tm.creating;const {data,error}=await sb.rpc("create_invite",{hours,for_email:forEmail,note:null});if(error){$("inviteMsg").textContent=Tm.createFail+error.message;return;}const row=Array.isArray(data)?data[0]:data;const link=location.origin+location.pathname+"#davet="+row.token;$("inviteLink").value=link;$("inviteOut").hidden=false;$("inviteMsg").textContent=Tm.valid(fmt(row.expires_at),forEmail);}
+    if(e.target.id==="gateForm"){if(PERSONAL_MODE)return;e.preventDefault();const email=$("gateEmail").value.trim();if(!email){gateMsg(G.writeEmail,true);return;}$("gateBtn").disabled=true;gateMsg(G.sending);const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+(window.__ARGON_NATIVE_BOOT__?"/oryvona-panel/":location.pathname),shouldCreateUser:true}});$("gateBtn").disabled=false;if(error){gateMsg(G.sendFail+error.message,true);return;}gateMsg(G.sent);}});
   document.addEventListener("click",async e=>{const Tm=S().team;const r=e.target.closest("[data-remove]");if(r&&sb){r.disabled=true;const {error}=await sb.from("team_members").delete().eq("email",r.dataset.remove);if(error){$("teamMsg").textContent=Tm.removeFail+error.message;r.disabled=false;}else loadTeam();}
     if(e.target.id==="inviteCopy"){const v=$("inviteLink").value;try{await navigator.clipboard.writeText(v);$("inviteMsg").textContent=Tm.copied;}catch{$("inviteLink").select();$("inviteMsg").textContent=Tm.copyManual;}}});
   const gateMsg=(t,bad)=>{const m=$("gateMsg");m.textContent=t;m.style.color=bad?"#ff9c9c":"#8fe3ad";};
@@ -2191,17 +2200,27 @@ textarea{width:100%;min-height:80px;resize:vertical}
     if(demo||!sb){const presets=demoPresets();feedDocs=(presets.feed[id]||[]).map(r=>asDoc(r));runsDocs=(presets.runs[id]||[]).map(r=>asDoc(r));applyStatus({data:allStatus[id]||presets.status[id]||null});renderTimeline("tl",24);renderJarvis();return;}
     if(channel){sb.removeChannel(channel);channel=null;}loadAll(id);
     channel=sb.channel("panel-"+id).on("postgres_changes",{event:"*",schema:"public",table:"project_status",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"events",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"runs",filter:"project_id=eq."+id},()=>loadAll(id)).on("postgres_changes",{event:"*",schema:"public",table:"shadow_reviews",filter:"project_id=eq."+id},()=>loadExtras(id)).on("postgres_changes",{event:"*",schema:"public",table:"commands",filter:"project_id=eq.koza"},()=>loadExtras(id)).subscribe();}
-  async function loadTeam(){const {data,error}=await sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(error){console.warn(error);return;}team=data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>String(m.email||"").toLowerCase()===me&&m.role==="owner");commandOutbox?.resume();announceStudioContext();updatePlayButtonUI(current);renderCmd();renderJarvis();renderReadiness();if(view==="settings")renderSettings();if(view==="store")renderStore();if(view==="game")renderGame();}
+  function startupError(result,stage,source){const error=result.error||result;return Object.assign(new Error(error.message||'Veri kaynağı okunamadı.'),{diagnostic:window.OryvonaStudioBootstrap.diagnostic({code:error.code||'QUERY_FAILED',message:error.message||'Veri kaynağı okunamadı.',http:result.status||error.status},stage,source)});}
+  function startupGuard(owner,signal){if(signal?.aborted||session?.user?.id!==owner)throw window.OryvonaStudioBootstrap.failure('owner','AUTH_CHANGED','Başlangıç sırasında hesap değişti.');}
+  async function loadTeam(options={}){
+    const owner=options.owner||session?.user?.id;let query=sb.from("team_members").select("email,name,role,added_at,last_seen_at,login_count,first_seen_at").order("added_at");if(options.signal)query=query.abortSignal(options.signal);
+    const result=await query;
+    if(options.strict)startupGuard(owner,options.signal);else if(session?.user?.id!==owner)return false;
+    if(result.error){if(options.strict){isOwner=false;announceStudioContext();throw startupError(result,'owner','team_members');}console.warn(result.error);return false;}
+    startupGuard(owner,options.signal);team=result.data||[];const me=(session?.user?.email||"").toLowerCase();isOwner=team.some(m=>String(m.email||"").toLowerCase()===me&&m.role==="owner");
+    announceStudioContext();if(options.strict&&!isOwner)throw window.OryvonaStudioBootstrap.failure('owner','OWNER_ROLE_MISSING','team_members içinde bu gerçek kullanıcıya ait sahip rolü yok.',200,'team_members');
+    commandOutbox?.resume();updatePlayButtonUI(current);renderCmd();renderJarvis();renderReadiness();if(view==="settings")renderSettings();if(view==="store")renderStore();if(view==="game")renderGame();return isOwner;
+  }
   function pendingInvite(){const m=location.hash.match(/davet=([a-f0-9]+)/);if(m){try{localStorage.setItem("oryvona.invite",m[1]);}catch{}history.replaceState({view:"home"},"",location.pathname);}try{return localStorage.getItem("oryvona.invite");}catch{return null;}}
-  async function redeemIfPending(){const t=pendingInvite();if(!t||!session)return;const {error}=await sb.rpc("redeem_invite",{invite_token:t});try{localStorage.removeItem("oryvona.invite");}catch{}
+  async function redeemIfPending(){if(PERSONAL_MODE)return;const t=pendingInvite();if(!t||!session)return;const {error}=await sb.rpc("redeem_invite",{invite_token:t});try{localStorage.removeItem("oryvona.invite");}catch{}
     if(error){$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("gate.inviteBad");$("banner").hidden=false;$("banner").textContent=S().gate.inviteFail(error.message);return false;}return true;}
-  async function start(){const ok=await redeemIfPending();if(ok===false)return;sb.rpc("touch_login").then(()=>{},()=>{});
+  async function start(meta={}){if(PERSONAL_MODE)return personalBootstrap.run(meta);const ok=await redeemIfPending();if(ok===false)return;sb.rpc("touch_login").then(()=>{},()=>{});
     const {data,error}=await sb.from("projects").select("id,name,code,sort_order").order("sort_order",{ascending:true});if(error){console.error(error);$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("ui.connErr");return;}
     projects=data||[];dbProjectIds=new Set(projects.map(p=>p.id));if(!projects.length){$("banner").hidden=false;$("banner").textContent=T("gate.notTeam");$("fresh").className="chip dot onnavy warn";$("fresh").textContent=T("gate.noAuth");return;}
     ensureStudioCatalog();
-    $("banner").hidden=true;const want=recall();const known=projects.some(p=>p.id===want);select(known?want:projects[0].id);loadTeam();loadGames();initPush();loadStore();watchStore();
+    $("banner").hidden=true;const want=recall();const known=projects.some(p=>p.id===want);select(known?want:projects[0].id);await loadTeam();studioReadFacadeV26.refresh().catch(()=>{});loadGames();initPush();loadStore();watchStore();
     if(location.hash==="#magaza"){history.replaceState({view:"store"},"",location.pathname);showView("store");}}
-  function stop(){if(channel&&sb){sb.removeChannel(channel);channel=null;}if(storeChannel&&sb){sb.removeChannel(storeChannel);storeChannel=null;}current=null;status=null;feedDocs=[];runsDocs=[];projects=[];team=[];isOwner=false;announceStudioContext();shadow=null;commands=[];store={games:[],reviews:[],mail:[],notes:[],events:[],status:{}};freshness();renderStoreBadge();renderGemini();renderCmd();renderJarvis();}
+  function stop(){personalBootstrap?.reset();if(channel&&sb){sb.removeChannel(channel);channel=null;}if(storeChannel&&sb){sb.removeChannel(storeChannel);storeChannel=null;}current=null;status=null;feedDocs=[];runsDocs=[];projects=[];team=[];isOwner=false;announceStudioContext();shadow=null;commands=[];store={games:[],reviews:[],mail:[],notes:[],events:[],status:{}};freshness();renderStoreBadge();renderGemini();renderCmd();renderJarvis();}
 
   // ---------- demo (design preview without sign-in; clearly marked as sample data) ----------
   function startDemo(){demo=true;$("gate").hidden=true;$("banner").hidden=false;$("banner").textContent=T("gate.demoBanner");
@@ -2249,6 +2268,24 @@ textarea{width:100%;min-height:80px;resize:vertical}
     getProjects:()=>STUDIO_PROJECTS,
     document
   });
+  // The real owner is checked BEFORE projects; every retry repeats all failed startup reads.
+  var personalBootstrap=window.OryvonaStudioBootstrap.create({
+    getIdentity:()=>session?.user?.id||null,
+    owner:options=>loadTeam({...options,strict:true}),
+    async projects({owner,signal}){
+      const result=await sb.from('projects').select('id,name,code,sort_order').order('sort_order',{ascending:true}).abortSignal(signal);
+      startupGuard(owner,signal);if(result.error)throw startupError(result,'projects','projects');
+      const rows=result.data||[];projects=rows;dbProjectIds=new Set(rows.map(p=>p.id));return rows;
+    },
+    async records({owner,signal}){
+      startupGuard(owner,signal);ensureStudioCatalog();$('banner').hidden=true;
+      const want=recall();select(projects.some(p=>p.id===want)?want:projects[0].id);
+      const snapshot=await studioReadFacadeV26.refresh();startupGuard(owner,signal);
+      if(snapshot.state==='ready'){loadGames();loadStore();watchStore();}
+      return snapshot;
+    },
+    connection:({owner,signal})=>window.OryvonaStudioHost.request('getConnection',{expectedUserId:owner,signal})
+  });
   let studioDecisionClientV26=null,studioDecisionPortV26=null;
   function requestStudioDecisionV26(operation,payload){
     if(!sb||!window.OryvonaStudioDecisionsV26)throw Object.assign(new Error('Paket kabul bağlantısı hazır değil.'),{code:'UNAVAILABLE'});
@@ -2261,6 +2298,8 @@ textarea{width:100%;min-height:80px;resize:vertical}
   const studioV26PanelExtension=Object.freeze({
     getStudioSnapshot:scopeKey=>studioReadFacadeV26.getSnapshot(scopeKey),
     refreshStudioSnapshot:scopeKey=>studioReadFacadeV26.refresh(scopeKey),
+    getAccessStatus:()=>personalAccess?.getSnapshot()||null,
+    reconnectAccess:()=>personalAccess?.reconnect()||Promise.resolve(),
     subscribeStudioSnapshot:fn=>studioReadFacadeV26.subscribe(fn),
     openStudioView(next){
       if(!['home','feed','tests','store','jarvis'].includes(next))throw new Error('Geçersiz stüdyo görünümü.');
@@ -2289,9 +2328,21 @@ textarea{width:100%;min-height:80px;resize:vertical}
   function watchBottomNav(){const nav=document.querySelector('.tabs');if(!nav)return;const set=()=>document.documentElement.style.setProperty('--bottom-nav-h',Math.ceil(nav.getBoundingClientRect().height)+'px');set();if('ResizeObserver' in window)new ResizeObserver(set).observe(nav);addEventListener('resize',set);window.visualViewport?.addEventListener('resize',set);document.fonts?.ready.then(set);}
   initCommandOutbox();applyLang();watchTopbar();watchBottomNav();
   (async()=>{
-    if(location.hash==="#demo"){startDemo();return;}
+    if(!PERSONAL_MODE&&location.hash==="#demo"){startDemo();return;}
     if(!CFG.url||!CFG.anonKey||!window.supabase){$("fresh").className="chip dot onnavy bad";$("fresh").textContent=T("gate.noConfig");return;}
-    sb=window.supabase.createClient(CFG.url,CFG.anonKey,{auth:{flowType:"implicit",detectSessionInUrl:true,persistSession:true,autoRefreshToken:true},realtime:{params:{eventsPerSecond:5}}});
+    const authStorageKey='sb-'+new URL(CFG.url).hostname.split('.')[0]+'-auth-token';
+    if(!localStorage.getItem(authStorageKey)&&typeof window.ArgonNative?.ownerStorage==="function"){
+      try{const migrated=await Promise.race([window.ArgonNative.ownerStorage("get",authStorageKey),new Promise(r=>setTimeout(()=>r(null),2000))]);if(typeof migrated==="string"&&migrated.trim())localStorage.setItem(authStorageKey,migrated);}catch{}
+    }
+    const apply=async(s,meta={})=>{const changed=session?.user?.id!==s?.user?.id||session?.user?.email!==s?.user?.email;if(changed){isOwner=false;stop();}session=s;announceStudioContext();$('gate').hidden=PERSONAL_MODE||!!s;commandOutbox?.snapshot();if(s){if(PERSONAL_MODE)return start(meta);if(changed||!current||!projects.length)start();else commandOutbox?.resume();}else if(changed)stop();};
+    if(PERSONAL_MODE){
+      personalAccess=window.OryvonaPersonalAccess.create({native:window.ArgonNative,localStorage,storageKey:'sb-'+new URL(CFG.url).hostname.split('.')[0]+'-auth-token',url:CFG.url,anonKey:CFG.anonKey,onStatus:personalStatus,onSession:apply});
+      personalStatus({state:'connecting'});
+    }
+    sb=window.supabase.createClient(CFG.url,CFG.anonKey,{auth:{flowType:"implicit",detectSessionInUrl:!PERSONAL_MODE,persistSession:true,autoRefreshToken:true,...(PERSONAL_MODE?{storage:personalAccess.storage}:{})},realtime:{params:{eventsPerSecond:5}}});
+    if(PERSONAL_MODE){
+      personalAccess.bind(sb);sb.auth.onAuthStateChange((ev,s)=>personalAccess.authChanged(ev,s));await personalAccess.ensure();
+    }else{
     sb.auth.onAuthStateChange((ev)=>{if(ev==="SIGNED_IN"&&location.hash.includes("access_token"))history.replaceState({view:"home"},"",location.pathname);});
     // Magic link, every arrival path: a hash-only change (ARGON app / an already open tab gets no reload, so detectSessionInUrl never
     // sees it), an expired or used link (#error_description), or a PKCE ?code= link from another client. Each ends visibly.
@@ -2305,13 +2356,22 @@ textarea{width:100%;min-height:80px;resize:vertical}
       if(code){const {error}=await sb.auth.exchangeCodeForSession(code).catch(e=>({error:e}));history.replaceState({view:"home"},"",location.pathname);if(error)linkNote(lang==="tr"?"Bu giriş bağlantısı başka bir tarayıcı için üretilmiş. Bu ekranda e-postanı yazıp yeni bağlantı iste.":"This link was made for another browser. Request a new one here.");}
     }
     addEventListener("hashchange",()=>{if(/(?:access_token|error_description|error)=/.test(location.hash))takeLinkSession().catch(()=>{});});
-    if(/(?:error_description|error)=/.test(location.hash)||new URLSearchParams(location.search).has("code"))takeLinkSession().catch(()=>{});
+    if(/(?:access_token|error_description|error)=/.test(location.hash)||new URLSearchParams(location.search).has("code"))await takeLinkSession().catch(()=>{});
     if(pendingInvite())$("gateText").textContent=T("gate.invited");
-    const apply=s=>{const changed=session?.user?.id!==s?.user?.id||session?.user?.email!==s?.user?.email;if(changed){isOwner=false;stop();}session=s;announceStudioContext();const signedIn=!!s;$("gate").hidden=signedIn;commandOutbox?.snapshot();if(signedIn)start();else stop();};
-    const {data:{session:s0}}=await sb.auth.getSession();apply(s0);
-    sb.auth.onAuthStateChange((_e,s)=>{if(s?.user?.id!==session?.user?.id||s?.user?.email!==session?.user?.email||!!s!==!!session)apply(s);else session=s;});
-    addEventListener("online",()=>{if(!sb||!session||demo)return;if(!current||!projects.length)start();else{loadTeam();loadAll(current);}});
-    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&session&&!demo){if(!current||!projects.length)start();else{loadTeam();loadAll(current);loadStore();}}});
+
+    const {data:{session:s0}}=await sb.auth.getSession();
+    if(s0&&typeof window.ArgonNative?.ownerStorage==="function"){const raw=localStorage.getItem(authStorageKey);if(raw)window.ArgonNative.ownerStorage("set",authStorageKey,raw).catch(()=>{});}
+    apply(s0);
+    sb.auth.onAuthStateChange((ev,s)=>{
+      if(typeof window.ArgonNative?.ownerStorage==="function"){
+        if(ev==="SIGNED_OUT")window.ArgonNative.ownerStorage("remove",authStorageKey).catch(()=>{});
+        else if(s){const raw=localStorage.getItem(authStorageKey);if(raw)window.ArgonNative.ownerStorage("set",authStorageKey,raw).catch(()=>{});}
+      }
+      if(s?.user?.id!==session?.user?.id||s?.user?.email!==session?.user?.email||!!s!==!!session)apply(s);else session=s;
+    });
+    }
+    addEventListener("online",()=>{if(PERSONAL_MODE){personalAccess?.ensure();return;}if(!sb||!session||demo)return;if(!current||!projects.length)start();else{loadTeam();loadAll(current);}});
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&PERSONAL_MODE){personalAccess?.ensure();return;}if(!document.hidden&&session&&!demo){if(!current||!projects.length)start();else{loadTeam();loadAll(current);loadStore();}}});
     setInterval(()=>{freshness();if(status)renderHome(status);renderTimeline("tl",24);renderRunner();},60000);
   })();
 })();
@@ -2323,18 +2383,18 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
 
 
-<script src="native-shell.js?v=20261020-gemini1"></script>
-<script src="game-lab.js?v=20261021-r13"></script>
+<script src="native-shell.js?v=20261021-android1"></script>
+<script src="game-lab.js?v=20261021-android1"></script>
 <script src="jarvis-energy.js?v=20261020-gemini1"></script>
-<script src="jarvis-bridge.js?v=20261021-r6"></script>
-<script src="supabase-host-port.js?v=20261021-argon3"></script>
+<script src="jarvis-bridge.js?v=20261021-sync1"></script>
+<script src="supabase-host-port.js?v=20261021-sync1"></script>
 <script src="studio-data-v26.js?v=20261020-gemini1"></script>
 <script src="jarvis-brief.js?v=20261020-gemini1"></script>
 <script src="studio-gemini-client.js?v=20261021-argon3"></script>
-<script src="jarvis-voice.js?v=20261021-jarvis-vault1"></script>
-<script src="studio-world-v26.js?v=20261021-r14"></script>
-<script src="jarvis-world.js?v=20261021-r14"></script>
-<script src="studio-v26-bootstrap.js?v=20261021-argon3"></script>
+<script src="jarvis-voice.js?v=20261021-sync1"></script>
+<script src="studio-world-v26.js?v=20261021-personal2"></script>
+<script src="jarvis-world.js?v=20261021-sync1"></script>
+<script src="studio-v26-bootstrap.js?v=20261021-personal2"></script>
 <script src="studio-flow.js?v=20261021-argon3"></script>
 <script src="studio-flow-bootstrap.js?v=20261021-argon3"></script>
 </body>
