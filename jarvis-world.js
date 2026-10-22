@@ -7,7 +7,9 @@
   function uuid(crypto){if(crypto&&typeof crypto.randomUUID==='function')return crypto.randomUUID();if(crypto&&typeof crypto.getRandomValues==='function'){var a=new Uint8Array(16);crypto.getRandomValues(a);a[6]=(a[6]&15)|64;a[8]=(a[8]&63)|128;return Array.from(a,function(x){return x.toString(16).padStart(2,'0');}).join('').replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5');}throw new Error('Güvenilir komut kimliği üreticisi kullanılamıyor.');}
   function projectLabel(id,projects){var p=(projects||PROJECTS).find(function(x){return x.id===id;});return p?p.label:'Hedef doğrulanmadı';}
   function validProject(id,projects){return (projects||PROJECTS).some(function(p){return p.id===id;});}
-  function cloneAttachments(items){return (Array.isArray(items)?items:[]).filter(function(a){return a&&typeof a.id==='string'&&a.id.length>0&&a.id.length<=250;}).map(function(a){return {id:a.id,name:safeText(a.name||'Görsel',180),mime:safeText(a.mime,100),size:Number.isFinite(a.size)?a.size:0};}).slice(0,3);}
+  function cloneAttachments(items,maxCount){var cap=Number(maxCount)>0?Number(maxCount):4;return (Array.isArray(items)?items:[]).filter(function(a){return a&&typeof a.id==='string'&&a.id.length>0&&a.id.length<=250;}).map(function(a){return {id:a.id,name:safeText(a.name||'Görsel',180),mime:safeText(a.mime,100),size:Number.isFinite(a.size)?a.size:0,...(typeof a.previewUrl==='string'&&a.previewUrl?{previewUrl:a.previewUrl}:{})};}).slice(0,cap);}
+  function cloneMessageAttachments(items){return (Array.isArray(items)?items:[]).filter(function(a){return a&&typeof a.name==='string'&&a.name.trim();}).map(function(a){return {name:safeText(a.name,120),mime:safeText(a.mime,80),size:Number.isFinite(a.size)?a.size:0};}).slice(0,4);}
+  function formatAttachmentSize(bytes){var b=Number(bytes)||0;if(b<=0)return '';if(b<1024)return b+' B';if(b<1024*1024)return Math.max(1,Math.round(b/1024))+' KB';return (b/(1024*1024)).toFixed(1).replace(/\.0$/,'')+' MB';}
   function validateStudioProposal(action,result,expectedRequestId,projects){
     var UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     var validSource=result&&result.ok===true&&((result.provider==='groq'&&result.transport==='groq-api')||(['google','gemini'].includes(result.provider)&&result.transport==='google-ai-studio-api'));
@@ -127,8 +129,12 @@
     [{id:null,label:'Tüm stüdyo'}].concat(projects).forEach(function(p){var b=btn(null,'jw-scope-choice',p.label+' komut kapsamı');b.textContent=p.label;b.dataset.scope=p.id||'';b.setAttribute('aria-pressed',String(p.id===scope));on(b,'click',function(){selectScope(p.id);scopeMenu.hidden=true;scopeBtn.setAttribute('aria-expanded','false');input.focus();});scopeMenu.appendChild(b);});
     var clarify=el('div','jw-clarify');clarify.hidden=true;clarify.setAttribute('role','group');clarify.setAttribute('aria-label','Komut hedefini netleştir');
     var attachments=el('div','jw-attachments');attachments.setAttribute('aria-label','Bu komuta eklenen görseller');
-    var form=el('form','jw-composer jw-composer-pill'),add=btn('plus','jw-icon-button','Görsel veya dosya ekle'),input=el('textarea','jw-input'),mic=btn('mic','jw-icon-button jw-mic','Sesle yaz'),send=btn('up','jw-icon-button jw-send','Komutu gönder');input.rows=1;input.placeholder='Bir sonraki adımı söyle…';input.setAttribute('aria-label','Argon komutu');input.setAttribute('enterkeyhint','send');input.setAttribute('autocomplete','off');input.setAttribute('spellcheck','true');send.type='submit';mic.setAttribute('aria-pressed','false');form.append(add,input,mic,send);
-    var status=el('div','jw-composer-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');/* Project routing is automatic; the old picker is deliberately not mounted. */inner.append(clarify,attachments,form,status);zone.appendChild(inner);shell.append(header,orbStage,banner,thread,zone);root.appendChild(shell);
+    var attachMenu=el('div','jw-attach-menu');attachMenu.hidden=true;attachMenu.setAttribute('role','menu');attachMenu.setAttribute('aria-label','Ek türü seç');
+    var attachImgBtn=btn(null,'jw-attach-choice jw-scope-choice','Fotoğraf veya ekran görüntüsü ekle');attachImgBtn.textContent='Fotoğraf / ekran görüntüsü';attachImgBtn.dataset.kind='image';
+    var attachFileBtn=btn(null,'jw-attach-choice jw-scope-choice','PDF, metin veya kod dosyası ekle');attachFileBtn.textContent='Dosya (PDF, metin, kod)';attachFileBtn.dataset.kind='file';
+    attachMenu.append(attachImgBtn,attachFileBtn);
+    var form=el('form','jw-composer jw-composer-pill'),add=btn('plus','jw-icon-button','Görsel veya dosya ekle'),input=el('textarea','jw-input'),mic=btn('mic','jw-icon-button jw-mic','Sesle yaz'),send=btn('up','jw-icon-button jw-send','Komutu gönder');input.rows=1;input.placeholder='Bir sonraki adımı söyle…';input.setAttribute('aria-label','Argon komutu');input.setAttribute('enterkeyhint','send');input.setAttribute('autocomplete','off');input.setAttribute('spellcheck','true');send.type='submit';mic.setAttribute('aria-pressed','false');add.setAttribute('aria-expanded','false');form.append(add,input,mic,send);
+    var status=el('div','jw-composer-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');/* Project routing is automatic; the old picker is deliberately not mounted. */inner.append(clarify,attachments,attachMenu,form,status);zone.appendChild(inner);shell.append(header,orbStage,banner,thread,zone);root.appendChild(shell);
     function draftKey(s){return s||'studio';}
     /* ARGON "önce onay al": a change request is summarised and queued only after an explicit Evet/Başla/Onaylıyorum (typed, spoken or tapped). */
     function foldTr(t){return String(t||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ı/g,'i').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();}
@@ -144,7 +150,8 @@
     var argonMode=readPref('oryvona.argonMode','low');if(!MODE_TR[argonMode])argonMode='low';
     function persistedReadMessages(){
       return readMessages.filter(function(m){return m&&!m.pending&&typeof m.body==='string'&&m.body.trim();}).slice(-60).map(function(m){
-        return {id:m.id,...(m.requestId?{requestId:m.requestId}:{}),role:m.role,body:safeText(m.body,2400),...(m.projectId?{projectId:m.projectId}:{}),...(m.failed?{failed:true}:{}),createdAt:m.createdAt||null,origin:m.origin||null};
+        var atts=cloneMessageAttachments(m.attachments);
+        return {id:m.id,...(m.requestId?{requestId:m.requestId}:{}),role:m.role,body:safeText(m.body,2400),...(atts.length?{attachments:atts}:{}),...(m.projectId?{projectId:m.projectId}:{}),...(m.failed?{failed:true}:{}),createdAt:m.createdAt||null,origin:m.origin||null};
       });
     }
     function mergeRestoredChat(items){
@@ -157,7 +164,8 @@
         var reqKey=m.requestId?m.requestId+':'+m.role:null;
         if(existingIds.has(m.id)||(reqKey&&existingReqRoles.has(reqKey)))return;
         existingIds.add(m.id);if(reqKey)existingReqRoles.add(reqKey);
-        readMessages.push({id:m.id,...(m.requestId?{requestId:m.requestId}:{}),role:m.role==='user'?'user':'assistant',body:safeText(m.body,2400),...(m.projectId?{projectId:m.projectId}:{}),...(m.failed?{failed:true}:{}),createdAt:m.createdAt||new Date().toISOString(),origin:m.origin||{kind:'local',evidenceLabel:'Önceki oturumdan geri yüklendi.'}});
+        var atts=cloneMessageAttachments(m.attachments);
+        readMessages.push({id:m.id,...(m.requestId?{requestId:m.requestId}:{}),role:m.role==='user'?'user':'assistant',body:safeText(m.body,2400),...(atts.length?{attachments:atts}:{}),...(m.projectId?{projectId:m.projectId}:{}),...(m.failed?{failed:true}:{}),createdAt:m.createdAt||new Date().toISOString(),origin:m.origin||{kind:'local',evidenceLabel:'Önceki oturumdan geri yüklendi.'}});
         added=true;
       });
       if(readMessages.length>80)readMessages=readMessages.slice(-80);
@@ -177,24 +185,25 @@
       all.sort(function(a,b){return a.t-b.t||a.i-b.i;});
       return all.slice(-12).map(function(x){return {role:x.m.role==='user'?'user':'assistant',text:safeText(x.m.body,1200)};});
     }
-    async function brainTurn(textValue,version){
+    async function brainTurn(textValue,version,sentAttachments){
       clearConfirmation();
       var owner=accountKey,ticket=accountEpoch,viewTicket=activeEpoch,askScope=scope,id='brain:'+owner+':'+(++readCounter),createdAt=new Date().toISOString(),d=drafts.get(askScope),persist=true,clearDraft=version>=0;
+      var attList=cloneAttachments(sentAttachments,4),attIds=attList.map(function(a){return a.id;}),attMeta=cloneMessageAttachments(attList);
       var priorHistory=conversationHistory();
       var lastAssistantTurn=priorHistory.slice().reverse().find(function(h){return h.role==='assistant';});
       var approvalAskedPreviously=!!(lastAssistantTurn&&/(?:onaylıyorsanız|evet,\s*kodla|evet,\s*başla|düzeltelim\s+mi|onay\s+bekliyor|henüz\s+doğrulanmadı)/i.test(lastAssistantTurn.text));
       var userApprovedInTurn=isYes(textValue)||(approvalAskedPreviously&&/\b(?:evet|onayliyorum|tamam|hadi|kodla|basla|uygula)\b/.test(foldTr(textValue)));
-      var turn=persist&&d.brainPending&&d.brainPending.text===textValue&&!d.brainPending.terminal?d.brainPending:{requestId:uuid(win.crypto),text:textValue,history:priorHistory,mode:argonMode,audioOutput:voiceState.enabled===true};
+      var turn=persist&&!attIds.length&&d.brainPending&&d.brainPending.text===textValue&&!d.brainPending.terminal?d.brainPending:{requestId:uuid(win.crypto),text:textValue,history:priorHistory,mode:argonMode,audioOutput:voiceState.enabled===true,...(attIds.length?{attachments:attIds}:{})};
       if(!turn.ttsRequestId)turn.ttsRequestId=uuid(win.crypto);
       answerBusy=true;syncComposer();
       if(persist){
         d.brainPending=turn;
         try{if(!bridge.drafts||typeof bridge.drafts.save!=='function')throw Error('Kalıcı sohbet kaydı kullanılamıyor.');await bridge.drafts.save(askScope,{text:d.text,attachments:cloneAttachments(d.attachments),brainPending:turn,chatHistory:persistedReadMessages(),accountKey:owner});}
-        catch(_saveError){if(owns(owner,ticket)){if(clearDraft)recordSubmissionFailure(askScope,version,textValue,[]);answerBusy=false;syncComposer();setStatus('Mesaj kimliği cihazda saklanamadı. Hata sohbet akışında gösterildi; beyin çağrılmadı.','error');}return;}
-        if(!owns(owner,ticket))return;if(!worldActive()||viewTicket!==activeEpoch){if(clearDraft)recordSubmissionFailure(askScope,version,textValue,[]);answerBusy=false;syncComposer();return;}
+        catch(_saveError){if(owns(owner,ticket)){if(clearDraft)recordSubmissionFailure(askScope,version,textValue,attList);answerBusy=false;syncComposer();setStatus('Mesaj kimliği cihazda saklanamadı. Hata sohbet akışında gösterildi; beyin çağrılmadı.','error');}return;}
+        if(!owns(owner,ticket))return;if(!worldActive()||viewTicket!==activeEpoch){if(clearDraft)recordSubmissionFailure(askScope,version,textValue,attList);answerBusy=false;syncComposer();return;}
       }
-      answerBusy=true;readMessages.push({id:id+':user',requestId:turn.requestId,role:'user',body:textValue,createdAt:createdAt,origin:{kind:'user-input',evidenceLabel:'Canlı beyne gönderildi.'}},{id:id,requestId:turn.requestId,role:'assistant',body:'…',pending:true,createdAt:createdAt,origin:{kind:'pending-model',provider:'Groq',evidenceLabel:'Groq (openai/gpt-oss-120b · düşünme: düşük) yanıtı hazırlanıyor; ağır işçi başlatılmaz.'}});if(readMessages.length>80)readMessages=readMessages.slice(-80);
-      syncComposer();update(snapshot);bottom(true);setStatus('Argon düşünüyor…');
+      answerBusy=true;readMessages.push({id:id+':user',requestId:turn.requestId,role:'user',body:textValue,...(attMeta.length?{attachments:attMeta}:{}),createdAt:createdAt,origin:{kind:'user-input',evidenceLabel:'Canlı beyne gönderildi.'}},{id:id,requestId:turn.requestId,role:'assistant',body:'…',pending:true,createdAt:createdAt,origin:attIds.length?{kind:'pending-model',provider:'Google AI Studio',evidenceLabel:'Gemini ekli mesaj yanıtı hazırlanıyor; ağır işçi başlatılmaz.'}:{kind:'pending-model',provider:'Groq',evidenceLabel:'Groq (openai/gpt-oss-120b · düşünme: düşük) yanıtı hazırlanıyor; ağır işçi başlatılmaz.'}});if(readMessages.length>80)readMessages=readMessages.slice(-80);
+      syncComposer();update(snapshot);bottom(true);setStatus(attIds.length?'Ekler yükleniyor ve Argon düşünüyor…':'Argon düşünüyor…');
       var res=null,body='',replyShown=false,speechResult=null,prepared=null,usedVoiceMeta=null;
       function showReply(value,voiceMeta){
         if(!owns(owner,ticket))return;
@@ -213,11 +222,11 @@
         update(snapshot);bottom(true);
       }
       var revealPrepared=function(){if(prepared&&owns(owner,ticket))showReply(prepared);};pendingAudioReply=revealPrepared;
-      try{res=await bridge.askBrain({requestId:turn.requestId,text:turn.text,history:turn.history,mode:turn.mode,...(typeof turn.audioOutput==='boolean'?{audioOutput:turn.audioOutput}:{}),accountKey:owner,onTextReady:function(value){
+      try{res=await bridge.askBrain({requestId:turn.requestId,text:turn.text,history:turn.history,mode:turn.mode,...(typeof turn.audioOutput==='boolean'?{audioOutput:turn.audioOutput}:{}),...(attIds.length?{attachments:attIds}:{}),accountKey:owner,onTextReady:function(value){
         if(!owns(owner,ticket)||value.requestId!==turn.requestId||!((value.provider==='groq'&&value.transport==='groq-api')||(value.provider==='google'&&value.transport==='google-ai-studio-api'))||value.model_verified!==true)return;
         prepared=Object.assign({},value,{ok:true});
         if(!voiceState.enabled)revealPrepared();else if(worldActive()&&viewTicket===activeEpoch)setStatus('Yanıtın sesi hazırlanıyor…');
-      }});}catch(_e){res={ok:false,answer_tr:prepared&&prepared.answer_tr||'İstek sonucu doğrulanamadı. Mesaj kimliği korundu; internet kesintisi olduğu kesinleştirilemedi.',preparedText:!!prepared};}
+      }});}catch(_e){res={ok:false,answer_tr:prepared&&prepared.answer_tr||(_e&&typeof _e.code==='string'&&/^CHAT_ATTACHMENT_/.test(_e.code)&&typeof _e.message==='string'?_e.message:'İstek sonucu doğrulanamadı. Mesaj kimliği korundu; internet kesintisi olduğu kesinleştirilemedi.'),preparedText:!!prepared};}
       if(!owns(owner,ticket))return;
       if(nativeReplyOrigin(res)&&Array.isArray(res.project_catalog)){res.project_catalog.slice(0,128).forEach(function(p){if(p&&/^[a-z][a-z0-9-]{0,63}$/.test(p.id)&&!validProject(p.id,projects))projects.push({id:p.id,label:safeText(p.name||p.id,120)});});}
       if(res&&!res.ok&&res.terminal&&persist&&d.brainPending&&d.brainPending.requestId===turn.requestId){d.brainPending=Object.assign({},turn,{terminal:true});queueSave(askScope);}
@@ -313,12 +322,12 @@
       }catch(_e){if(owns(owner,ticket))setStatus('Kara kutuya ulaşılamadı. İş emri oluşturulmadı.','error');}
       finally{if(owns(owner,ticket)){if(!answered)recordSubmissionFailure(askScope,originalVersion,textValue,[]);answerBusy=false;syncComposer();update(snapshot);bottom(true);}}
     }
-    function resetAccount(nextKey){pendingAudioReply=null;pendingConfirm=null;accountKey=nextKey;accountEpoch++;lastRevision=-1;stopSpeech();if(voice&&typeof voice.cancel==='function')voice.cancel();readMessages=[];answerBusy=false;saveTimers.forEach(function(timer){win.clearTimeout(timer);});saveTimers.clear();draftLoads.clear();busyScopes.clear();drafts=new DraftStore(projects);scope=null;clarification=null;clarify.hidden=true;scopeMenu.hidden=true;scopeBtn.setAttribute('aria-expanded','false');snapshot={messages:[],jobs:[],connection:{status:'unknown',submitAvailable:false}};nodesByKey.clear();timeline.replaceChildren();renderEmpty();renderDraft();connectionText.textContent='Oturum doğrulanıyor';activityCount.textContent='0';if(energy)energy.setState('offline');if(nextKey)loadDraft(null);setStatus('Hesap değişti. Önceki hesabın taslak ve komutları temizlendi.');}
+    function resetAccount(nextKey){pendingAudioReply=null;pendingConfirm=null;accountKey=nextKey;accountEpoch++;lastRevision=-1;stopSpeech();if(voice&&typeof voice.cancel==='function')voice.cancel();readMessages=[];answerBusy=false;saveTimers.forEach(function(timer){win.clearTimeout(timer);});saveTimers.clear();draftLoads.clear();busyScopes.clear();drafts=new DraftStore(projects);scope=null;clarification=null;clarify.hidden=true;scopeMenu.hidden=true;scopeBtn.setAttribute('aria-expanded','false');attachMenu.hidden=true;add.setAttribute('aria-expanded','false');snapshot={messages:[],jobs:[],connection:{status:'unknown',submitAvailable:false}};nodesByKey.clear();timeline.replaceChildren();renderEmpty();renderDraft();connectionText.textContent='Oturum doğrulanıyor';activityCount.textContent='0';if(energy)energy.setState('offline');if(nextKey)loadDraft(null);setStatus('Hesap değişti. Önceki hesabın taslak ve komutları temizlendi.');}
     function owns(key,epoch){if(destroyed)return false;var current=readAccountKey();if(current!==accountKey)resetAccount(current);return !!key&&key===accountKey&&epoch===accountEpoch;}
     function queueSave(s){if(!bridge.drafts||typeof bridge.drafts.save!=='function')return;var key=accountKey,epoch=accountEpoch,k=draftKey(s);if(saveTimers.has(k))win.clearTimeout(saveTimers.get(k));saveTimers.set(k,win.setTimeout(function(){saveTimers.delete(k);if(!owns(key,epoch))return;var d=drafts.get(s);Promise.resolve(bridge.drafts.save(s,{text:d.text,attachments:cloneAttachments(d.attachments),brainPending:d.brainPending,...(k==='studio'?{chatHistory:persistedReadMessages()}:{}),accountKey:key})).catch(function(){if(owns(key,epoch)&&scope===s)setStatus('Taslak henüz kalıcı kayda alınamadı.','error');});},250));}
     async function loadDraft(s){if(!accountKey||!bridge.drafts||typeof bridge.drafts.load!=='function'||draftLoads.has(draftKey(s)))return;draftLoads.add(draftKey(s));var key=accountKey,epoch=accountEpoch,d=drafts.get(s),version=d.version;try{var restored=await bridge.drafts.load(s,{accountKey:key});if(!owns(key,epoch)||!restored)return;var chatRestored=s===null&&Array.isArray(restored.chatHistory)&&mergeRestoredChat(restored.chatHistory);if(d.version===version){d.text=safeText(restored.text);d.attachments=cloneAttachments(restored.attachments);d.brainPending=restored.brainPending||null;d.version++;if(scope===s)renderDraft();}if(chatRestored){update(snapshot);bottom(true);}}catch(_e){if(owns(key,epoch)&&scope===s)setStatus('Kaydedilmiş taslak yüklenemedi.','error');}}
     function autosize(){input.style.height='44px';input.style.height=Math.max(44,Math.min(120,input.scrollHeight))+'px';}
-    function renderDraft(){var viewScope=scope,viewOwner=accountKey,viewEpoch=accountEpoch,d=drafts.get(scope);input.value=d.text;scopeText.textContent=scope?label(scope):'Tüm stüdyo';Array.from(scopeMenu.children).forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.scope===(scope||'')));});attachments.replaceChildren();d.attachments.forEach(function(a){var item=el('span','jw-attachment'),name=el('span','jw-attachment-name',a.name),remove=btn(null,'','Eki kaldır: '+a.name);remove.textContent='×';dynamicOn(remove,'click',function(){if(scope!==viewScope||!owns(viewOwner,viewEpoch))return;var current=drafts.get(viewScope);drafts.update(viewScope,{attachments:current.attachments.filter(function(x){return x.id!==a.id;})});queueSave(scope);renderDraft();});item.append(name,remove);attachments.appendChild(item);});syncComposer();autosize();}
+    function renderDraft(){var viewScope=scope,viewOwner=accountKey,viewEpoch=accountEpoch,d=drafts.get(scope);input.value=d.text;scopeText.textContent=scope?label(scope):'Tüm stüdyo';Array.from(scopeMenu.children).forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.scope===(scope||'')));});attachments.replaceChildren();d.attachments.forEach(function(a){var item=el('span','jw-attachment');if(a.previewUrl&&/^image\//i.test(a.mime||'')){var thumb=el('img','jw-attachment-thumb');thumb.src=a.previewUrl;thumb.alt=a.name||'Görsel';item.appendChild(thumb);}var name=el('span','jw-attachment-name',a.name),sizeText=formatAttachmentSize(a.size),sizeEl=sizeText?el('span','jw-attachment-size',sizeText):null,remove=btn(null,'','Eki kaldır: '+a.name);remove.textContent='×';dynamicOn(remove,'click',function(){if(scope!==viewScope||!owns(viewOwner,viewEpoch))return;var current=drafts.get(viewScope);drafts.update(viewScope,{attachments:current.attachments.filter(function(x){return x.id!==a.id;})});queueSave(scope);renderDraft();});item.appendChild(name);if(sizeEl)item.appendChild(sizeEl);item.appendChild(remove);attachments.appendChild(item);});syncComposer();autosize();}
     function isReadQuery(text){if(brief&&typeof brief.classify==='function')return brief.classify(text).handled===true;if(!brief||typeof brief.respond!=='function'||!studioData)return false;try{var data=studioData.getSnapshot();if(!data||data.accountKey!==accountKey)return false;var answer=brief.respond(text,data);return answer&&answer.handled===true;}catch(_e){return false;}}
     function syncComposer(){
       var d=drafts.get(scope),busy=busyScopes.has(draftKey(scope))||answerBusy;
@@ -333,8 +342,10 @@
       sound.disabled=!outputAvailable;sound.setAttribute('aria-pressed',String(!!voiceState.enabled));
       sound.setAttribute('aria-label',voiceState.voiceSetupPending?'Erkek ses hazırlığını iptal et':voiceState.needsVoiceSetup?'Erkek sesi hazırla':voiceState.enabled?'Sesli yanıtı kapat':'Sesli yanıtı aç');
       sound.title=voiceState.notice||sound.getAttribute('aria-label');sound.replaceChildren(icon(voiceState.enabled?'sound':'mute'));
-      add.disabled=!accountKey||busy||d.attachments.length>=3||snapshot.capabilities&&snapshot.capabilities.attachments===false||!bridge.attachments||typeof bridge.attachments.choose!=='function';
-      add.title=snapshot.capabilities&&snapshot.capabilities.attachments===false?'Gizli görsel yükleme hazır değil. Metin emri gönderebilirsin.':d.attachments.length>=3?'Bir komuta en fazla 3 görsel eklenebilir':'Görsel veya dosya ekle';
+      var maxAtt=brainOn?4:3;
+      add.disabled=!accountKey||busy||d.attachments.length>=maxAtt||snapshot.capabilities&&snapshot.capabilities.attachments===false||!bridge.attachments||typeof bridge.attachments.choose!=='function';
+      if(add.disabled){attachMenu.hidden=true;add.setAttribute('aria-expanded','false');}
+      add.title=snapshot.capabilities&&snapshot.capabilities.attachments===false?'Gizli görsel yükleme hazır değil. Metin emri gönderebilirsin.':d.attachments.length>=maxAtt?(brainOn?'Bir mesaja en fazla 4 ek eklenebilir':'Bir komuta en fazla 3 görsel eklenebilir'):'Görsel veya dosya ekle';
       mic.hidden=!speechAvailable&&mode!=='preview';mic.disabled=!accountKey||(!listening&&(busy||voiceLoading))||!speechAvailable;
       var micLabel=!speechAvailable?'Bu cihazda sesle yazma kullanılamıyor':busy&&!listening?'Yanıt bekleniyor; mikrofon kapalı':voiceLoading&&!listening?'Erkek ses hazırlanıyor; mikrofon kapalı':listening?(speechKind==='live'||voiceState.conversationActive===true?'Canlı ses görüşmesini durdur':'Dinlemeyi durdur'):speaking?'Argon konuşuyor; dokunursan susar ve seni dinler':'Konuşmak için mikrofona dokun';
       mic.title=micLabel;mic.setAttribute('aria-label',micLabel);mic.setAttribute('aria-pressed',String(listening));
@@ -343,7 +354,7 @@
     }
     function selectScope(next){if(next&&!validProject(next,projects))throw new Error('Geçersiz komut kapsamı.');stopSpeech();clearConfirmation();scope=next;clarification=null;clarify.hidden=true;renderDraft();loadDraft(next);setStatus('');/* No selected-game mutation, no global navigation event. */}
     function sourceDetails(message){var details=el('details','jw-source'),summary=el('summary','',sourceLabel(message.origin));details.appendChild(summary);if(message.createdAt){var date=new Date(message.createdAt);details.appendChild(el('p','',Number.isNaN(date.getTime())?'Zaman kaydı doğrulanmadı':date.toLocaleString('tr-TR')));}if(message.commandId)details.appendChild(el('p','','Komut: '+safeText(message.commandId,150)));if(message.origin&&message.origin.voiceLabel)details.appendChild(el('p','','Ses: '+safeText(message.origin.voiceLabel,150)));if(message.origin&&message.origin.evidenceLabel)details.appendChild(el('p','',message.origin.evidenceLabel));return details;}
-    function renderMessage(message){var card=el('article','jw-message');card.dataset.role=message.role==='user'?'user':'assistant';card.dataset.messageId=safeText(message.id,150);var head=el('div','jw-message-head'),author=el('span','jw-author',message.role==='user'?'Deniz':message.role==='system'?'Sistem':'Argon');head.appendChild(author);if(message.projectId)head.appendChild(el('span','jw-project-label',label(message.projectId)));card.append(head,el('div','jw-message-body',message.body),sourceDetails(message));return card;}
+    function renderMessage(message){var card=el('article','jw-message');card.dataset.role=message.role==='user'?'user':'assistant';card.dataset.messageId=safeText(message.id,150);var head=el('div','jw-message-head'),author=el('span','jw-author',message.role==='user'?'Deniz':message.role==='system'?'Sistem':'Argon');head.appendChild(author);if(message.projectId)head.appendChild(el('span','jw-project-label',label(message.projectId)));card.append(head,el('div','jw-message-body',message.body));if(Array.isArray(message.attachments)&&message.attachments.length){var attRow=el('div','jw-message-attachments');message.attachments.slice(0,4).forEach(function(a){if(a&&a.name)attRow.appendChild(el('span','jw-message-attachment','📎 '+safeText(a.name,120)));});if(attRow.childNodes.length)card.appendChild(attRow);}card.appendChild(sourceDetails(message));return card;}
     function field(labelText,value){var n=el('div','jw-job-field');n.append(el('span','',labelText),el('strong','',value));return n;}
     function renderJob(job){var cardOwner=accountKey,cardEpoch=accountEpoch,card=el('article','jw-job');card.dataset.jobId=safeText(job.id,150);var h=el('div','jw-job-head'),t=el('h3','jw-job-title',job.title||'Komut'),state=el('span','jw-job-state',STATUS[job.status]||'Durum doğrulanmadı');state.dataset.state=job.status||'unknown';h.append(t,state);var grid=el('div','jw-job-grid');grid.append(field('HEDEF',label(job.projectId)),field('UZMAN',job.expert||'Atama bekliyor'),field('İZOLE ALAN',job.workspaceLabel||'Doğrulanmadı'),field('CANLI DURUM',job.statusText||STATUS[job.status]||'Doğrulanmadı'));card.append(h,grid);if(job.workspacePath||job.id||job.blockReason){var details=el('details'),summary=el('summary','','İş ayrıntıları');details.append(summary,el('pre','','İş: '+safeText(job.id,150)+(job.workspacePath?'\nÇalışma alanı: '+safeText(job.workspacePath,500):'')+(job.blockReason?'\nBekleme nedeni: '+safeText(job.blockReason,700):'')));card.appendChild(details);}if(job.canCancel&&typeof bridge.cancelJob==='function'){var row=el('div','jw-job-actions'),cancel=btn(null,'jw-text-button','İşi durdur: '+(job.title||job.id));cancel.textContent='Durdur';dynamicOn(cancel,'click',async function(){if(!owns(cardOwner,cardEpoch))return;cancel.disabled=true;try{await bridge.cancelJob({jobId:job.id,accountKey:cardOwner});if(!owns(cardOwner,cardEpoch))return;setStatus('Durdurma isteği iletildi; işçi yanıtı bekleniyor.');}catch(_e){if(!owns(cardOwner,cardEpoch))return;setStatus('Durdurma isteği iletilemedi.','error');cancel.disabled=false;}});row.appendChild(cancel);card.appendChild(row);}return card;}
     function renderEmpty(){var box=el('div','jw-empty');box.append(el('span','jw-kicker','STÜDYO KOMUTA MERKEZİ'),el('h2','','Beş oyun. Tek net akış.'),el('p','','Ne değişeceğini söyle. Hedef, uzman ve doğrulanmış sonuç burada görünsün.'));var suggestions=el('div','jw-suggestions');['Forge Run ne durumda?','Bugün neler oldu?','Şu anda öncelikli olan ne?'].forEach(function(text){var b=btn(null,'jw-suggestion',text);b.textContent=text;dynamicOn(b,'click',function(){drafts.update(scope,{text:text});renderDraft();queueSave(scope);input.focus();});suggestions.appendChild(b);});box.appendChild(suggestions);timeline.appendChild(box);}
@@ -432,7 +443,7 @@
       if(pendingTurn&&pendingTurn.text===textValue)d.brainPending=pendingTurn;
       var version=d.version;queueSave(submitScope);renderDraft();autosize();syncComposer();
       if(pendingConfirm)clearConfirmation();
-      if(brainOn&&!sentAttachments.length){brainTurn(textValue,version);return;}
+      if(brainOn){brainTurn(textValue||'Bu eki incele.',version,sentAttachments);return;}
       if(sentAttachments.length&&isReadQuery(textValue)){recordSubmissionFailure(submitScope,version,textValue,sentAttachments);setStatus('Bu soru sistem verisini okur. Ekli görselleri kaldırıp yeniden sor; iş emri oluşturulmadı.');return;}
       if(!sentAttachments.length&&await answerRead(textValue,version,false))return;
       if(!owns(owner,ticket)||scope!==submitScope||d.version!==version)return;
@@ -457,7 +468,24 @@
     function keyboardSend(e){e.preventDefault();if(win.matchMedia&&win.matchMedia('(pointer: coarse)').matches)input.blur();submit();}
     on(input,'keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229)keyboardSend(e);});
     on(input,'beforeinput',function(e){if((e.inputType==='insertLineBreak'||e.inputType==='insertParagraph')&&!e.isComposing&&win.matchMedia&&win.matchMedia('(pointer: coarse)').matches)keyboardSend(e);});on(scopeBtn,'click',function(){scopeMenu.hidden=!scopeMenu.hidden;scopeBtn.setAttribute('aria-expanded',String(!scopeMenu.hidden));});
-    on(add,'click',async function(){if(add.disabled||snapshot.capabilities&&snapshot.capabilities.attachments===false)return;var chosenScope=scope,owner=accountKey,epoch=accountEpoch;try{var picked=await bridge.attachments.choose({scope:chosenScope,maxFiles:3-drafts.get(scope).attachments.length,accountKey:owner});if(!owns(owner,epoch))return;var target=drafts.get(chosenScope);drafts.update(chosenScope,{attachments:target.attachments.concat(cloneAttachments(picked))});queueSave(chosenScope);if(scope===chosenScope)renderDraft();}catch(err){if(owns(owner,epoch)&&scope===chosenScope)setStatus(err&&err.message||'Görsel eklenemedi.','error');}});
+    async function pickAttachments(kind){
+      attachMenu.hidden=true;add.setAttribute('aria-expanded','false');
+      if(add.disabled||snapshot.capabilities&&snapshot.capabilities.attachments===false)return;
+      var chosenScope=scope,owner=accountKey,epoch=accountEpoch,maxAllowed=brainOn?4:3,remaining=maxAllowed-drafts.get(chosenScope).attachments.length;
+      if(remaining<=0)return;
+      try{
+        var chooseOpts={scope:chosenScope,maxFiles:remaining,accountKey:owner};
+        if(kind)chooseOpts.kind=kind;
+        var picked=await bridge.attachments.choose(chooseOpts);
+        if(!owns(owner,epoch))return;
+        var target=drafts.get(chosenScope);
+        drafts.update(chosenScope,{attachments:cloneAttachments(target.attachments.concat(cloneAttachments(picked,maxAllowed)),maxAllowed)});
+        queueSave(chosenScope);if(scope===chosenScope)renderDraft();
+      }catch(err){if(owns(owner,epoch)&&scope===chosenScope)setStatus(err&&err.message||'Görsel eklenemedi.','error');}
+    }
+    on(attachImgBtn,'click',function(){pickAttachments('image');});
+    on(attachFileBtn,'click',function(){pickAttachments('file');});
+    on(add,'click',function(){if(add.disabled||snapshot.capabilities&&snapshot.capabilities.attachments===false)return;if(brainOn){attachMenu.hidden=!attachMenu.hidden;add.setAttribute('aria-expanded',String(!attachMenu.hidden));return;}pickAttachments();});
     on(sound,'click',function(){
       if(!voice)return;
       outputPreferenceChosen=true;var enableOutput=!voiceState.enabled;if(!enableOutput)stopSpeech();voice.setEnabled(enableOutput);

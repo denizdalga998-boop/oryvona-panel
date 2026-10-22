@@ -8,6 +8,20 @@
   const DB = 'oryvona-studio-v23-owner-outbox';
   const MAX_TEXT = 12000, MAX_ITEMS = 100, MAX_RAW = 5 * 1024 * 1024, MAX_IMAGE = 2 * 1024 * 1024;
   const MAX_TOTAL = 40 * 1024 * 1024, MAX_FILES = 3;
+  const MAX_CHAT_FILES = 4, MAX_CHAT_TOTAL = 12 * 1024 * 1024, MAX_PDF = 8 * 1024 * 1024, MAX_TEXT_FILE = 1024 * 1024;
+  const CHAT_BUCKET = 'argon-chat-ekleri';
+  const TEXT_EXTENSIONS = Object.freeze(['txt','md','json','csv','log','xml','yaml','yml','js','mjs','cjs','ts','tsx','jsx','py','java','kt','cs','cpp','c','h','hpp','go','rs','rb','php','swift','sql','sh','ps1','bat','gd','lua','html','css','ini','toml']);
+  const FILE_ACCEPT = ['application/pdf','.pdf',...TEXT_EXTENSIONS.map(ext => '.' + ext)].join(',');
+  function sanitizeAttachmentName(raw, fallback) {
+    const clean = String(raw || fallback || 'ek').replace(/[\\/\u0000-\u001f\u007f]/g, '_').trim().slice(0, 120);
+    return clean || (fallback || 'ek');
+  }
+  function chatExt(mime) {
+    return mime === 'image/jpeg' ? 'jpg' : mime === 'application/pdf' ? 'pdf' : mime === 'text/plain' ? 'txt' : null;
+  }
+  function chatMimeLimit(mime) {
+    return mime === 'image/jpeg' ? MAX_IMAGE : mime === 'application/pdf' ? MAX_PDF : mime === 'text/plain' ? MAX_TEXT_FILE : 0;
+  }
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const LOCAL_ACTIVE = new Set(['pending', 'retry', 'sending', 'cancel_pending']);
   const BACKOFF = [2000, 5000, 15000, 30000, 60000, 120000, 300000];
@@ -72,30 +86,35 @@
   }
   function cleanBrainPending(value) {
     if (!value || !UUID.test(value.requestId || '') || typeof value.text !== 'string' || !value.text.trim() || value.text.length > 2000 || !['low','medium','high'].includes(value.mode)) return null;
-    return {requestId:value.requestId,...(UUID.test(value.ttsRequestId||'')?{ttsRequestId:value.ttsRequestId}:{}),text:value.text,mode:value.mode,...(typeof value.audioOutput==='boolean'?{audioOutput:value.audioOutput}:{}),...(value.terminal===true?{terminal:true}:{}),history:(Array.isArray(value.history)?value.history:[]).slice(-12).filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.text==='string').map(m=>({role:m.role,text:m.text.slice(0,1200)}))};
+    const attachments = Array.isArray(value.attachments) ? value.attachments.slice(0, MAX_CHAT_FILES).map(x => typeof x === 'string' ? x : x && x.id).filter(x => UUID.test(x || '')) : [];
+    return {requestId:value.requestId,...(UUID.test(value.ttsRequestId||'')?{ttsRequestId:value.ttsRequestId}:{}),text:value.text,mode:value.mode,...(typeof value.audioOutput==='boolean'?{audioOutput:value.audioOutput}:{}),...(attachments.length?{attachments}:{}),...(value.terminal===true?{terminal:true}:{}),history:(Array.isArray(value.history)?value.history:[]).slice(-12).filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.text==='string').map(m=>({role:m.role,text:m.text.slice(0,1200)}))};
   }
   function cleanChatHistory(items) {
     if (!Array.isArray(items)) return [];
-    return items.slice(-60).filter(m => m && typeof m.id === 'string' && m.id.length <= 160 && ['user', 'assistant', 'system'].includes(m.role) && typeof m.body === 'string' && m.body.trim() && !m.pending).map(m => ({
-      id: m.id,
-      ...(typeof m.requestId === 'string' && m.requestId.length <= 160 ? { requestId: m.requestId } : {}),
-      role: m.role,
-      body: m.body.slice(0, 2400),
-      ...(m.projectId && PROJECTS.includes(m.projectId) ? { projectId: m.projectId } : {}),
-      ...(m.failed === true ? { failed: true } : {}),
-      createdAt: m.createdAt || null,
-      origin: m.origin && typeof m.origin === 'object' ? {
-        kind: String(m.origin.kind || 'local').slice(0, 40),
-        ...(typeof m.origin.provider === 'string' ? { provider: m.origin.provider.slice(0, 60) } : {}),
-        ...(typeof m.origin.model === 'string' ? { model: m.origin.model.slice(0, 100) } : {}),
-        ...(typeof m.origin.modelVerified === 'boolean' ? { modelVerified: m.origin.modelVerified } : {}),
-        ...(typeof m.origin.voiceLabel === 'string' ? { voiceLabel: m.origin.voiceLabel.slice(0, 120) } : {}),
-        ...(typeof m.origin.evidenceLabel === 'string' ? { evidenceLabel: m.origin.evidenceLabel.slice(0, 240) } : {})
-      } : { kind: 'local' }
-    }));
+    return items.slice(-60).filter(m => m && typeof m.id === 'string' && m.id.length <= 160 && ['user', 'assistant', 'system'].includes(m.role) && typeof m.body === 'string' && m.body.trim() && !m.pending).map(m => {
+      const att = Array.isArray(m.attachments) ? m.attachments.slice(0, MAX_CHAT_FILES).filter(a => a && typeof a.name === 'string' && a.name.trim()).map(a => ({ name: sanitizeAttachmentName(a.name, 'ek'), mime: String(a.mime || '').slice(0, 80), size: Number(a.size) || 0 })) : [];
+      return {
+        id: m.id,
+        ...(typeof m.requestId === 'string' && m.requestId.length <= 160 ? { requestId: m.requestId } : {}),
+        role: m.role,
+        body: m.body.slice(0, 2400),
+        ...(att.length ? { attachments: att } : {}),
+        ...(m.projectId && PROJECTS.includes(m.projectId) ? { projectId: m.projectId } : {}),
+        ...(m.failed === true ? { failed: true } : {}),
+        createdAt: m.createdAt || null,
+        origin: m.origin && typeof m.origin === 'object' ? {
+          kind: String(m.origin.kind || 'local').slice(0, 40),
+          ...(typeof m.origin.provider === 'string' ? { provider: m.origin.provider.slice(0, 60) } : {}),
+          ...(typeof m.origin.model === 'string' ? { model: m.origin.model.slice(0, 100) } : {}),
+          ...(typeof m.origin.modelVerified === 'boolean' ? { modelVerified: m.origin.modelVerified } : {}),
+          ...(typeof m.origin.voiceLabel === 'string' ? { voiceLabel: m.origin.voiceLabel.slice(0, 120) } : {}),
+          ...(typeof m.origin.evidenceLabel === 'string' ? { evidenceLabel: m.origin.evidenceLabel.slice(0, 240) } : {})
+        } : { kind: 'local' }
+      };
+    });
   }
   function createHostPort(callbacks) {
-    const map = { getConnection: callbacks.getConnection, submitIntent: callbacks.submitIntent, listIntents: callbacks.listIntents, listChatHistory: callbacks.listChatHistory, cancelIntent: callbacks.cancelIntent, uploadEvidence: callbacks.uploadEvidence };
+    const map = { getConnection: callbacks.getConnection, submitIntent: callbacks.submitIntent, listIntents: callbacks.listIntents, listChatHistory: callbacks.listChatHistory, cancelIntent: callbacks.cancelIntent, uploadEvidence: callbacks.uploadEvidence, uploadChatAttachment: callbacks.uploadChatAttachment, geminiChat: callbacks.geminiChat, askBrain: callbacks.askBrain, getBrainAnswer: callbacks.getBrainAnswer, askArchive: callbacks.askArchive, getArchiveAnswer: callbacks.getArchiveAnswer };
     return Object.freeze({
       context: callbacks.getContext,
       request: async (operation, payload) => {
@@ -158,11 +177,15 @@
     function chatRowMessages(chat) {
       if (!chat || typeof chat !== 'object' || !UUID.test(chat.request_id || chat.requestId || '') || typeof chat.text !== 'string' || !chat.text.trim()) return [];
       const id = chat.request_id || chat.requestId;
+      const chatAttachments = Array.isArray(chat.attachments) && chat.attachments.length
+        ? chat.attachments.slice(0, MAX_CHAT_FILES).filter(a => a && typeof a.name === 'string' && a.name.trim()).map(a => ({ name: sanitizeAttachmentName(a.name, 'ek'), mime: String(a.mime || ''), size: Number(a.size) || 0 }))
+        : [];
       const out = [{
         id: 'chat:' + id + ':user',
         requestId: id,
         role: 'user',
         body: chat.text.slice(0, 2000),
+        ...(chatAttachments.length ? { attachments: chatAttachments } : {}),
         createdAt: chat.created_at || null,
         origin: { kind: 'user-input', evidenceLabel: 'Canlı beyne gönderildi.' }
       }];
@@ -275,8 +298,33 @@
         requireAccountKey(payload&&payload.accountKey);await syncAccount();const id=requireOwner();requireAccountKey(payload.accountKey);
         const text=String(payload.text||'').trim();if(!text||text.length>2000)throw error('TEXT_INVALID','Mesaj 1–2000 karakter olmalı.');
         requestId=payload.requestId||globalThis.crypto?.randomUUID();if(!UUID.test(requestId||''))throw error('REQUEST_ID_REQUIRED','Geçerli istek kimliği gerekli.');
-        const answer=await request('geminiChat',{requestId,text,history:Array.isArray(payload.history)?payload.history:[],mode:payload.mode,...(typeof payload.audioOutput==='boolean'?{audioOutput:payload.audioOutput}:{}),signal:payload.signal,onTextReady:value=>{guardedContext(id);requireAccountKey(payload.accountKey);if(typeof payload.onTextReady==='function')payload.onTextReady(value);}},id);
+        const rawAttachments=payload.attachments==null?[]:payload.attachments;
+        if(!Array.isArray(rawAttachments)||rawAttachments.length>MAX_CHAT_FILES)throw error('ATTACHMENTS_INVALID','Bir mesaja en fazla 4 ek gönderebilirsin.');
+        const uploadedRefs=[],localKeysToDelete=[];
+        let totalBytes=0;
+        for(const item of rawAttachments){
+          const attId=typeof item==='string'?item:item&&item.id;
+          if(!UUID.test(attId||''))throw error('ATTACHMENT_MISSING','Ek kimliği geçersiz. Eki yeniden seç.');
+          const localKey=key(id,attId);
+          const saved=await store.get('evidence',localKey);guardedContext(id);requireAccountKey(payload.accountKey);
+          if(!saved||!saved.blob||saved.ownerId!==id)throw error('ATTACHMENT_MISSING','Seçilen ek cihazda bulunamadı. Lütfen yeniden ekle.');
+          const ext=chatExt(saved.mime),limit=chatMimeLimit(saved.mime);
+          if(!ext||!limit||saved.size<1||saved.size>limit)throw error('ATTACHMENT_INVALID','Ek türü veya boyutu sınır dışı: '+sanitizeAttachmentName(saved.name,'ek'));
+          totalBytes+=saved.size;
+          if(totalBytes>MAX_CHAT_TOTAL)throw error('ATTACHMENTS_TOO_LARGE','Eklerin toplam boyutu en fazla 12 MB olabilir.');
+          const path=id+'/'+saved.sha256+'.'+ext,cleanName=sanitizeAttachmentName(saved.name,'ek.'+ext);
+          const uploaded=await request('uploadChatAttachment',{path,blob:saved.blob,mime:saved.mime,sha256:saved.sha256,size:saved.size,name:cleanName},id);
+          requireAccountKey(payload.accountKey);
+          if(!uploaded||uploaded.bucket!==CHAT_BUCKET||uploaded.path!==path)throw error('ATTACHMENT_UPLOAD_FAILED','Ek yükleme kaydı doğrulanamadı: '+cleanName);
+          uploadedRefs.push({bucket:CHAT_BUCKET,path,sha256:saved.sha256,mime:saved.mime,size:saved.size,name:sanitizeAttachmentName(uploaded.name||cleanName,'ek.'+ext)});
+          localKeysToDelete.push(localKey);
+        }
+        const answer=await request('geminiChat',{requestId,text,history:Array.isArray(payload.history)?payload.history:[],mode:payload.mode,...(typeof payload.audioOutput==='boolean'?{audioOutput:payload.audioOutput}:{}),...(uploadedRefs.length?{attachments:uploadedRefs}:{}),signal:payload.signal,onTextReady:value=>{guardedContext(id);requireAccountKey(payload.accountKey);if(typeof payload.onTextReady==='function')payload.onTextReady(value);}},id);
         requireAccountKey(payload.accountKey);
+        if(answer?.ok===true&&localKeysToDelete.length){
+          for(const localKey of localKeysToDelete){try{await store.delete('evidence',localKey);}catch(_){}}
+          guardedContext(id);
+        }
         return {...answer,ok:answer?.ok===true,requestId,answer_tr:String(answer?.answer_tr||answer?.reply_tr||''),actions:Array.isArray(answer?.actions)?answer.actions:[]};
       } catch(e) { return {ok:false,requestId,code:e.code||'GEMINI_FAILED',answer_tr:e.message||'Google AI Studio bağlantısı hazırlanmalı. Mesaj kod işçisine aktarılmadı.'}; }
     }
@@ -426,7 +474,7 @@
     }
     const drafts = {
       load: async scope => { await syncAccount(); if (!ownerId || !store) return { text: '', attachments: [] }; const id = ownerId, gen = generation, row = await store.get('drafts', key(id, scope || 'studio')); return gen === generation && id === contextOwner() && row ? { text: row.text, attachments: row.attachments, brainPending: cleanBrainPending(row.brainPending), ...(Array.isArray(row.chatHistory) ? { chatHistory: cleanChatHistory(row.chatHistory) } : {}) } : { text: '', attachments: [] }; },
-      save: async (scope, value) => { requireAccountKey(value.accountKey); await syncAccount(); const id = requireOwner(); requireAccountKey(value.accountKey); if (scope != null && !PROJECTS.includes(scope)) throw error('PROJECT_REQUIRED', 'Geçersiz kapsam.'); if (typeof value.text !== 'string' || value.text.length > MAX_TEXT) throw error('TEXT_INVALID', 'Taslak çok uzun.'); if (!Array.isArray(value.attachments || []) || (value.attachments || []).length > MAX_FILES) throw error('ATTACHMENTS_INVALID','En fazla üç görsel.'); const targetKey = key(id, scope || 'studio'); const existing = value.chatHistory === undefined ? await store.get('drafts', targetKey) : null; guardedContext(id); const chatHistory = Array.isArray(value.chatHistory) ? cleanChatHistory(value.chatHistory) : (existing && Array.isArray(existing.chatHistory) ? cleanChatHistory(existing.chatHistory) : undefined); await store.put('drafts', { key: targetKey, ownerId: id, text: value.text, brainPending: cleanBrainPending(value.brainPending), ...(chatHistory ? { chatHistory } : {}), attachments: (value.attachments || []).map(x => ({ id: x.id, name: String(x.name || '').slice(0,124), mime: x.mime, size: x.size })), updatedAt: now() }); guardedContext(id); }
+      save: async (scope, value) => { requireAccountKey(value.accountKey); await syncAccount(); const id = requireOwner(); requireAccountKey(value.accountKey); if (scope != null && !PROJECTS.includes(scope)) throw error('PROJECT_REQUIRED', 'Geçersiz kapsam.'); if (typeof value.text !== 'string' || value.text.length > MAX_TEXT) throw error('TEXT_INVALID', 'Taslak çok uzun.'); if (!Array.isArray(value.attachments || []) || (value.attachments || []).length > MAX_CHAT_FILES) throw error('ATTACHMENTS_INVALID','En fazla dört ek.'); const targetKey = key(id, scope || 'studio'); const existing = value.chatHistory === undefined ? await store.get('drafts', targetKey) : null; guardedContext(id); const chatHistory = Array.isArray(value.chatHistory) ? cleanChatHistory(value.chatHistory) : (existing && Array.isArray(existing.chatHistory) ? cleanChatHistory(existing.chatHistory) : undefined); await store.put('drafts', { key: targetKey, ownerId: id, text: value.text, brainPending: cleanBrainPending(value.brainPending), ...(chatHistory ? { chatHistory } : {}), attachments: (value.attachments || []).map(x => ({ id: x.id, name: String(x.name || '').slice(0,124), mime: x.mime, size: x.size })), updatedAt: now() }); guardedContext(id); }
     };
     async function processFile(file, id) {
       if (!file || file.size > MAX_RAW || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw error('IMAGE_INVALID', 'JPEG, PNG veya WebP seç; dosya en fazla 5 MB olabilir.');
@@ -450,14 +498,72 @@
       const row = { key: key(id, imageId), ownerId: id, id: imageId, name, mime: 'image/jpeg', size: blob.size, sha256, blob, uploaded: false, createdAt: now() };
       await store.put('evidence', row); guardedContext(id); return { id: row.id, name: row.name, mime: row.mime, size: row.size };
     }
+    async function processDocument(file, id) {
+      if (!file || typeof file.arrayBuffer !== 'function') throw error('FILE_INVALID', 'Geçerli bir dosya seç.');
+      const rawName = String(file.name || '').trim();
+      const extMatch = /\.([A-Za-z0-9]+)$/.exec(rawName);
+      const ext = extMatch ? extMatch[1].toLowerCase() : '';
+      const isPdf = ext === 'pdf' || (!ext && file.type === 'application/pdf');
+      const isText = !isPdf && TEXT_EXTENSIONS.includes(ext);
+      if (!isPdf && !isText) throw error('FILE_TYPE_UNSUPPORTED', 'Bu dosya türü desteklenmiyor. PDF, metin veya kod dosyası seç.');
+      if (!Number.isFinite(file.size) || file.size < 1) throw error('FILE_EMPTY', 'Boş dosya gönderilemez.');
+      if (isPdf && file.size > MAX_PDF) throw error('PDF_TOO_LARGE', 'PDF dosyası en fazla 8 MB olabilir.');
+      if (isText && file.size > MAX_TEXT_FILE) throw error('TEXT_FILE_TOO_LARGE', 'Metin veya kod dosyası en fazla 1 MB olabilir.');
+      const bytes = new Uint8Array(await file.arrayBuffer()); guardedContext(id);
+      if (bytes.byteLength < 1) throw error('FILE_EMPTY', 'Boş dosya gönderilemez.');
+      let mime;
+      if (isPdf) {
+        if (bytes.byteLength > MAX_PDF) throw error('PDF_TOO_LARGE', 'PDF dosyası en fazla 8 MB olabilir.');
+        if (bytes.byteLength < 5 || bytes[0] !== 0x25 || bytes[1] !== 0x50 || bytes[2] !== 0x44 || bytes[3] !== 0x46 || bytes[4] !== 0x2d) {
+          throw error('PDF_INVALID', 'Geçerli bir PDF dosyası değil (%PDF- başlığı bulunamadı).');
+        }
+        mime = 'application/pdf';
+      } else {
+        if (bytes.byteLength > MAX_TEXT_FILE) throw error('TEXT_FILE_TOO_LARGE', 'Metin veya kod dosyası en fazla 1 MB olabilir.');
+        try { new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+        catch (_) { throw error('FILE_NOT_UTF8', 'Dosya geçerli UTF-8 metni değil.'); }
+        mime = 'text/plain';
+      }
+      const sha256 = await hash(bytes); guardedContext(id);
+      const existing = await store.all('evidence', id); guardedContext(id);
+      if (existing.reduce((sum, x) => sum + (Number(x.size) || 0), 0) + bytes.byteLength > MAX_TOTAL) throw error('EVIDENCE_FULL', 'Yerel ek alanı dolu. Bekleyen istekler korunuyor.');
+      const docId = globalThis.crypto.randomUUID();
+      const name = sanitizeAttachmentName(rawName, isPdf ? 'belge.pdf' : 'metin.txt');
+      const blob = new Blob([bytes], { type: mime });
+      const row = { key: key(id, docId), ownerId: id, id: docId, name, mime, size: bytes.byteLength, sha256, blob, uploaded: false, purpose: 'chat', createdAt: now() };
+      await store.put('evidence', row); guardedContext(id);
+      return { id: row.id, name: row.name, mime: row.mime, size: row.size, sha256: row.sha256 };
+    }
     const attachments = {
       choose: async args => {
         requireAccountKey(args && args.accountKey);
         await syncAccount(); const id = requireOwner();
         requireAccountKey(args.accountKey);
         if (connectionInfo?.attachmentsAvailable === false) throw error('EVIDENCE_UNAVAILABLE', 'Görsel yükleme henüz hazır değil. Metinle komut gönderebilirsin.');
+        const kind = args && args.kind === 'file' ? 'file' : 'image';
+        const isChatKind = args && (args.kind === 'file' || args.kind === 'image');
+        const cap = isChatKind ? MAX_CHAT_FILES : MAX_FILES;
+        if (args && typeof args.maxFiles === 'number' && args.maxFiles < 1) throw error('TOO_MANY_ATTACHMENTS', 'En fazla ' + cap + ' ek seçebilirsin.');
+        const limit = Math.min(cap, Math.max(1, Number(args && args.maxFiles) || cap));
+        if (kind === 'file') {
+          if (typeof document === 'undefined') throw error('FILE_UNSUPPORTED', 'Bu tarayıcı dosya eklemeyi desteklemiyor.');
+          const files = await new Promise(resolve => {
+            const picker = document.createElement('input'); picker.type = 'file'; picker.accept = FILE_ACCEPT; picker.multiple = limit > 1;
+            picker.onchange = () => { resolve(Array.from(picker.files || [])); picker.remove(); };
+            picker.oncancel = () => { resolve([]); picker.remove(); }; picker.click();
+          });
+          guardedContext(id);
+          if (files.length > limit) throw error('TOO_MANY_ATTACHMENTS', 'En fazla ' + limit + ' dosya seç.');
+          const result = []; let total = 0;
+          for (const file of files) {
+            const doc = await processDocument(file, id);
+            total += doc.size;
+            if (total > MAX_CHAT_TOTAL) throw error('ATTACHMENTS_TOO_LARGE', 'Eklerin toplam boyutu en fazla 12 MB olabilir.');
+            result.push(doc);
+          }
+          return result;
+        }
         if (typeof document === 'undefined' || typeof createImageBitmap !== 'function') throw error('IMAGE_UNSUPPORTED', 'Bu tarayıcı görsel eklemeyi desteklemiyor.');
-        const limit = Math.min(MAX_FILES, Math.max(1, args && args.maxFiles || MAX_FILES));
         const files = await new Promise(resolve => {
           const picker = document.createElement('input'); picker.type = 'file'; picker.accept = 'image/jpeg,image/png,image/webp'; picker.multiple = limit > 1;
           picker.onchange = () => { resolve(Array.from(picker.files || [])); picker.remove(); };
@@ -513,5 +619,5 @@
     }
     return null;
   }
-  return Object.freeze({ create, createHostPort, PROJECTS, readImageDimensions, canonical, classifyFailure, normalizeRoute, makeIDB, limits: Object.freeze({ MAX_TEXT, MAX_ITEMS, MAX_RAW, MAX_IMAGE, MAX_TOTAL, MAX_FILES }) });
+  return Object.freeze({ create, createHostPort, PROJECTS, readImageDimensions, canonical, classifyFailure, normalizeRoute, makeIDB, TEXT_EXTENSIONS, FILE_ACCEPT, CHAT_BUCKET, limits: Object.freeze({ MAX_TEXT, MAX_ITEMS, MAX_RAW, MAX_IMAGE, MAX_TOTAL, MAX_FILES, MAX_CHAT_FILES, MAX_CHAT_TOTAL, MAX_PDF, MAX_TEXT_FILE }) });
 });

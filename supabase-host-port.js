@@ -4,7 +4,26 @@
   else root.OryvonaStudioHostPort = factory();
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const BUCKET = 'studio-v23-evidence', LANE = 'DJ-KABIN:v24-ingress';
+  const BUCKET = 'studio-v23-evidence', CHAT_BUCKET = 'argon-chat-ekleri', LANE = 'DJ-KABIN:v24-ingress';
+  const CHAT_MIMES = Object.freeze({
+    'image/jpeg': { ext: 'jpg', maxBytes: 2097152 },
+    'application/pdf': { ext: 'pdf', maxBytes: 8 * 1024 * 1024 },
+    'text/plain': { ext: 'txt', maxBytes: 1024 * 1024 }
+  });
+  const MAX_CHAT_ATTACHMENTS = 4, MAX_CHAT_TOTAL_BYTES = 12 * 1024 * 1024;
+  function sanitizeChatAttachmentName(raw, ext) {
+    const clean = String(raw || '').replace(/[\\/\u0000-\u001f\u007f]/g, '_').trim().slice(0, 120);
+    return clean || ('ek.' + (ext || 'txt'));
+  }
+  function normalizeChatAttachmentRef(a, userId) {
+    if (!a || typeof a !== 'object' || Array.isArray(a)) throw failure('PAYLOAD_MISMATCH', 'Ek bilgisi geçersiz.');
+    const spec = CHAT_MIMES[a.mime];
+    if (!spec || a.bucket !== CHAT_BUCKET || !/^[a-f0-9]{64}$/.test(a.sha256 || '') || a.path !== userId + '/' + a.sha256 + '.' + spec.ext || !Number.isSafeInteger(a.size) || a.size < 1 || a.size > spec.maxBytes) {
+      throw failure('PAYLOAD_MISMATCH', 'Ek kapsamı veya boyutu geçersiz.');
+    }
+    const name = sanitizeChatAttachmentName(a.name, spec.ext);
+    return { bucket: CHAT_BUCKET, path: a.path, sha256: a.sha256, mime: a.mime, size: a.size, name };
+  }
   const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const PROJECTS = ['koza','charm-drop','forge-run','aeryo','tupsper','oryvona-panel'];
   const COLUMNS = 'id,text,status,created_by,created_at,started_at,finished_at,runner,result';
@@ -41,7 +60,7 @@
       updated_at: r.execution?.updatedAt || row.finished_at || r.received_at || row.started_at || row.created_at };
   }
   // Chat history is read without `result` (each reply carries its ~1.3 MB voice recording there): only the fields shown are selected.
-  const CHAT_HISTORY_COLUMNS = 'id,text,status,created_at,started_at,finished_at,answer_tr:result->>answer_tr,provider:result->>provider,model:result->>model,audio_status:result->>audio_status,actions:result->actions,transport:result->receipt->>transport,model_verified:result->receipt->>modelVerified';
+  const CHAT_HISTORY_COLUMNS = 'id,text,status,created_at,started_at,finished_at,answer_tr:result->>answer_tr,provider:result->>provider,model:result->>model,audio_status:result->>audio_status,actions:result->actions,attachments:result->attachments,transport:result->receipt->>transport,model_verified:result->receipt->>modelVerified';
   // v1.2: Charon arrives as MP3 from Google Cloud (about ten times smaller); the older WAV voice still plays.
   function playableAudio(a) { return !!a && (a.mimeType === 'audio/wav' || a.mimeType === 'audio/mpeg') && typeof a.data === 'string' && a.data.length > 0 && a.data.length <= 12 * 1024 * 1024; }
   function rowToChatTurn(row) {
@@ -59,6 +78,7 @@
       model_verified: receipt?.modelVerified === true,
       audio_status: typeof r.audio_status === 'string' ? r.audio_status.slice(0, 80) : null,
       actions: Array.isArray(r.actions) ? r.actions.slice(0, 4) : [],
+      ...(Array.isArray(r.attachments) && r.attachments.length ? { attachments: r.attachments.slice(0, MAX_CHAT_ATTACHMENTS).filter(a => a && typeof a === 'object' && typeof a.name === 'string' && a.name.trim()).map(a => ({ name: sanitizeChatAttachmentName(a.name), mime: String(a.mime || '').slice(0, 80), size: Number(a.size) || 0 })) } : {}),
       created_at: row.created_at,
       finished_at: row.finished_at || row.started_at || row.created_at
     };
@@ -217,6 +237,47 @@
         if (!UUID.test(payload.requestId || '') || typeof payload.text !== 'string' || !payload.text.trim() || payload.text.length > 2000) throw failure('PAYLOAD_MISMATCH', 'Mesaj 1–2000 karakter olmalı.');
         const history = (Array.isArray(payload.history) ? payload.history : []).slice(-12).filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string').map(m => ({ role: m.role, text: m.text.slice(0, 1200) }));
         const mode = ['low', 'medium', 'high'].includes(payload.mode) ? payload.mode : 'medium';
+        if (payload.attachments != null && (!Array.isArray(payload.attachments) || payload.attachments.length > MAX_CHAT_ATTACHMENTS)) {
+          throw failure('PAYLOAD_MISMATCH', 'Bir mesaja en fazla 4 ek eklenebilir.');
+        }
+        if (Array.isArray(payload.attachments) && payload.attachments.length > 0) {
+          const refs = payload.attachments.map(a => normalizeChatAttachmentRef(a, context.userId));
+          const totalBytes = refs.reduce((sum, a) => sum + a.size, 0);
+          if (totalBytes > MAX_CHAT_TOTAL_BYTES) throw failure('PAYLOAD_MISMATCH', 'Eklerin toplam boyutu en fazla 12 MB olabilir.');
+          const audioOutput = typeof payload.audioOutput === 'boolean' ? payload.audioOutput : true;
+          const hash = await digest(new TextEncoder().encode(canonical({
+            text: payload.text,
+            operation: 'argon_chat',
+            mode,
+            history,
+            audioOutput,
+            attachments: refs.map(a => ({ sha256: a.sha256, mime: a.mime, size: a.size, name: a.name }))
+          })));
+          await guard(payload);
+          const row = await insert({
+            id: payload.requestId,
+            project_id: 'koza',
+            action: 'gemini_review',
+            text: payload.text,
+            status: 'queued',
+            created_by: context.email,
+            runner: LANE,
+            result: {
+              operation: 'argon_chat',
+              chat_schema_version: 4,
+              audioOutput,
+              attachments: refs,
+              transport: 'commands-isolated-v24',
+              owner_id: context.userId,
+              client_request_id: payload.requestId,
+              payload_hash: hash,
+              mode,
+              history
+            }
+          }, context);
+          await guard(payload);
+          return { data: { requestId: row.id, status: row.status, payloadHash: hash }, error: null };
+        }
         const audio=typeof payload.audioOutput==='boolean'?{audioOutput:payload.audioOutput}:{};
         const hash = await digest(new TextEncoder().encode(canonical({ text: payload.text, operation: 'argon_chat', mode, history,...audio })));
         await guard(payload);
@@ -262,9 +323,31 @@
         }
         await guard(payload); return { bucket:BUCKET,path:payload.path };
       }
+      if (operation === 'uploadChatAttachment') {
+        const spec = payload && CHAT_MIMES[payload.mime];
+        if (!spec || !(payload.blob instanceof Blob) || (payload.blob.type && payload.blob.type !== payload.mime) || payload.blob.size < 1 || payload.blob.size > spec.maxBytes || (payload.size != null && payload.blob.size !== payload.size) || !/^[a-f0-9]{64}$/.test(payload.sha256 || '') || payload.path !== context.userId + '/' + payload.sha256 + '.' + spec.ext) {
+          throw failure('PAYLOAD_MISMATCH', 'Sohbet eki yükleme kapsamı geçersiz.');
+        }
+        if (await sha256(payload.blob) !== payload.sha256) throw failure('PAYLOAD_MISMATCH', 'Sohbet eki özeti uyuşmuyor.');
+        const cleanName = sanitizeChatAttachmentName(payload.name, spec.ext);
+        await guard(payload);
+        const { error } = await client.storage.from(CHAT_BUCKET).upload(payload.path, payload.blob, { upsert: false, contentType: payload.mime });
+        if (error) {
+          const status = Number(error.statusCode || error.status);
+          if (status !== 409 && !/already exists|duplicate/i.test(error.message || '')) throw error;
+          await guard(payload);
+          const existing = await client.storage.from(CHAT_BUCKET).download(payload.path);
+          if (existing.error) throw existing.error;
+          if (!existing.data || existing.data.size !== payload.blob.size || await sha256(existing.data) !== payload.sha256) {
+            throw failure('PAYLOAD_MISMATCH', 'Önceki ek içeriği farklı; üzerine yazılmadı.');
+          }
+        }
+        await guard(payload);
+        return { bucket: CHAT_BUCKET, path: payload.path, sha256: payload.sha256, mime: payload.mime, size: payload.blob.size, name: cleanName };
+      }
       throw failure('UNAVAILABLE','Bu işlem izinli değil.');
     }
     return Object.freeze({ context:getContext,request });
   }
-  return Object.freeze({create,rowToIntent,rowToChatTurn,LANE});
+  return Object.freeze({create,rowToIntent,rowToChatTurn,LANE,CHAT_BUCKET});
 });
