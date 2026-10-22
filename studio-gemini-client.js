@@ -101,7 +101,12 @@ function classifyOwnerSource(text, catalog) {
       if (typeof raw === 'string' && raw.length > 4 * 1024 * 1024) return;
       var value; try { value = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (_) { return; }
       if (!value || typeof value !== 'object') return;
-      if (value.error) { state.error = 'GOOGLE_LIVE_ERROR'; emit(); close('error'); return; }
+      if (value.error) {
+        var e = value.error, detail = String(typeof e === 'object' ? (e.message || e.status || e.code || 'hata') : e).slice(0, 200);
+        state.error = 'GOOGLE_LIVE_ERROR'; emit();
+        if (!c.ready) c.resolve({ ok: false, reason: 'GOOGLE_LIVE_ERROR', message: 'Google canlı ses hatası: ' + detail });
+        close('error'); return;
+      }
       if (value.setupComplete || value.setup_complete) { c.ready = true; if (c.timer) clearTimeout(c.timer); c.resolve({ ok: true, stop: function () { if (live === c) close(); }, sendAudio: function (b64) { if (c.ready && typeof b64 === 'string' && b64.length <= 65536) send(c, { realtimeInput: { audio: { data: b64, mimeType: 'audio/pcm;rate=16000' } } }); }, endAudio: function () { send(c, { realtimeInput: { audioStreamEnd: true } }); } }); }
       var content = value.serverContent || value.server_content || {};
       var status = value.interaction_status || value.interactionStatus || content.interaction_status || content.interactionStatus;
@@ -158,23 +163,43 @@ function classifyOwnerSource(text, catalog) {
       var tools = value.toolCall || value.tool_call; if (tools) onTools(c, tools.functionCalls || tools.function_calls || []).catch(function () {});
       if (c.currentTurn && c.currentTurn.finalized && c.deferredCalls.length) { var deferred = c.deferredCalls.splice(0); onTools(c, deferred).catch(function () {}); }
     }
+    /* Every live failure keeps its real cause: the DJ-KABIN token status, the server note, or Google's WebSocket close code/reason. */
+    function reasonOf(value, fallback) {
+      var raw = value && (value.code || value.error || value.status || value.reason);
+      return String(raw || fallback || 'UNKNOWN').replace(/[^A-Za-z0-9_.:-]+/g, '_').slice(0, 60);
+    }
     async function startLive(handlers) {
       handlers = handlers || {};
       if (handlers.gesture !== true) return { ok: false, reason: 'EXPLICIT_PHONE_GESTURE_REQUIRED' };
       close('restarted'); var key = owner(), ticket = epoch, attempt = liveAttempt, id = win.crypto.randomUUID();
-      var token = await request('geminiLiveToken', { requestId: id, voice: handlers.voice || 'Charon' });
-      if (!current(key, ticket) || attempt !== liveAttempt || !token || token.ok !== true || typeof token.token !== 'string' || token.websocketUrl !== ENDPOINT) return { ok: false, reason: 'GOOGLE_LIVE_UNAVAILABLE' };
-      var setup = token.setup; if (!setup || String(setup.model || '').replace(/^models\//, '') !== LIVE_MODEL) return { ok: false, reason: 'GOOGLE_LIVE_SETUP_INVALID' };
+      var token;
+      try { token = await request('geminiLiveToken', { requestId: id, voice: handlers.voice || 'Charon' }); }
+      catch (error) {
+        var note = error && typeof error.message === 'string' && error.message !== error.code ? ': ' + error.message.slice(0, 140) : '';
+        return { ok: false, reason: 'LIVE_TOKEN_FAILED', message: 'DJ-KABIN canlı ses anahtarı veremedi (' + reasonOf(error, 'TRANSPORT') + note + ').' };
+      }
+      if (!current(key, ticket) || attempt !== liveAttempt) return { ok: false, reason: 'GOOGLE_LIVE_UNAVAILABLE', message: 'Canlı ses isteği iptal edildi.' };
+      if (!token || token.ok !== true) return { ok: false, reason: 'LIVE_TOKEN_FAILED', message: 'Canlı ses anahtarı alınamadı (' + reasonOf(token, 'yanıt yok') + (token && token.detail ? ': ' + String(token.detail).slice(0, 160) : '') + ').' };
+      if (typeof token.token !== 'string' || token.websocketUrl !== ENDPOINT) return { ok: false, reason: 'GOOGLE_LIVE_UNAVAILABLE', message: 'Canlı ses anahtarı beklenen biçimde gelmedi (adres veya anahtar uyuşmuyor).' };
+      var setup = token.setup; if (!setup || String(setup.model || '').replace(/^models\//, '') !== LIVE_MODEL) return { ok: false, reason: 'GOOGLE_LIVE_SETUP_INVALID', message: 'Canlı ses kurulumu beklenen model (' + LIVE_MODEL + ') için değil: ' + String(setup && setup.model || 'yok').slice(0, 80) + '.' };
       return new Promise(function (resolve) {
-        var socket; try { socket = new win.WebSocket(ENDPOINT + '?access_token=' + encodeURIComponent(token.token)); } catch (_) { resolve({ ok: false, reason: 'WEBSOCKET_UNAVAILABLE' }); return; }
+        var socket; try { socket = new win.WebSocket(ENDPOINT + '?access_token=' + encodeURIComponent(token.token)); } catch (_) { resolve({ ok: false, reason: 'WEBSOCKET_UNAVAILABLE', message: 'Bu telefonda WebSocket açılamadı.' }); return; }
         token = null; // The ephemeral credential is never persisted or exposed on window.
         var c = { socket: socket, handlers: handlers, owner: key, requestId: id, resolve: resolve, ready: false, closed: false, input: '', output: '', audioStarted: false, turnInterrupted: false, newInput: false, turnId: 0, currentTurn: null, turns: [], deferredCalls: [], pendingTools: new Set(), sourceTasks: new Map(), timer: null };
+        function failSetup(reason, text) { if (live === c && !c.ready) { state.error = text; resolve({ ok: false, reason: reason, message: text }); close('error'); } }
         live = c; state.live = true; state.model = LIVE_MODEL; state.error = null; state.interactionStatus = 'IDLE'; emit();
-        c.timer = setTimeout(function () { if (live === c && !c.ready) { resolve({ ok: false, reason: 'LIVE_SETUP_TIMEOUT' }); close('error'); } }, 20000);
+        c.timer = setTimeout(function () { failSetup('LIVE_SETUP_TIMEOUT', 'Google canlı ses kurulumu 20 sn içinde tamamlanmadı.'); }, 20000);
         socket.onopen = function () { if (live === c && current(key, ticket)) send(c, { setup: setup }); else try { socket.close(); } catch (_) {} };
         socket.onmessage = function (event) { message(c, event).catch(function () { if (live === c) close('error'); }); };
-        socket.onerror = function () { if (live === c) { resolve({ ok: false, reason: 'LIVE_CONNECTION_FAILED' }); close('error'); } };
-        socket.onclose = function () { if (live === c) { resolve({ ok: false, reason: 'LIVE_CONNECTION_CLOSED' }); close('disconnected'); } };
+        // An error event carries no detail; the close event that follows has Google's code and reason, so it is awaited briefly.
+        socket.onerror = function () { if (live !== c) return; if (c.ready) { close('error'); return; } setTimeout(function () { failSetup('LIVE_CONNECTION_FAILED', 'Google canlı ses sunucusuna bağlanılamadı (ağ hatası, kapanış kodu gelmedi).'); }, 1500); };
+        socket.onclose = function (event) {
+          if (live !== c) return;
+          var code = event && event.code, why = event && event.reason ? String(event.reason).slice(0, 200) : '';
+          var text = 'Google canlı ses bağlantısı kapandı (kod ' + (code || '?') + (why ? ': ' + why : '') + ').';
+          state.error = text; if (!c.ready) resolve({ ok: false, reason: 'LIVE_CONNECTION_CLOSED', message: text, closeCode: code || null });
+          close('disconnected');
+        };
       });
     }
     function bind(target, name, fn) { if (target && typeof target.addEventListener === 'function') { target.addEventListener(name, fn); removers.push(function () { target.removeEventListener(name, fn); }); } }

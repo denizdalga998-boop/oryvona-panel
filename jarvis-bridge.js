@@ -438,6 +438,14 @@
       }
     };
     let recognition = null;
+    // Android SpeechRecognizer errors arrive through the native shim with Web Speech names; each gets its real, actionable reason.
+    const SPEECH_ERRORS = {
+      'not-allowed': 'Mikrofon izni verilmedi. Ayarlar › Uygulamalar › ARGON › İzinler › Mikrofon’u aç ve yeniden dokun.',
+      'service-not-allowed': 'Telefonda konuşma tanıma servisi kullanılamıyor (Google uygulaması/ses tanıma kapalı olabilir). Yazarak devam edebilirsin.',
+      'no-speech': 'Ses algılanmadı. Mikrofona dokunup yeniden konuş.',
+      'network': 'Konuşma tanıma için internet gerekiyor; bağlantı kurulamadı. Biraz sonra yeniden dene.',
+      'aborted': 'Dinleme kesildi. Mikrofona yeniden dokunabilirsin.'
+    };
     const speech = {
       available: !!Speech,
       start: callbacks => {
@@ -446,7 +454,7 @@
         const rec = new Speech(); recognition = rec; rec.lang = 'tr-TR'; rec.interimResults = true; rec.continuous = false;
         rec.onstart = () => { energy = 'listening'; emit(); if (callbacks && callbacks.onStart) callbacks.onStart(); };
         rec.onresult = event => { let text = '', final = true; for (let i = 0; i < event.results.length; i++) { text += event.results[i][0].transcript; final = final && event.results[i].isFinal; } if (callbacks && callbacks.onResult) callbacks.onResult({ text, final }); if (callbacks && callbacks.onTranscript) callbacks.onTranscript(text, final); };
-        rec.onerror = event => { if (callbacks && callbacks.onError) callbacks.onError({ code: event.error, message: event.error === 'not-allowed' ? 'Mikrofon izni verilmedi.' : 'Sesle yazma tamamlanamadı.' }); };
+        rec.onerror = event => { const code = String(event && event.error || 'unknown'); if (callbacks && callbacks.onError) callbacks.onError({ code, message: SPEECH_ERRORS[code] || ('Sesle yazma tamamlanamadı (' + code.slice(0, 40) + '). Mesajın taslakta korunuyor.') }); };
         rec.onend = () => { recognition = null; energy = null; emit(); if (callbacks && callbacks.onEnd) callbacks.onEnd(); };
         rec.start(); return { stop: () => rec.stop() };
       },

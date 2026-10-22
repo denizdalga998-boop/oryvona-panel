@@ -19,8 +19,8 @@
   function voiceEvidenceSuffix(voiceMeta){
     if(!voiceMeta||typeof voiceMeta!=='object')return {voiceLabel:null,suffix:''};
     if(voiceMeta.provider==='android-tts'){
-      var vName=safeText(voiceMeta.voiceName||'tr-TR',80);
-      return {voiceLabel:'Türkçe Android sesi ('+vName+')',suffix:' · Ses: Türkçe Android TTS ('+vName+', Google TTS kotada).'};
+      var vName=safeText(voiceMeta.voiceName||'tr-TR',80),why=safeText(voiceMeta.fallbackReasonText||'Google TTS kotada',120);
+      return {voiceLabel:'Türkçe Android sesi ('+vName+')',suffix:' · Ses: Türkçe Android TTS ('+vName+', '+why+').'};
     }
     if(voiceMeta.provider==='google-ai-studio'){
       var gName=safeText(voiceMeta.voiceName||'Charon',60);
@@ -99,7 +99,7 @@
     options=options||{};if(!root||!root.ownerDocument)throw new Error('Argon için bağımsız DOM kökü gerekli.');
     if(root.childNodes.length)throw new Error('Argon kökü boş olmalı. Eski v22 düğümlerini değiştirmeyin.');
     var bridge=options.bridge;if(!bridge||typeof bridge.getSnapshot!=='function'||typeof bridge.subscribe!=='function'||typeof bridge.submitIntent!=='function')throw new Error('Güvenilir getSnapshot/subscribe/submitIntent köprüsü gerekli.');
-    var doc=root.ownerDocument,win=doc.defaultView||globalThis,projects=(options.projects||PROJECTS).slice(),mode=options.mode==='preview'?'preview':'live',drafts=new DraftStore(projects),scope=null,snapshot={revision:-1,messages:[],jobs:[],connection:{status:'offline'}},destroyed=false,active=true,unsub=null,energy=null,listeners=[],nodesByKey=new Map(),busyScopes=new Set(),clarification=null,speechStop=null,speechStarting=false,speechEpoch=0,raf=0,measureTimer=0,saveTimers=new Map(),draftLoads=new Set(),activityVisible=options.showActivity===true,activityToggledByUser=false,lastRevision=-1,accountKey=null,accountEpoch=0,voice=options.voice||null,studioData=options.studioData||null,brief=options.brief||win.OryvonaJarvisBrief||null,voiceState={enabled:false,mode:'idle',audioLevel:null},voiceUnsub=null,dataUnsub=null,readMessages=[],readCounter=0,answerBusy=false,confirmBeforeQueue=options.confirmBeforeQueue!==false,pendingConfirm=null,activeEpoch=0;
+    var doc=root.ownerDocument,win=doc.defaultView||globalThis,projects=(options.projects||PROJECTS).slice(),mode=options.mode==='preview'?'preview':'live',drafts=new DraftStore(projects),scope=null,snapshot={revision:-1,messages:[],jobs:[],connection:{status:'offline'}},destroyed=false,active=true,unsub=null,energy=null,listeners=[],nodesByKey=new Map(),busyScopes=new Set(),clarification=null,speechStop=null,speechStarting=false,speechEpoch=0,speechKind='speech',raf=0,measureTimer=0,saveTimers=new Map(),draftLoads=new Set(),activityVisible=options.showActivity===true,activityToggledByUser=false,lastRevision=-1,accountKey=null,accountEpoch=0,voice=options.voice||null,studioData=options.studioData||null,brief=options.brief||win.OryvonaJarvisBrief||null,voiceState={enabled:false,mode:'idle',audioLevel:null},voiceUnsub=null,dataUnsub=null,readMessages=[],readCounter=0,answerBusy=false,confirmBeforeQueue=options.confirmBeforeQueue!==false,pendingConfirm=null,activeEpoch=0;
     var approvalNow=typeof options.now==='function'?options.now:Date.now,APPROVAL_TTL=5*60*1000,outputPreferenceChosen=false,voiceSetupAttempt=0,pendingAudioReply=null;
     function clearConfirmation(){pendingConfirm=null;clarify.hidden=true;}
     function worldActive(){var view=doc.body&&doc.body.dataset&&doc.body.dataset.oryvonaView;return active&&!doc.hidden&&doc.visibilityState!=='hidden'&&(!view||view==='jarvis');}
@@ -237,11 +237,11 @@
       showReply(res,speechResult&&speechResult.ok===true?speechResult:usedVoiceMeta);if(pendingAudioReply===revealPrepared)pendingAudioReply=null;
       answerBusy=false;syncComposer();update(snapshot);bottom(true);
       if(speechResult&&speechResult.ok===true&&speechResult.provider==='android-tts'){
-        setStatus('Google TTS kotada · Türkçe Android sesi ('+safeText(speechResult.voiceName||'tr-TR',80)+') kullanıldı.');
+        setStatus('Telefonun Türkçe sesi ('+safeText(speechResult.voiceName||'tr-TR',80)+') kullanıldı · '+safeText(speechResult.fallbackReasonText||'Google TTS kotada',120)+'.');
       }else{
         setStatus(res&&res.ok?'':res&&res.preparedText?'Yanıt metni doğrulandı; sesin veya son teslimin durumu doğrulanamadı. Otomatik tekrar yapılmadı.':res&&res.terminal?'Önceki deneme sunucuda hata ile kapandı. Hata sohbet akışında gösteriliyor.':'Beyin yanıt veremedi. Mesajın ve hata bilgisi sohbet akışında gösteriliyor.',res&&res.ok?'normal':'error');
       }
-      if(speechResult&&speechResult.ok!==true&&voiceState.enabled)setStatus('Ses oynatılamadı. Yazılı yanıt gösterildi.','error');
+      if(speechResult&&speechResult.ok!==true&&voiceState.enabled&&!/^(?:CANCELLED|VOICE_DISABLED|VOICE_NOT_ENABLED)$/.test(String(speechResult.reason||'')))setStatus(safeText(voiceState.error||'Ses oynatılamadı ('+String(speechResult.reason||'bilinmiyor')+'). Yazılı yanıt gösterildi.',500),'error');
       if(!worldActive()||viewTicket!==activeEpoch){clearConfirmation();return;}
 
       runBrainActions(res&&res.ok&&Array.isArray(res.actions)?res.actions:[],owner,ticket,turn.requestId,res,userApprovedInTurn);
@@ -336,7 +336,7 @@
       add.disabled=!accountKey||busy||d.attachments.length>=3||snapshot.capabilities&&snapshot.capabilities.attachments===false||!bridge.attachments||typeof bridge.attachments.choose!=='function';
       add.title=snapshot.capabilities&&snapshot.capabilities.attachments===false?'Gizli görsel yükleme hazır değil. Metin emri gönderebilirsin.':d.attachments.length>=3?'Bir komuta en fazla 3 görsel eklenebilir':'Görsel veya dosya ekle';
       mic.hidden=!speechAvailable&&mode!=='preview';mic.disabled=!accountKey||(!listening&&(busy||voiceLoading))||!speechAvailable;
-      var micLabel=!speechAvailable?'Bu cihazda sesle yazma kullanılamıyor':busy&&!listening?'Yanıt bekleniyor; mikrofon kapalı':voiceLoading&&!listening?'Erkek ses hazırlanıyor; mikrofon kapalı':listening?'Canlı ses görüşmesini durdur':speaking?'Yanıt okunuyor; mikrofon kapalı':'Konuşmak için mikrofonu aç';
+      var micLabel=!speechAvailable?'Bu cihazda sesle yazma kullanılamıyor':busy&&!listening?'Yanıt bekleniyor; mikrofon kapalı':voiceLoading&&!listening?'Erkek ses hazırlanıyor; mikrofon kapalı':listening?(speechKind==='live'||voiceState.conversationActive===true?'Canlı ses görüşmesini durdur':'Dinlemeyi durdur'):speaking?'Argon konuşuyor; dokunursan susar ve seni dinler':'Konuşmak için mikrofona dokun';
       mic.title=micLabel;mic.setAttribute('aria-label',micLabel);mic.setAttribute('aria-pressed',String(listening));
       mic.dataset.state=busy&&!listening?'waiting':voiceLoading&&!listening?'voice-loading':speechStarting?'starting':listening?(speaking?'speaking':'listening'):speaking?'speaking':'idle';
       send.setAttribute('aria-label',busy?'Komut işleniyor':'Komutu gönder');syncEnergy();
@@ -462,9 +462,12 @@
       if(!voice)return;
       outputPreferenceChosen=true;var enableOutput=!voiceState.enabled;if(!enableOutput)stopSpeech();voice.setEnabled(enableOutput);
     });on(daily,'click',function(){enableOutputFromSend();if(!accountKey||answerBusy)return;stopSpeech();if(brainOn){brainTurn('Bugün stüdyoda neler oldu? Kısaca özetle.',-1);return;}answerRead('Bugün neler oldu?',-1,false);});
+    /* Microphone engine choice. 'speech' (default) = phone recognizer + Groq text brain; 'live' = Gemini Live audio session.
+       options.voiceMode wins; otherwise the per-device setting localStorage['oryvona.argon.voiceMode'] ('live' | 'speech'). */
+    function liveVoicePreferred(){if(options.voiceMode==='live')return true;if(options.voiceMode==='speech')return false;try{return !!(win.localStorage&&win.localStorage.getItem('oryvona.argon.voiceMode')==='live');}catch(_e){return false;}}
     on(mic,'click',function(){
       if(destroyed||!worldActive()||!accountKey)return;
-      if(speechStop||speechStarting||voiceState.conversationActive){stopSpeech();setStatus('Canlı ses görüşmesi durduruldu.');return;}
+      if(speechStop||speechStarting||voiceState.conversationActive){var wasLive=speechKind==='live'||voiceState.conversationActive===true;stopSpeech();setStatus(wasLive?'Canlı ses görüşmesi durduruldu.':'Dinleme durduruldu. Söylediğin kısım taslakta duruyor.');return;}
       if(answerBusy||busyScopes.has(draftKey(scope)))return;
       var canUseLiveVoice=!!(voice&&typeof voice.startConversation==='function'&&voiceState.recognitionAvailable!==false&&voiceState.ttsAvailable!==false);
       var canUseLegacySpeech=!!(bridge.speech&&bridge.speech.available!==false&&typeof bridge.speech.start==='function')&&(!voice||voiceState.ttsAvailable!==false);
@@ -472,7 +475,11 @@
       enableOutputFromSend();
       var owner=accountKey,ticket=accountEpoch,viewTicket=activeEpoch,captureTicket=++speechEpoch,captureScope=scope,baseText=drafts.get(scope).text.trim(),finalText='',finished=false;
       function valid(){return !finished&&captureTicket===speechEpoch&&owns(owner,ticket)&&worldActive()&&viewTicket===activeEpoch&&scope===captureScope;}
-      if(canUseLiveVoice){
+      /* v1.0: the phone's own speech recognizer is the default microphone (tap → speak → sent → Groq reply → Charon or phone voice).
+         Gemini Live stays available but only runs when the phone has no recognizer or Deniz explicitly selects it (voiceMode 'live'). */
+      var useLiveVoice=canUseLiveVoice&&(!canUseLegacySpeech||liveVoicePreferred());
+      speechKind=useLiveVoice?'live':'speech';
+      if(useLiveVoice){
         var liveTurns=new Map(),activeLiveTurnId='1';
         var liveModelName=(options.geminiClient&&options.geminiClient.LIVE_MODEL)||(win.OryvonaStudioGemini&&win.OryvonaStudioGemini.LIVE_MODEL)||'gemini-3.8-live';
         function ensureLiveTurn(turnId){

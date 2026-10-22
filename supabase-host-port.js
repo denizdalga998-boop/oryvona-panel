@@ -136,12 +136,17 @@
         await guard(payload);
         await insert({id:payload.requestId,project_id:'koza',action:'gemini_review',text,status:'queued',created_by:context.email,runner:LANE,
           result:{operation:'studio_gemini_service',transport:'commands-isolated-v24',owner_id:context.userId,client_request_id:payload.requestId,service,servicePayload,payload_hash:hash}},context);
-        const row = await poll(() => find(payload.requestId, context));
+        // A live session is useless after a long wait: DJ-KABIN must hand over the short-lived key quickly or the phone says why.
+        let row;
+        try { row = await poll(() => find(payload.requestId, context), service === 'live_token' ? 20000 : 95000); }
+        catch (error) { if (error?.code === 'PENDING') throw failure('DJ_KABIN_NO_ANSWER', service === 'live_token' ? 'DJ-KABIN canlı ses anahtarını 20 sn içinde vermedi; bilgisayar kapalı, uykuda ya da Argon servisi durmuş olabilir.' : 'DJ-KABIN ses isteğini zamanında yanıtlamadı.'); throw error; }
         await guard(payload);
         if (row.result?.operation !== 'studio_gemini_service' || row.result?.service !== service || row.result?.payload_hash !== hash) throw failure('PAYLOAD_MISMATCH', 'Google yanıt kapsamı değişti.');
         const answer = row.result?.serviceResult;
-        if (row.status !== 'done') return {ok:false,status:row.status === 'cancelled'?'cancelled':'service_failed'};
-        return answer && typeof answer === 'object' ? answer : {ok:false,status:'service_unavailable'};
+        // The server's own outcome (service_busy, quota_exhausted, api_access_denied, model_unavailable, a rejected request note...) is kept.
+        const detail = String(row.result?.note_tr || '').slice(0, 200);
+        if (row.status !== 'done') return {ok:false,status:row.status === 'cancelled'?'cancelled':String(answer?.status || 'service_failed').slice(0, 60),detail};
+        return answer && typeof answer === 'object' ? answer : {ok:false,status:'service_unavailable',detail};
       }
       if (operation === 'createWorkerTask') {
         if (!UUID.test(payload.requestId || '') || !UUID.test(payload.sourceRequestId || '') || typeof payload.sourceText !== 'string' || payload.sourceText.length > 2000 || payload.instruction !== payload.sourceText || !PROJECTS.includes(payload.project)) throw failure('PAYLOAD_MISMATCH', 'Özgün sesli görev doğrulanamadı.');

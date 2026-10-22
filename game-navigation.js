@@ -73,10 +73,12 @@
     if(config.getView()!=='home'){config.goHome();return 'handled';}
     return 'home'; // Android requests explicit exit confirmation. Browser PWA retains its guard.
   }
+  var WEB_BUILD='Argon v1.0 stabil (2026-10-22)';
   function renderVersion() {
     var target=doc.getElementById('verInfo');if(!target)return;
     var info=win.ArgonNative && win.ArgonNative.getAppInfo();
-    target.textContent=info && info.versionCode ? 'APK '+info.versionName+' ('+info.versionCode+') · Paketlenen arayüz: '+(info.shell && info.shell.uiVersion || 'doğrulanamadı')+' · '+info.shellMode : 'Web arayüzü R14 + Android kişisel erişim 1 · APK bilgisi yok';
+    // WEB_BUILD tells Deniz which published web build the app is really running (the APK only carries the native bridge).
+    target.textContent=info && info.versionCode ? 'APK '+info.versionName+' ('+info.versionCode+') · Paketlenen arayüz: '+(info.shell && info.shell.uiVersion || 'doğrulanamadı')+' · '+info.shellMode+' · Web arayüzü: '+WEB_BUILD : 'Web arayüzü: '+WEB_BUILD+' · APK bilgisi yok';
     if(info && info.shell && info.shell.snapshotSha256)target.title='Paketlenen kabuk SHA-256: '+info.shell.snapshotSha256;
   }
   win.OryvonaGameNavigation=Object.freeze({open:open,close:close,handleBack:handleBack,renderVersion:renderVersion,configure:function(value){config=value;renderVersion();}});

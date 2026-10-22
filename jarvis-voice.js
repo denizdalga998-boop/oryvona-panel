@@ -1,4 +1,6 @@
-/* Explicit phone gestures only: Gemini Live audio-to-audio, generated Gemini TTS, and Android Turkish TTS fallback on Google TTS quota. */
+/* Explicit phone gestures only: Gemini Live audio-to-audio, generated Gemini TTS (Charon), and the phone's Turkish Android TTS
+   whenever Charon cannot play for any reason (quota, server TTS failure, slow audio, suspended web audio, bad WAV). Argon never goes
+   silent while a Turkish phone voice exists; every fallback and failure carries its real reason. */
 (function (root, factory) {
   'use strict'; var api = factory(); if (typeof module === 'object' && module.exports) module.exports = api; else root.OryvonaJarvisVoice = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
@@ -115,17 +117,28 @@
       var meta = { ok: true, provider: streaming ? 'google-ai-studio-live' : 'google-ai-studio', voiceName: 'Charon', voiceLang: 'tr-TR', localVoice: false };
       source.start(start); if (typeof onStart === 'function') onStart(meta); state.mode = 'speaking'; state.notice = streaming ? 'Argon konuşuyor (Gemini Live · Charon).' : 'Argon konuşuyor (Google TTS · Charon).'; emit(); return true;
     }
-    function speakAndroidTurkish(trVoice, input, ticket, captured, clock, began) {
+    /* Plain Turkish reason shown to Deniz when Charon cannot play. The code itself is kept for diagnostics. */
+    function charonFailureText(code) {
+      var c = String(code || '');
+      if (/QUOTA/i.test(c)) return 'Google ses kotası doldu';
+      if (c === 'AUDIO_PREPARATION_TIMEOUT') return 'Charon sesi zamanında hazırlanamadı';
+      if (/^AUDIO_CONTEXT_/.test(c)) return 'telefonun web ses çıkışı uykuda';
+      if (/^SERVER_TTS_/.test(c)) return 'sunucu Charon sesini üretemedi (' + c.replace(/^SERVER_TTS_/, '').toLowerCase() + ')';
+      if (c === 'INVALID_WAV' || c === 'INVALID_AUDIO' || /decode/i.test(c)) return 'Charon ses dosyası çözülemedi';
+      return 'Charon sesi açılamadı (' + (c || 'bilinmiyor').slice(0, 60) + ')';
+    }
+    function speakAndroidTurkish(trVoice, input, ticket, captured, clock, began, reasonCode) {
       return new Promise(function (resolve, reject) {
         if (!current(ticket, captured) || !enabled || !gestureGranted || !phone()) { resolve({ ok: false, reason: 'CANCELLED' }); return; }
         var voiceLabel = String(trVoice.name || trVoice.voiceURI || 'Android Türkçe').trim() || 'Android Türkçe';
         var voiceLang = String(trVoice.lang || 'tr-TR').trim() || 'tr-TR';
         var isLocal = trVoice.localService !== false;
+        var reasonText = charonFailureText(reasonCode || 'GOOGLE_TTS_QUOTA');
         state.voiceName = voiceLabel;
         state.voiceProvider = 'android-tts';
         state.voiceLang = voiceLang;
         state.localVoice = isLocal;
-        state.notice = 'Google TTS kotada · Türkçe Android sesi (' + voiceLabel + ') hazırlanıyor…';
+        state.notice = 'Telefonun Türkçe sesi (' + voiceLabel + ') hazırlanıyor · ' + reasonText + '.';
         emit();
         var u;
         try {
@@ -157,12 +170,14 @@
             voiceName: voiceLabel,
             voiceLang: voiceLang,
             localVoice: isLocal,
+            fallbackReason: String(reasonCode || 'GOOGLE_TTS_QUOTA'),
+            fallbackReasonText: reasonText,
             timings: { playback_prepare_ms: playbackPrepareMs }
           };
           if (typeof input.onStart === 'function') input.onStart(meta);
           state.mode = 'speaking';
           state.error = null;
-          state.notice = 'Google TTS kotada · Türkçe Android sesi (' + voiceLabel + ') konuşuyor.';
+          state.notice = 'Telefonun Türkçe sesi (' + voiceLabel + ') konuşuyor · ' + reasonText + '.';
           emit();
           spoken.add(input.id);
           resolve(meta);
@@ -199,40 +214,84 @@
         }
       });
     }
+    /* A page that was unlocked by a tap may later find its AudioContext suspended (app switch, lock screen, microphone use).
+       resume() is retried once without a new gesture; a context that stays asleep sends the reply to the phone's own voice. */
+    function ensureContext() {
+      if (context && context.state === 'running') return Promise.resolve(true);
+      if (!context || context.state === 'closed' || typeof context.resume !== 'function') return Promise.resolve(false);
+      var timer;
+      return Promise.race([
+        Promise.resolve().then(function () { return context.resume(); }).then(function () { return !!context && context.state === 'running'; }, function () { return false; }),
+        new Promise(function (resolve) { timer = setTimeout(function () { resolve(false); }, 900); })
+      ]).then(function (value) { clearTimeout(timer); return value; });
+    }
+    function failureCode(error) {
+      var raw = error && (error.code || error.message || error.name) || 'GOOGLE_TTS_UNAVAILABLE';
+      return String(raw).replace(/[^A-Za-z0-9_.:-]+/g, '_').slice(0, 60) || 'GOOGLE_TTS_UNAVAILABLE';
+    }
     async function speak(input) {
       input = input || {}; if (!ownerCurrent() || !enabled || !gestureGranted || !phone() || !visible() || !input.text || spoken.has(input.id)) return { ok: false, reason: 'VOICE_NOT_ENABLED' };
       var ready = input.audioB64 || (input.audio && input.audio.data);
-      var quotaFallbackVoice = !ready && input.audioStatus === 'quota_exhausted' ? turkishAndroidVoice() : null;
-      if (!quotaFallbackVoice && (!context || context.state !== 'running')) return fail('AUDIO_GESTURE_REQUIRED', 'Ses izni durdu. Telefonda ses düğmesine yeniden dokun.');
+      // Why Charon cannot be used for this reply; null means Charon is tried first.
+      var skip = null;
+      if (!ready) {
+        if (input.audioStatus === 'quota_exhausted') skip = 'GOOGLE_TTS_QUOTA';
+        else if (input.audioStatus && input.audioStatus !== 'audio_ready' && input.audioStatus !== 'client_tts_required') skip = 'SERVER_TTS_' + String(input.audioStatus).replace(/[^A-Za-z0-9_]+/g, '_').toUpperCase().slice(0, 40);
+        else if (input.serverAudioOnly) skip = 'SERVER_TTS_UNAVAILABLE';
+      }
       if (live || capture || state.mode === 'starting') cancel();
-      stopPlayback(); var ticket = ++epoch, captured = owner; state.mode = 'tts-loading'; state.error = null; state.notice = quotaFallbackVoice ? 'Google TTS kotada · Türkçe Android sesi hazırlanıyor…' : 'Gemini erkek sesi hazırlanıyor…'; emit();
+      stopPlayback(); var ticket = ++epoch, captured = owner; state.mode = 'tts-loading'; state.error = null; state.notice = skip ? 'Telefonun Türkçe sesi hazırlanıyor…' : 'Gemini Charon sesi hazırlanıyor…'; emit();
       var clock = function () { return win.performance && typeof win.performance.now === 'function' ? win.performance.now() : performance.now(); }, began = clock(), timer;
+      async function phoneVoiceOrFail(code) {
+        if (!current(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+        var trVoice = turkishAndroidVoice(), androidError = null;
+        if (trVoice) {
+          var guard;
+          try {
+            var outcome = await Promise.race([speakAndroidTurkish(trVoice, input, ticket, captured, clock, began, code), new Promise(function (_resolve, reject) { guard = setTimeout(function () { reject(Error('ANDROID_TTS_TIMEOUT')); }, options.androidStartTimeoutMs || 8000); })]);
+            if (outcome && outcome.ok === true) return outcome;
+            if (!current(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+            androidError = (outcome && outcome.reason) || 'ANDROID_TTS_FAILED';
+          } catch (err) { androidError = failureCode(err); }
+          finally { clearTimeout(guard); }
+        }
+        if (!current(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+        epoch++; stopPlayback(); state.mode = 'idle';
+        var why = charonFailureText(code);
+        var text = trVoice
+          ? 'Ses oynatılamadı: ' + why + ', telefonun Türkçe sesi de başlamadı (' + androidError + '). Yazılı yanıt gösterildi.'
+          : 'Ses oynatılamadı: ' + why + '. Telefonda Türkçe metin okuma sesi bulunamadı (Ayarlar › Metin okuma çıkışı › Türkçe ses paketi). Yazılı yanıt gösterildi.';
+        var reason = code === 'AUDIO_PREPARATION_TIMEOUT' ? 'AUDIO_PREPARATION_TIMEOUT' : /^AUDIO_CONTEXT_/.test(code) ? 'AUDIO_GESTURE_REQUIRED' : 'GOOGLE_TTS_UNAVAILABLE';
+        var failed = fail(reason, text); failed.detail = code; if (androidError) failed.androidError = androidError; return failed;
+      }
+      if (!skip) {
+        var awake = await ensureContext();
+        if (!current(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+        if (!awake) skip = 'AUDIO_CONTEXT_' + String(context ? context.state : 'missing').toUpperCase();
+      }
+      if (skip) return await phoneVoiceOrFail(skip);
       try {
-        var work = (async function () {
-          if (quotaFallbackVoice) {
-            return await speakAndroidTurkish(quotaFallbackVoice, input, ticket, captured, clock, began);
-          }
-          if (!ready && input.audioStatus && input.audioStatus !== 'audio_ready' && input.audioStatus !== 'client_tts_required') throw Error('SERVER_TTS_ALREADY_ATTEMPTED');
-          if (!ready && input.serverAudioOnly) throw Error('SERVER_TTS_UNAVAILABLE');
+        // The Charon attempt owns its own ticket by value: a timeout re-tickets the reply, so a late Charon can never play over the phone voice.
+        var work = (async function (charonTicket) {
           if (!ready && !ttsIds.has(input.id)) { if (ttsIds.size >= 256) throw Error('TTS_CAPACITY'); ttsIds.set(input.id, input.requestId || win.crypto.randomUUID()); }
           var r = ready ? { ok: true, audio: { mimeType: input.audio && input.audio.mimeType || 'audio/wav', data: ready } } : await client.synthesize({ requestId: ttsIds.get(input.id), text: String(input.text).slice(0, 2400), voice: 'Charon', speech_metadata: { style: STYLE } });
-          if (!current(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
-          if ((!r || r.ok !== true) && r && (r.status === 'quota_exhausted' || r.reason === 'QUOTA_EXHAUSTED')) {
-            var synthFallbackVoice = turkishAndroidVoice();
-            if (synthFallbackVoice) return await speakAndroidTurkish(synthFallbackVoice, input, ticket, captured, clock, began);
-          }
-          if (!r || r.ok !== true || !r.audio || r.audio.mimeType !== 'audio/wav') throw Error('TTS_UNAVAILABLE');
+          if (!current(charonTicket, captured)) return { ok: false, reason: 'CANCELLED' };
+          if ((!r || r.ok !== true) && r && (r.status === 'quota_exhausted' || r.reason === 'QUOTA_EXHAUSTED')) throw Object.assign(Error('GOOGLE_TTS_QUOTA'), { code: 'GOOGLE_TTS_QUOTA' });
+          if (!r || r.ok !== true) throw Object.assign(Error('TTS_UNAVAILABLE'), { code: 'SERVER_TTS_' + String(r && (r.status || r.error || r.reason) || 'unavailable').replace(/[^A-Za-z0-9_]+/g, '_').toUpperCase().slice(0, 40) });
+          if (!r.audio || r.audio.mimeType !== 'audio/wav') throw Error('INVALID_AUDIO');
           var wav = bytes(r.audio.data); if (!wavValid(wav)) throw Error('INVALID_WAV');
           var buffer = await context.decodeAudioData(wav.buffer.slice(wav.byteOffset, wav.byteOffset + wav.byteLength));
-          if (!current(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+          if (!current(charonTicket, captured)) return { ok: false, reason: 'CANCELLED' };
           playbackPrepareMs = Math.round(clock() - began);
-          if (!playBuffer(buffer, ticket, captured, false, input.onStart)) return { ok: false, reason: 'CANCELLED' };
+          if (!playBuffer(buffer, charonTicket, captured, false, input.onStart)) return { ok: false, reason: 'CANCELLED' };
           spoken.add(input.id); return { ok: true, provider: 'google-ai-studio', voiceName: 'Charon', voiceLang: 'tr-TR', localVoice: false, timings: { playback_prepare_ms: playbackPrepareMs } };
-        })();
-        return await Promise.race([work, new Promise(function (_resolve, reject) { timer = setTimeout(function () { reject(Error('AUDIO_PREPARATION_TIMEOUT')); }, options.preparationTimeoutMs || 15000); })]);
+        })(ticket);
+        return await Promise.race([work, new Promise(function (_resolve, reject) { timer = setTimeout(function () { reject(Error('AUDIO_PREPARATION_TIMEOUT')); }, options.preparationTimeoutMs || 12000); })]);
       } catch (error) {
-        if (current(ticket, captured)) { epoch++; stopPlayback(); state.mode = 'idle'; return fail(error.message === 'AUDIO_PREPARATION_TIMEOUT' ? 'AUDIO_PREPARATION_TIMEOUT' : 'GOOGLE_TTS_UNAVAILABLE', 'Sesli yanıt başlatılamadı. Yazılı yanıt gösterildi; ses otomatik tekrarlanmadı.'); }
-        return { ok: false, reason: 'CANCELLED' };
+        if (!current(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+        // The late Charon attempt is invalidated before the phone voice starts, so two voices never overlap.
+        epoch++; stopPlayback(); ticket = epoch;
+        return await phoneVoiceOrFail(failureCode(error));
       } finally { clearTimeout(timer); }
     }
     async function startConversation(handlers) {
@@ -248,7 +307,7 @@
         capture = { stream: stream, source: null, processor: null, gain: null };
         var session = await client.startLive({ gesture: true, voice: 'Charon', onTranscript: function (value, meta) { if (current(ticket, captured) && handlers.onTranscript) handlers.onTranscript(value, meta); }, onReply: function (value, meta) { if (current(ticket, captured) && handlers.onReply) handlers.onReply(value, meta); }, onTask: function (r) { if (current(ticket, captured) && handlers.onTask) handlers.onTask(r); }, onInteraction: function (status) { if (!current(ticket, captured)) return; state.mode = status === 'IN_PROGRESS' ? 'thinking' : sources.size ? 'speaking' : 'listening'; state.notice = status === 'IN_PROGRESS' ? 'Argon arka planda düşünüyor; konuşmaya devam edebilirsin.' : 'Dinliyorum.'; emit(); if (handlers.onInteraction) handlers.onInteraction(status); }, onAudio: function (data, mime, meta) { if (!current(ticket, captured) || !enabled) return; try { var pcm = bytes(data), rate = Number((/rate=(\d+)/.exec(mime) || [])[1]) || 24000; if (pcm.byteLength % 2) return; var buffer = context.createBuffer(1, pcm.length / 2, rate), channel = buffer.getChannelData(0), view = new DataView(pcm.buffer); for (var i = 0; i < channel.length; i++) channel[i] = view.getInt16(i * 2, true) / 32768; playBuffer(buffer, ticket, captured, true, function () { if (handlers.onAudioStart) handlers.onAudioStart(meta); }); } catch (_) {} }, onInterrupted: function (meta) { if (current(ticket, captured)) { stopPlayback(); state.mode = 'listening'; state.notice = 'Araya girdin; önceki yanıt durduruldu, seni dinliyorum.'; emit(); if (handlers.onInterrupted) handlers.onInterrupted(meta); } }, onTurnComplete: function (meta) { if (current(ticket, captured) && handlers.onTurnComplete) handlers.onTurnComplete(meta); }, onEnd: function (r) { if (!current(ticket, captured)) return; live = null; stopCapture(); stopPlayback(); state.mode = 'idle'; state.notice = 'Canlı ses bağlantısı kapandı. Mikrofon düğmesinden yeniden açabilirsin.'; emit(); if (handlers.onEnd) handlers.onEnd(r); } });
         if (!current(ticket, captured)) { if (session && session.stop) session.stop(); return { ok: false, reason: 'CANCELLED' }; }
-        if (!session || session.ok !== true) { var liveErr = Error((session && (session.reason || session.status)) || 'LIVE_UNAVAILABLE'); liveErr.detail = session && session.message; throw liveErr; } live = session;
+        if (!session || session.ok !== true) { var liveReason = (session && (session.reason || session.status)) || 'LIVE_UNAVAILABLE', liveErr = Error(liveReason); liveErr.code = liveReason; liveErr.detail = session && session.message; throw liveErr; } live = session;
         capture.source = context.createMediaStreamSource(stream); capture.processor = context.createScriptProcessor(4096, 1, 1); capture.gain = context.createGain(); capture.gain.gain.value = 0;
         capture.source.connect(capture.processor); capture.processor.connect(capture.gain); capture.gain.connect(context.destination);
         capture.processor.onaudioprocess = function (event) { if (!current(ticket, captured) || live !== session) return; var samples = event.inputBuffer.getChannelData(0); session.sendAudio(encode(resample16k(samples, context.sampleRate))); var sum = 0; for (var i = 0; i < samples.length; i++) sum += samples[i] * samples[i]; state.audioLevel = Math.min(1, Math.sqrt(sum / samples.length) * 3.5); emit(); };
