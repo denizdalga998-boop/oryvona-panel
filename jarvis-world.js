@@ -7,8 +7,11 @@
   function uuid(crypto){if(crypto&&typeof crypto.randomUUID==='function')return crypto.randomUUID();if(crypto&&typeof crypto.getRandomValues==='function'){var a=new Uint8Array(16);crypto.getRandomValues(a);a[6]=(a[6]&15)|64;a[8]=(a[8]&63)|128;return Array.from(a,function(x){return x.toString(16).padStart(2,'0');}).join('').replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/,'$1-$2-$3-$4-$5');}throw new Error('Güvenilir komut kimliği üreticisi kullanılamıyor.');}
   function projectLabel(id,projects){var p=(projects||PROJECTS).find(function(x){return x.id===id;});return p?p.label:'Hedef doğrulanmadı';}
   function validProject(id,projects){return (projects||PROJECTS).some(function(p){return p.id===id;});}
-  function cloneAttachments(items,maxCount){var cap=Number(maxCount)>0?Number(maxCount):4;return (Array.isArray(items)?items:[]).filter(function(a){return a&&typeof a.id==='string'&&a.id.length>0&&a.id.length<=250;}).map(function(a){var p=typeof a.previewUrl==='string'&&a.previewUrl?a.previewUrl:null;if(!p&&a.blob&&/^image\//i.test(a.mime||'')&&typeof URL!=='undefined'&&URL&&typeof URL.createObjectURL==='function'){try{p=URL.createObjectURL(a.blob);}catch(_e){}}return {id:a.id,name:safeText(a.name||'Görsel',180),mime:safeText(a.mime,100),size:Number.isFinite(a.size)?a.size:0,...(p?{previewUrl:p}:{})};}).slice(0,cap);}
-  function cloneMessageAttachments(items){return (Array.isArray(items)?items:[]).filter(function(a){return a&&typeof a.name==='string'&&a.name.trim();}).map(function(a){return {name:safeText(a.name,120),mime:safeText(a.mime,80),size:Number.isFinite(a.size)?a.size:0};}).slice(0,4);}
+  /* v1.5: a picked picture carries a small JPEG thumbnail (data URL) that is kept with the chat on this phone. */
+  function validThumb(value){return typeof value==='string'&&value.length<=60000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value);}
+  function cloneAttachments(items,maxCount){var cap=Number(maxCount)>0?Number(maxCount):4;return (Array.isArray(items)?items:[]).filter(function(a){return a&&typeof a.id==='string'&&a.id.length>0&&a.id.length<=250;}).map(function(a){var p=typeof a.previewUrl==='string'&&a.previewUrl?a.previewUrl:null;if(!p&&a.blob&&/^image\//i.test(a.mime||'')&&typeof URL!=='undefined'&&URL&&typeof URL.createObjectURL==='function'){try{p=URL.createObjectURL(a.blob);}catch(_e){}}return {id:a.id,name:safeText(a.name||'Görsel',180),mime:safeText(a.mime,100),size:Number.isFinite(a.size)?a.size:0,...(p?{previewUrl:p}:{}),...(validThumb(a.thumb)?{thumb:a.thumb}:{})};}).slice(0,cap);}
+  function cloneMessageAttachments(items,live){return (Array.isArray(items)?items:[]).filter(function(a){return a&&typeof a.name==='string'&&a.name.trim();}).map(function(a){return {name:safeText(a.name,120),mime:safeText(a.mime,80),size:Number.isFinite(a.size)?a.size:0,...(validThumb(a.thumb)?{thumb:a.thumb}:{}),...(live===true&&typeof a.previewUrl==='string'&&/^blob:/.test(a.previewUrl)?{previewUrl:a.previewUrl}:{})};}).slice(0,4);}
+  function contextAttachmentNames(result){return result&&Array.isArray(result.context_attachments)?result.context_attachments.filter(function(n){return typeof n==='string'&&n.trim();}).slice(0,4).map(function(n){return safeText(n,120);}):[];}
   function formatAttachmentSize(bytes){var b=Number(bytes)||0;if(b<=0)return '';if(b<1024)return b+' B';if(b<1024*1024)return Math.max(1,Math.round(b/1024))+' KB';return (b/(1024*1024)).toFixed(1).replace(/\.0$/,'')+' MB';}
   function attachmentExtBadge(a){var raw=String(a&&a.name||'').trim(),m=/\.([A-Za-z0-9]{1,8})$/.exec(raw);if(m)return m[1].toUpperCase();if(a&&a.mime==='application/pdf')return 'PDF';if(a&&/^text\//i.test(a.mime||''))return 'TXT';return 'DOSYA';}
   function validateStudioProposal(action,result,expectedRequestId,projects){
@@ -38,10 +41,12 @@
       return {kind:'model',provider:'Groq',model:safeText(result.model||'openai/gpt-oss-120b',100),modelVerified:result.model_verified===true,...(v.voiceLabel?{voiceLabel:v.voiceLabel}:{}),evidenceLabel:'Groq API yanıtında doğrulanan model (düşünme: düşük). Günlük sohbet Codex işçisine gönderilmez.'+v.suffix};
     }
     if(!['google','gemini'].includes(result.provider)||result.transport!=='google-ai-studio-api')return null;
-    return {kind:'model',provider:'Google AI Studio',model:safeText(result.model||'Model yanıtı alınamadı',100),modelVerified:result.model_verified===true,...(v.voiceLabel?{voiceLabel:v.voiceLabel}:{}),evidenceLabel:'Google API yanıtında bildirilen model. Günlük sohbet Codex işçisine gönderilmez.'+v.suffix};
+    var carried=contextAttachmentNames(result);
+    return {kind:'model',provider:'Google AI Studio',model:safeText(result.model||'Model yanıtı alınamadı',100),modelVerified:result.model_verified===true,...(v.voiceLabel?{voiceLabel:v.voiceLabel}:{}),evidenceLabel:'Google API yanıtında bildirilen model. Günlük sohbet Codex işçisine gönderilmez.'+(carried.length?' Önceki ek bağlamda: '+carried.join(', ')+'.':'')+v.suffix};
   }
-  function hasUnverifiedExecutionClaim(text){
+  function hasUnverifiedExecutionClaim(text,firstPersonOnly){
     var s=String(text||'');
+    if(firstPersonOnly===true)return /(?:başlattım|görevi\s+dağıttım|görev\s+paketini\s+açtım|işçilere\s+ilettim|işçilere\s+dağıttım|kuyruğa\s+aldım|kuyruğa\s+ekledim|kuyruğa\s+kaydettim)/i.test(s);
     return /(?:işçi\S*|kuyru\S*|görev\S*|paket\S*|codex\S*|antigravity\S*).{0,48}(?:atad|atan|başlatt|başlatıyor|başladı|dağıtt|dağıtıldı|ilett|iletildi|gönderd|gönderildi|kaydett|kaydedildi|açtım|açıldı|tamamlad|tamamlandı|çalışıyor|kodluyor)|(?:başlattım|başlatıyorum|görev\s+dağıtıldı|görevi\s+dağıttım|görev\s+paketini\s+açtım|işçiler\s+çalışıyor|işçilere\s+ilettim|işçilere\s+dağıttım|kuyruğa\s+aldım|kuyruğa\s+ekledim|kuyruğa\s+kaydettim|atadım|tamamladım|testler\s+geçti)/i.test(s);
   }
   function hasVerifiedQueueReceipt(result){
@@ -56,32 +61,33 @@
     var s=String(text||'');
     return /(?:Mekanik\s*&\s*Oynanış|Denge\s*&\s*Kurallar|Gereken\s+Depo\s+Varlıkları|İşçi\s+Görev\s+Dağılımı)/i.test(s);
   }
-  function limitDailyReplySentences(text,maxSentences){
+  function limitDailyReplySentences(text,maxSentences,keepLines){
     var raw=String(text||'').trim();if(!raw)return '';
     if(isDesignCardText(raw))return raw;
-    var normalized=raw.replace(/\s*\n+\s*/g,' ').replace(/\s{2,}/g,' ').trim();
-    var limit=Math.max(1,Math.min(3,Number(maxSentences)||3)),sentences=[],current='';
+    var normalized=keepLines===true?raw.replace(/\r\n?/g,'\n').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').replace(/[ \t]{2,}/g,' ').trim():raw.replace(/\s*\n+\s*/g,' ').replace(/\s{2,}/g,' ').trim();
+    var limit=Math.max(1,Math.min(10,Number(maxSentences)||3)),count=0,end=normalized.length;
     for(var i=0;i<normalized.length;i++){
-      var ch=normalized[i];current+=ch;
+      var ch=normalized[i];
       if(ch==='.'||ch==='!'||ch==='?'||ch==='…'){
         var next=normalized[i+1]||'',prev=normalized.slice(0,i);
         var isDecimal=ch==='.'&&/\d$/.test(prev)&&/^\d/.test(next);
         var isInitial=ch==='.'&&/(?:^|\s|\.)[A-ZÇĞİÖŞÜ]$/.test(prev);
         if(!isDecimal&&!isInitial&&(!next||/\s/.test(next))){
-          while(i+1<normalized.length&&/[.!?…]/.test(normalized[i+1]))current+=normalized[++i];
-          sentences.push(current.trim());current='';
-          if(sentences.length>=limit)break;
+          while(i+1<normalized.length&&/[.!?…]/.test(normalized[i+1]))i++;
+          count++;
+          if(count>=limit){end=i+1;break;}
         }
       }
     }
-    if(current.trim()&&sentences.length<limit)sentences.push(current.trim());
-    return sentences.slice(0,limit).join(' ').trim();
+    var out=normalized.slice(0,end).trim();
+    if(keepLines===true){var lines=out.split('\n');if(lines.length>14)out=lines.slice(0,14).join('\n').trim();}
+    return out;
   }
-  function sanitizeModelReplyText(result,userApproved){
+  function sanitizeModelReplyText(result,userApproved,attachmentTurn){
     var raw=safeText(result&&(result.answer_tr||result.reply_tr)||'Yanıt alınamadı efendim.',2400);
     if(!result||result.ok!==true)return raw;
-    var hasReceipt=hasVerifiedQueueReceipt(result);
-    if(!hasReceipt&&hasUnverifiedExecutionClaim(raw)){
+    var hasReceipt=hasVerifiedQueueReceipt(result),attTurn=attachmentTurn===true||contextAttachmentNames(result).length>0;
+    if(!hasReceipt&&hasUnverifiedExecutionClaim(raw,attTurn)){
       return 'Kalıcı kuyruk onayı olmadan görev başlatıldı veya işçiler çalışıyor bilgisi verilemez. İsteğin için henüz doğrulanmış kuyruk kaydı yok.';
     }
     if(userApproved||hasReceipt){
@@ -91,7 +97,7 @@
         .replace(/\s*(?:Onaylıyor\s+musunuz|Onay\s+veriyor\s+musunuz|Ne\s+dersiniz,\s+başlayalım\s+mı)\s*(?:efendim)?\?/gi,'')
         .trim()||raw;
     }
-    return limitDailyReplySentences(raw,3);
+    return attTurn?limitDailyReplySentences(raw,8,true):limitDailyReplySentences(raw,3);
   }
   function DraftStore(projects){this.projects=projects||PROJECTS;this.items=new Map();}
   DraftStore.prototype.get=function(scope){var k=scope||'studio';if(scope&&!validProject(scope,this.projects))throw new Error('Geçersiz komut kapsamı.');if(!this.items.has(k))this.items.set(k,{text:'',attachments:[],version:0,pending:null,brainPending:null});return this.items.get(k);};
@@ -157,6 +163,11 @@
     var APK_UPDATE_NOTICE='Ek göndermek için ARGON\'u güncelle: Ayarlar › Android kurulum dosyası › İndir.';
     var form=el('form','jw-composer jw-composer-pill'),add=btn('plus','jw-icon-button','Görsel veya dosya ekle'),input=el('textarea','jw-input'),mic=btn('mic','jw-icon-button jw-mic','Sesle yaz'),send=btn('up','jw-icon-button jw-send','Komutu gönder');input.rows=1;input.placeholder='Bir sonraki adımı söyle…';input.setAttribute('aria-label','Argon komutu');input.setAttribute('enterkeyhint','send');input.setAttribute('autocomplete','off');input.setAttribute('spellcheck','true');send.type='submit';mic.setAttribute('aria-pressed','false');add.setAttribute('aria-expanded','false');form.append(add,input,mic,send);
     var status=el('div','jw-composer-status');status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');/* Project routing is automatic; the old picker is deliberately not mounted. */inner.append(clarify,attachments,attachSheet,form,status);zone.appendChild(inner);shell.append(header,orbStage,banner,thread,zone);root.appendChild(shell);
+    var lightbox=el('div','jw-lightbox');lightbox.hidden=true;lightbox.setAttribute('role','dialog');lightbox.setAttribute('aria-modal','true');lightbox.setAttribute('aria-label','Görsel');
+    var lightboxClose=btn('close','jw-icon-button jw-lightbox-close','Kapat'),lightboxImg=el('img','jw-lightbox-img'),lightboxCaption=el('p','jw-lightbox-caption');lightboxImg.alt='';lightbox.append(lightboxImg,lightboxCaption,lightboxClose);root.appendChild(lightbox);
+    var lightboxReturn=null;
+    function openLightbox(src,name,from){if(!src)return;lightboxImg.src=src;lightboxImg.alt=name||'Görsel';lightboxCaption.textContent=name||'';lightboxReturn=from||null;root.classList.add('jw-overlay-open');lightbox.hidden=false;lightboxClose.focus();}
+    function closeLightbox(restoreFocus){root.classList.remove('jw-overlay-open');if(lightbox.hidden)return;lightbox.hidden=true;lightboxImg.removeAttribute('src');var back=lightboxReturn;lightboxReturn=null;if(restoreFocus&&back&&typeof back.focus==='function')back.focus();}
     function draftKey(s){return s||'studio';}
     /* ARGON "önce onay al": a change request is summarised and queued only after an explicit Evet/Başla/Onaylıyorum (typed, spoken or tapped). */
     function foldTr(t){return String(t||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ı/g,'i').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();}
@@ -205,12 +216,14 @@
         all.push({m:m,i:i,t:Number.isFinite(t)?t:0});
       });
       all.sort(function(a,b){return a.t-b.t||a.i-b.i;});
-      return all.slice(-12).map(function(x){return {role:x.m.role==='user'?'user':'assistant',text:safeText(x.m.body,1200)};});
+      return all.slice(-12).map(function(x){var names=x.m.role==='user'&&Array.isArray(x.m.attachments)?x.m.attachments.filter(function(a){return a&&typeof a.name==='string'&&a.name.trim();}).slice(0,4).map(function(a){return safeText(a.name,120);}):[],suffix=names.length?'\n[Ekler: '+names.join(', ')+']':'';return {role:x.m.role==='user'?'user':'assistant',text:safeText(x.m.body,1200-suffix.length)+suffix};});
     }
+    /* Full-quality previews of sent pictures live only in this session (newest 12); older bubbles fall back to the thumbnail. */
+    function pruneLivePreviews(){var live=0;for(var i=readMessages.length-1;i>=0;i--){var m=readMessages[i];if(!m||!Array.isArray(m.attachments)||!m.attachments.some(function(a){return a&&a.previewUrl;}))continue;live++;if(live<=12)continue;m.attachments.forEach(function(a){if(a&&a.previewUrl){revokePreviewUrl(a.previewUrl);delete a.previewUrl;}});}}
     async function brainTurn(textValue,version,sentAttachments){
       clearConfirmation();
       var owner=accountKey,ticket=accountEpoch,viewTicket=activeEpoch,askScope=scope,id='brain:'+owner+':'+(++readCounter),createdAt=new Date().toISOString(),d=drafts.get(askScope),persist=true,clearDraft=version>=0;
-      var attList=cloneAttachments(sentAttachments,4),attIds=attList.map(function(a){return a.id;}),attMeta=cloneMessageAttachments(attList);
+      var attList=cloneAttachments(sentAttachments,4),attIds=attList.map(function(a){return a.id;}),attMeta=cloneMessageAttachments(attList,true);
       var priorHistory=conversationHistory();
       var lastAssistantTurn=priorHistory.slice().reverse().find(function(h){return h.role==='assistant';});
       var approvalAskedPreviously=!!(lastAssistantTurn&&/(?:onaylıyorsanız|evet,\s*kodla|evet,\s*başla|düzeltelim\s+mi|onay\s+bekliyor|henüz\s+doğrulanmadı)/i.test(lastAssistantTurn.text));
@@ -225,13 +238,14 @@
         if(!owns(owner,ticket))return;if(!worldActive()||viewTicket!==activeEpoch){if(clearDraft)recordSubmissionFailure(askScope,version,textValue,attList);answerBusy=false;syncComposer();return;}
       }
       answerBusy=true;readMessages.push({id:id+':user',requestId:turn.requestId,role:'user',body:textValue,...(attMeta.length?{attachments:attMeta}:{}),createdAt:createdAt,origin:{kind:'user-input',evidenceLabel:'Canlı beyne gönderildi.'}},{id:id,requestId:turn.requestId,role:'assistant',body:'…',pending:true,createdAt:createdAt,origin:attIds.length?{kind:'pending-model',provider:'Google AI Studio',evidenceLabel:'Gemini ekli mesaj yanıtı hazırlanıyor; ağır işçi başlatılmaz.'}:{kind:'pending-model',provider:'Groq',evidenceLabel:'Groq (openai/gpt-oss-120b · düşünme: düşük) yanıtı hazırlanıyor; ağır işçi başlatılmaz.'}});if(readMessages.length>80)readMessages=readMessages.slice(-80);
+      if(attMeta.some(function(a){return a.previewUrl;}))pruneLivePreviews();
       syncComposer();update(snapshot);bottom(true);setStatus(attIds.length?'Ekler yükleniyor ve Argon düşünüyor…':'Argon düşünüyor…');
       var res=null,body='',replyShown=false,speechResult=null,prepared=null,usedVoiceMeta=null;
       function showReply(value,voiceMeta){
         if(!owns(owner,ticket))return;
         if(voiceMeta&&typeof voiceMeta==='object')usedVoiceMeta=voiceMeta;
         var r=value||res||prepared;if(!r)return;
-        body=sanitizeModelReplyText(r,userApprovedInTurn);
+        body=sanitizeModelReplyText(r,userApprovedInTurn,attIds.length>0);
         var providerLabel=r&&({groq:'Groq',openai:'OpenAI Codex',claude:'Claude',gemini:'Gemini',google:'Google AI Studio'})[r.provider],modelLabel=typeof r.model==='string'?safeText(r.model,100):null;
         var httpStatus=Number.isSafeInteger(r.httpStatus)?r.httpStatus:Number.isSafeInteger(r.receipt&&r.receipt.httpStatus)?r.receipt.httpStatus:null;
         var failedOrigin=providerLabel||r.transport==='groq-api'||r.transport==='google-ai-studio-api'||(r.receipt&&r.receipt.modelCall===true)?{kind:'provider-error',provider:providerLabel||(r.transport==='google-ai-studio-api'?'Google AI Studio':'Groq'),...(httpStatus?{httpStatus:httpStatus}:{}),evidenceLabel:'Sağlayıcı çağrısı hata döndürdü; başka modele geçilmedi.'}:{kind:'unknown',evidenceLabel:'Yanıt alınamadı; aynı mesaj kimliği korunuyor.'};
@@ -252,7 +266,7 @@
       if(!owns(owner,ticket))return;
       if(nativeReplyOrigin(res)&&Array.isArray(res.project_catalog)){res.project_catalog.slice(0,128).forEach(function(p){if(p&&/^[a-z][a-z0-9-]{0,63}$/.test(p.id)&&!validProject(p.id,projects))projects.push({id:p.id,label:safeText(p.name||p.id,120)});});}
       if(res&&!res.ok&&res.terminal&&persist&&d.brainPending&&d.brainPending.requestId===turn.requestId){d.brainPending=Object.assign({},turn,{terminal:true});queueSave(askScope);}
-      body=sanitizeModelReplyText(res,userApprovedInTurn);
+      body=sanitizeModelReplyText(res,userApprovedInTurn,attIds.length>0);
       if(res&&res.ok&&d.brainPending&&d.brainPending.requestId===turn.requestId){d.brainPending=null;queueSave(askScope);}
       if(res&&res.ok&&worldActive()&&viewTicket===activeEpoch){if(clearDraft&&d.version===version&&!d.attachments.length){drafts.update(askScope,{text:''});queueSave(askScope);if(scope===askScope)renderDraft();}else if(!clearDraft&&d.brainPending&&d.brainPending.requestId===turn.requestId){d.brainPending=null;queueSave(askScope);}}
       if(res&&res.ok&&turn.audioOutput!==false&&worldActive()&&viewTicket===activeEpoch&&voice&&typeof voice.speak==='function'&&voiceState.enabled&&!replyShown){
@@ -344,12 +358,12 @@
       }catch(_e){if(owns(owner,ticket))setStatus('Kara kutuya ulaşılamadı. İş emri oluşturulmadı.','error');}
       finally{if(owns(owner,ticket)){if(!answered)recordSubmissionFailure(askScope,originalVersion,textValue,[]);answerBusy=false;syncComposer();update(snapshot);bottom(true);}}
     }
-    function resetAccount(nextKey){revokeAllPreviewUrls();pendingAudioReply=null;pendingConfirm=null;accountKey=nextKey;accountEpoch++;lastRevision=-1;stopSpeech();if(voice&&typeof voice.cancel==='function')voice.cancel();readMessages=[];answerBusy=false;saveTimers.forEach(function(timer){win.clearTimeout(timer);});saveTimers.clear();draftLoads.clear();busyScopes.clear();drafts=new DraftStore(projects);scope=null;clarification=null;clarify.hidden=true;scopeMenu.hidden=true;scopeBtn.setAttribute('aria-expanded','false');closeAttachSheet();snapshot={messages:[],jobs:[],connection:{status:'unknown',submitAvailable:false}};nodesByKey.clear();timeline.replaceChildren();renderEmpty();renderDraft();connectionText.textContent='Oturum doğrulanıyor';activityCount.textContent='0';if(energy)energy.setState('offline');if(nextKey)loadDraft(null);setStatus('Hesap değişti. Önceki hesabın taslak ve komutları temizlendi.');}
+    function resetAccount(nextKey){revokeAllPreviewUrls();pendingAudioReply=null;pendingConfirm=null;accountKey=nextKey;accountEpoch++;lastRevision=-1;stopSpeech();if(voice&&typeof voice.cancel==='function')voice.cancel();readMessages=[];answerBusy=false;saveTimers.forEach(function(timer){win.clearTimeout(timer);});saveTimers.clear();draftLoads.clear();busyScopes.clear();drafts=new DraftStore(projects);scope=null;clarification=null;clarify.hidden=true;scopeMenu.hidden=true;scopeBtn.setAttribute('aria-expanded','false');closeAttachSheet();closeLightbox();snapshot={messages:[],jobs:[],connection:{status:'unknown',submitAvailable:false}};nodesByKey.clear();timeline.replaceChildren();renderEmpty();renderDraft();connectionText.textContent='Oturum doğrulanıyor';activityCount.textContent='0';if(energy)energy.setState('offline');if(nextKey)loadDraft(null);setStatus('Hesap değişti. Önceki hesabın taslak ve komutları temizlendi.');}
     function owns(key,epoch){if(destroyed)return false;var current=readAccountKey();if(current!==accountKey)resetAccount(current);return !!key&&key===accountKey&&epoch===accountEpoch;}
     function queueSave(s){if(!bridge.drafts||typeof bridge.drafts.save!=='function')return;var key=accountKey,epoch=accountEpoch,k=draftKey(s);if(saveTimers.has(k))win.clearTimeout(saveTimers.get(k));saveTimers.set(k,win.setTimeout(function(){saveTimers.delete(k);if(!owns(key,epoch))return;var d=drafts.get(s);Promise.resolve(bridge.drafts.save(s,{text:d.text,attachments:cloneAttachments(d.attachments),brainPending:d.brainPending,...(k==='studio'?{chatHistory:persistedReadMessages()}:{}),accountKey:key})).catch(function(){if(owns(key,epoch)&&scope===s)setStatus('Taslak henüz kalıcı kayda alınamadı.','error');});},250));}
     async function loadDraft(s){if(!accountKey||!bridge.drafts||typeof bridge.drafts.load!=='function'||draftLoads.has(draftKey(s)))return;draftLoads.add(draftKey(s));var key=accountKey,epoch=accountEpoch,d=drafts.get(s),version=d.version;try{var restored=await bridge.drafts.load(s,{accountKey:key});if(!owns(key,epoch)||!restored)return;var chatRestored=s===null&&Array.isArray(restored.chatHistory)&&mergeRestoredChat(restored.chatHistory);if(d.version===version){d.text=safeText(restored.text);d.attachments=cloneAttachments(restored.attachments);d.brainPending=restored.brainPending||null;d.version++;if(scope===s)renderDraft();}if(chatRestored){update(snapshot);bottom(true);}}catch(_e){if(owns(key,epoch)&&scope===s)setStatus('Kaydedilmiş taslak yüklenemedi.','error');}}
     function autosize(){input.style.height='44px';input.style.height=Math.max(44,Math.min(120,input.scrollHeight))+'px';}
-    function renderDraft(){var viewScope=scope,viewOwner=accountKey,viewEpoch=accountEpoch,d=drafts.get(scope);input.value=d.text;scopeText.textContent=scope?label(scope):'Tüm stüdyo';Array.from(scopeMenu.children).forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.scope===(scope||'')));});attachments.replaceChildren();d.attachments.forEach(function(a){var item=el('span','jw-attachment');if(/^image\//i.test(a.mime||'')&&a.previewUrl){trackPreviewUrl(a.previewUrl);var thumb=el('img','jw-attachment-thumb');thumb.src=a.previewUrl;thumb.alt=a.name||'Görsel';item.appendChild(thumb);}else if(!/^image\//i.test(a.mime||'')){var docBadge=el('span','jw-attachment-doc');docBadge.appendChild(icon('doc'));docBadge.appendChild(el('span','jw-attachment-ext',attachmentExtBadge(a)));item.appendChild(docBadge);}var name=el('span','jw-attachment-name',a.name),sizeText=formatAttachmentSize(a.size),sizeEl=sizeText?el('span','jw-attachment-size',sizeText):null,remove=btn(null,'','Eki kaldır: '+a.name);remove.textContent='×';dynamicOn(remove,'click',function(){if(scope!==viewScope||!owns(viewOwner,viewEpoch))return;if(a.previewUrl)revokePreviewUrl(a.previewUrl);var current=drafts.get(viewScope);drafts.update(viewScope,{attachments:current.attachments.filter(function(x){return x.id!==a.id;})});queueSave(scope);renderDraft();});item.appendChild(name);if(sizeEl)item.appendChild(sizeEl);item.appendChild(remove);attachments.appendChild(item);});syncComposer();autosize();}
+    function renderDraft(){var viewScope=scope,viewOwner=accountKey,viewEpoch=accountEpoch,d=drafts.get(scope);input.value=d.text;scopeText.textContent=scope?label(scope):'Tüm stüdyo';Array.from(scopeMenu.children).forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.scope===(scope||'')));});attachments.replaceChildren();d.attachments.forEach(function(a){var item=el('span','jw-attachment');if(/^image\//i.test(a.mime||'')&&(a.previewUrl||validThumb(a.thumb))){if(a.previewUrl)trackPreviewUrl(a.previewUrl);var thumb=el('img','jw-attachment-thumb');thumb.src=a.previewUrl||a.thumb;thumb.alt=a.name||'Görsel';item.appendChild(thumb);}else if(!/^image\//i.test(a.mime||'')){var docBadge=el('span','jw-attachment-doc');docBadge.appendChild(icon('doc'));docBadge.appendChild(el('span','jw-attachment-ext',attachmentExtBadge(a)));item.appendChild(docBadge);}var name=el('span','jw-attachment-name',a.name),sizeText=formatAttachmentSize(a.size),sizeEl=sizeText?el('span','jw-attachment-size',sizeText):null,remove=btn(null,'','Eki kaldır: '+a.name);remove.textContent='×';dynamicOn(remove,'click',function(){if(scope!==viewScope||!owns(viewOwner,viewEpoch))return;if(a.previewUrl)revokePreviewUrl(a.previewUrl);var current=drafts.get(viewScope);drafts.update(viewScope,{attachments:current.attachments.filter(function(x){return x.id!==a.id;})});queueSave(scope);renderDraft();});item.appendChild(name);if(sizeEl)item.appendChild(sizeEl);item.appendChild(remove);attachments.appendChild(item);});syncComposer();autosize();}
     function isReadQuery(text){if(brief&&typeof brief.classify==='function')return brief.classify(text).handled===true;if(!brief||typeof brief.respond!=='function'||!studioData)return false;try{var data=studioData.getSnapshot();if(!data||data.accountKey!==accountKey)return false;var answer=brief.respond(text,data);return answer&&answer.handled===true;}catch(_e){return false;}}
     function syncComposer(){
       var d=drafts.get(scope),busy=busyScopes.has(draftKey(scope))||answerBusy;
@@ -377,7 +391,12 @@
     }
     function selectScope(next){if(next&&!validProject(next,projects))throw new Error('Geçersiz komut kapsamı.');stopSpeech();clearConfirmation();scope=next;clarification=null;clarify.hidden=true;renderDraft();loadDraft(next);setStatus('');/* No selected-game mutation, no global navigation event. */}
     function sourceDetails(message){var details=el('details','jw-source'),summary=el('summary','',sourceLabel(message.origin));details.appendChild(summary);if(message.createdAt){var date=new Date(message.createdAt);details.appendChild(el('p','',Number.isNaN(date.getTime())?'Zaman kaydı doğrulanmadı':date.toLocaleString('tr-TR')));}if(message.commandId)details.appendChild(el('p','','Komut: '+safeText(message.commandId,150)));if(message.origin&&message.origin.voiceLabel)details.appendChild(el('p','','Ses: '+safeText(message.origin.voiceLabel,150)));if(message.origin&&message.origin.evidenceLabel)details.appendChild(el('p','',message.origin.evidenceLabel));return details;}
-    function renderMessage(message){var card=el('article','jw-message');card.dataset.role=message.role==='user'?'user':'assistant';card.dataset.messageId=safeText(message.id,150);var head=el('div','jw-message-head'),author=el('span','jw-author',message.role==='user'?'Deniz':message.role==='system'?'Sistem':'Argon');head.appendChild(author);if(message.projectId)head.appendChild(el('span','jw-project-label',label(message.projectId)));card.append(head,el('div','jw-message-body',message.body));if(Array.isArray(message.attachments)&&message.attachments.length){var attRow=el('div','jw-message-attachments');message.attachments.slice(0,4).forEach(function(a){if(a&&a.name)attRow.appendChild(el('span','jw-message-attachment','📎 '+safeText(a.name,120)));});if(attRow.childNodes.length)card.appendChild(attRow);}card.appendChild(sourceDetails(message));return card;}
+    function signatureReplacer(k,v){return (k==='thumb'||k==='previewUrl')&&typeof v==='string'&&v.length>80?v.length+':'+v.slice(-40):v;}
+    function renderMessage(message){var card=el('article','jw-message');card.dataset.role=message.role==='user'?'user':'assistant';card.dataset.messageId=safeText(message.id,150);var head=el('div','jw-message-head'),author=el('span','jw-author',message.role==='user'?'Deniz':message.role==='system'?'Sistem':'Argon');head.appendChild(author);if(message.projectId)head.appendChild(el('span','jw-project-label',label(message.projectId)));card.append(head,el('div','jw-message-body',message.body));if(Array.isArray(message.attachments)&&message.attachments.length){var attRow=el('div','jw-message-attachments'),gallery=el('div','jw-message-gallery'),files=el('div','jw-message-files'),shown=0;message.attachments.slice(0,4).forEach(function(a){if(!a||!a.name)return;var name=safeText(a.name,120),isImage=/^image\//i.test(a.mime||''),src=isImage?(typeof a.previewUrl==='string'&&a.previewUrl?a.previewUrl:validThumb(a.thumb)?a.thumb:''):'';
+        if(src){var shot=btn(null,'jw-message-image','Görseli büyüt: '+name),img=el('img');img.src=src;img.alt=name;img.decoding='async';img.loading='lazy';shot.appendChild(img);dynamicOn(shot,'click',function(){openLightbox(a.previewUrl||a.thumb,name,shot);});gallery.appendChild(shot);shown++;return;}
+        var file=el('span','jw-message-file'),fileIcon=el('span','jw-message-file-icon'),meta=el('span','jw-message-file-meta'),sub=[isImage?'Görsel':attachmentExtBadge(a),formatAttachmentSize(a.size)].filter(Boolean).join(' · ');fileIcon.appendChild(icon(isImage?'photo':'doc'));meta.append(el('span','jw-message-file-name',name),el('span','jw-message-file-sub',sub));file.append(fileIcon,meta);file.title=name;files.appendChild(file);});
+        /* Pictures first (one large, or a 2-column grid), then document cards, then the text: a compact, messenger-style bubble. */
+        if(shown){gallery.dataset.count=String(shown);attRow.appendChild(gallery);}if(files.childNodes.length)attRow.appendChild(files);if(attRow.childNodes.length)card.insertBefore(attRow,card.querySelector('.jw-message-body'));}card.appendChild(sourceDetails(message));return card;}
     function field(labelText,value){var n=el('div','jw-job-field');n.append(el('span','',labelText),el('strong','',value));return n;}
     function renderJob(job){var cardOwner=accountKey,cardEpoch=accountEpoch,card=el('article','jw-job');card.dataset.jobId=safeText(job.id,150);var h=el('div','jw-job-head'),t=el('h3','jw-job-title',job.title||'Komut'),state=el('span','jw-job-state',STATUS[job.status]||'Durum doğrulanmadı');state.dataset.state=job.status||'unknown';h.append(t,state);var grid=el('div','jw-job-grid');grid.append(field('HEDEF',label(job.projectId)),field('UZMAN',job.expert||'Atama bekliyor'),field('İZOLE ALAN',job.workspaceLabel||'Doğrulanmadı'),field('CANLI DURUM',job.statusText||STATUS[job.status]||'Doğrulanmadı'));card.append(h,grid);if(job.workspacePath||job.id||job.blockReason){var details=el('details'),summary=el('summary','','İş ayrıntıları');details.append(summary,el('pre','','İş: '+safeText(job.id,150)+(job.workspacePath?'\nÇalışma alanı: '+safeText(job.workspacePath,500):'')+(job.blockReason?'\nBekleme nedeni: '+safeText(job.blockReason,700):'')));card.appendChild(details);}if(job.canCancel&&typeof bridge.cancelJob==='function'){var row=el('div','jw-job-actions'),cancel=btn(null,'jw-text-button','İşi durdur: '+(job.title||job.id));cancel.textContent='Durdur';dynamicOn(cancel,'click',async function(){if(!owns(cardOwner,cardEpoch))return;cancel.disabled=true;try{await bridge.cancelJob({jobId:job.id,accountKey:cardOwner});if(!owns(cardOwner,cardEpoch))return;setStatus('Durdurma isteği iletildi; işçi yanıtı bekleniyor.');}catch(_e){if(!owns(cardOwner,cardEpoch))return;setStatus('Durdurma isteği iletilemedi.','error');cancel.disabled=false;}});row.appendChild(cancel);card.appendChild(row);}return card;}
     function renderEmpty(){var box=el('div','jw-empty');box.append(el('span','jw-kicker','STÜDYO KOMUTA MERKEZİ'),el('h2','','Beş oyun. Tek net akış.'),el('p','','Ne değişeceğini söyle. Hedef, uzman ve doğrulanmış sonuç burada görünsün.'));var suggestions=el('div','jw-suggestions');['Forge Run ne durumda?','Bugün neler oldu?','Şu anda öncelikli olan ne?'].forEach(function(text){var b=btn(null,'jw-suggestion',text);b.textContent=text;dynamicOn(b,'click',function(){drafts.update(scope,{text:text});renderDraft();queueSave(scope);input.focus();});suggestions.appendChild(b);});box.appendChild(suggestions);timeline.appendChild(box);}
@@ -404,7 +423,7 @@
       // Canonical history stays global. A per-command scope never filters prior messages.
       shell.dataset.conversation=String(filteredSnapshotMessages.length+readMessages.length>0);var merged=filteredSnapshotMessages.concat(readMessages).map(function(m,i){var c=m&&m.createdAt,t=typeof c==='number'?c:Date.parse(c);/* The outbox stamps epoch ms, local answers ISO text. */return {m:m,i:i,t:Number.isFinite(t)?t:null};});/* One conversation in time order: worker records and local answers interleave by their own timestamps. */merged.sort(function(a,b){return a.t!==null&&b.t!==null&&a.t!==b.t?a.t-b.t:a.i-b.i;});var entries=merged.slice(-120).map(function(x){return {key:'message:'+x.m.id,type:'message',value:x.m,t:x.t,i:x.i,k:0};});if(activityVisible)snapshot.jobs.slice(-40).forEach(function(j,n){var c=j&&j.createdAt,t=typeof c==='number'?c:Date.parse(c);entries.push({key:'job:'+j.id,type:'job',value:j,t:Number.isFinite(t)?t:null,i:100000+n,k:1});});
       /* A job card sits right under the request that created it, so the newest reply stays at the bottom. */entries.sort(function(a,b){if(a.t!==null&&b.t!==null&&a.t!==b.t)return a.t-b.t;if(a.t===null||b.t===null)return a.i-b.i;return a.k-b.k||a.i-b.i;});var records=entries.map(function(e){return {key:e.key,type:e.type,value:e.value};});
-      if(records.length===0){if(nodesByKey.size||!timeline.querySelector('.jw-empty')){timeline.replaceChildren();nodesByKey.clear();renderEmpty();}}else{var empty=timeline.querySelector('.jw-empty');if(empty)empty.remove();var retained=new Set();records.forEach(function(r){retained.add(r.key);var signature=JSON.stringify(r.value),old=nodesByKey.get(r.key),n;if(old&&old.signature===signature)n=old.node;else{n=r.type==='message'?renderMessage(r.value):renderJob(r.value);if(old)old.node.replaceWith(n);else timeline.appendChild(n);nodesByKey.set(r.key,{node:n,signature:signature});}var wanted=timeline.children[records.indexOf(r)];if(wanted!==n)timeline.insertBefore(n,wanted||null);});nodesByKey.forEach(function(entry,key){if(!retained.has(key)){entry.node.remove();nodesByKey.delete(key);}});}
+      if(records.length===0){if(nodesByKey.size||!timeline.querySelector('.jw-empty')){timeline.replaceChildren();nodesByKey.clear();renderEmpty();}}else{var empty=timeline.querySelector('.jw-empty');if(empty)empty.remove();var retained=new Set();records.forEach(function(r){retained.add(r.key);var signature=JSON.stringify(r.value,signatureReplacer),old=nodesByKey.get(r.key),n;if(old&&old.signature===signature)n=old.node;else{n=r.type==='message'?renderMessage(r.value):renderJob(r.value);if(old)old.node.replaceWith(n);else timeline.appendChild(n);nodesByKey.set(r.key,{node:n,signature:signature});}var wanted=timeline.children[records.indexOf(r)];if(wanted!==n)timeline.insertBefore(n,wanted||null);});nodesByKey.forEach(function(entry,key){if(!retained.has(key)){entry.node.remove();nodesByKey.delete(key);}});}
       syncEnergy();
       syncComposer();if(active)bottom(follow||!hadContent);
     }
@@ -462,7 +481,7 @@
       stopSpeech();var textValue=d.text.trim(),sentAttachments=cloneAttachments(d.attachments),pendingTurn=d.brainPending;
       // Confirmations keep their existing target/version authorization; no async wait precedes clearing.
       if(pendingConfirm&&pendingConfirm.accountKey===owner&&(isYes(textValue)||isNo(textValue))){input.value='';resolveConfirm(isYes(textValue),pendingConfirm.approvalId);return;}
-      revokeAttachmentUrls(d.attachments);
+      if(!brainOn)revokeAttachmentUrls(d.attachments);
       input.value='';drafts.update(submitScope,{text:'',attachments:[]});
       if(pendingTurn&&pendingTurn.text===textValue)d.brainPending=pendingTurn;
       var version=d.version;queueSave(submitScope);renderDraft();autosize();syncComposer();
@@ -520,6 +539,9 @@
     on(attachSheet,'click',function(e){if(!e||!e.target||e.target===attachSheet||e.target===attachBackdrop)closeAttachSheet();});
     function onSheetKeydown(e){if(!attachSheet.hidden&&e&&(e.key==='Escape'||e.key==='Esc')){if(typeof e.preventDefault==='function')e.preventDefault();closeAttachSheet(true);}}
     on(attachSheet,'keydown',onSheetKeydown);on(root,'keydown',onSheetKeydown);if(typeof doc.addEventListener==='function')on(doc,'keydown',onSheetKeydown);on(win,'keydown',onSheetKeydown);
+    function onLightboxKeydown(e){if(!lightbox.hidden&&e&&(e.key==='Escape'||e.key==='Esc')){if(typeof e.preventDefault==='function')e.preventDefault();closeLightbox(true);}}
+    on(lightbox,'keydown',onLightboxKeydown);on(win,'keydown',onLightboxKeydown);
+    on(lightbox,'click',function(e){if(e&&e.target===lightboxClose)return;closeLightbox(true);});on(lightboxClose,'click',function(e){if(e&&typeof e.stopPropagation==='function')e.stopPropagation();closeLightbox(true);});
     on(add,'click',function(){if(add.disabled||snapshot.capabilities&&snapshot.capabilities.attachments===false)return;if(brainOn){if(attachSheet.hidden)openAttachSheet();else closeAttachSheet();return;}pickAttachments();});
     on(sound,'click',function(){
       if(!voice)return;
@@ -691,7 +713,7 @@
     });if(studioData&&typeof studioData.subscribe==='function')dataUnsub=studioData.subscribe(function(){if(!destroyed)syncComposer();});
     if(win.JarvisEnergyCore&&typeof win.JarvisEnergyCore.mount==='function')energy=win.JarvisEnergyCore.mount(canvas,{state:'idle'});else canvas.hidden=true;
     unsub=bridge.subscribe(update);Promise.resolve(bridge.getSnapshot()).then(update).catch(function(){if(lastRevision<0)update({connection:{status:'offline',label:'Kontrol hattına ulaşılamıyor'},messages:[],jobs:[]});});renderDraft();loadDraft(null);measure();
-    return {setActive:function(value){var next=!!value;if(next!==active)activeEpoch++;active=next;root.hidden=!active;if(!active){clearConfirmation();closeAttachSheet();stopSpeech();if(voice&&typeof voice.cancel==='function')voice.cancel();if(energy)energy.setState('offline');}else{scheduleMeasure();update(snapshot);}},refresh:function(){return Promise.resolve(bridge.getSnapshot()).then(update);},selectScope:selectScope,destroy:function(){if(destroyed)return;revokeAllPreviewUrls();flushDrafts();destroyed=true;stopSpeech();if(voice&&typeof voice.cancel==='function')voice.cancel();if(typeof voiceUnsub==='function')voiceUnsub();if(typeof dataUnsub==='function')dataUnsub();if(typeof unsub==='function')unsub();listeners.forEach(function(off){off();});saveTimers.forEach(function(timer){win.clearTimeout(timer);});if(raf)win.cancelAnimationFrame(raf);if(measureTimer)win.clearTimeout(measureTimer);if(energy)energy.destroy();root.replaceChildren();root.classList.remove('jw-root','jw-sheet-open');root.removeAttribute('data-jarvis-world');root.style.removeProperty('--jw-shell-height');}};
+    return {setActive:function(value){var next=!!value;if(next!==active)activeEpoch++;active=next;root.hidden=!active;if(!active){clearConfirmation();closeAttachSheet();closeLightbox();stopSpeech();if(voice&&typeof voice.cancel==='function')voice.cancel();if(energy)energy.setState('offline');}else{scheduleMeasure();update(snapshot);}},refresh:function(){return Promise.resolve(bridge.getSnapshot()).then(update);},selectScope:selectScope,destroy:function(){if(destroyed)return;revokeAllPreviewUrls();flushDrafts();destroyed=true;stopSpeech();if(voice&&typeof voice.cancel==='function')voice.cancel();if(typeof voiceUnsub==='function')voiceUnsub();if(typeof dataUnsub==='function')dataUnsub();if(typeof unsub==='function')unsub();listeners.forEach(function(off){off();});saveTimers.forEach(function(timer){win.clearTimeout(timer);});if(raf)win.cancelAnimationFrame(raf);if(measureTimer)win.clearTimeout(measureTimer);if(energy)energy.destroy();root.replaceChildren();root.classList.remove('jw-root','jw-sheet-open','jw-overlay-open');root.removeAttribute('data-jarvis-world');root.style.removeProperty('--jw-shell-height');}};
   }
   return Object.freeze({mount:mount,PROJECTS:PROJECTS,_test:Object.freeze({DraftStore:DraftStore,validateResolution:validateResolution,sourceLabel:sourceLabel,cloneAttachments:cloneAttachments,uuid:uuid,validateStudioProposal:validateStudioProposal,nativeReplyOrigin:nativeReplyOrigin,limitDailyReplySentences:limitDailyReplySentences,hasUnverifiedExecutionClaim:hasUnverifiedExecutionClaim})});
 });

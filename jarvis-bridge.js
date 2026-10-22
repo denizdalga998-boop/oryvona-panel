@@ -6,7 +6,11 @@
   'use strict';
   const PROJECTS = Object.freeze(['koza', 'charm-drop', 'forge-run', 'aeryo', 'tupsper', 'oryvona-panel']);
   const DB = 'oryvona-studio-v23-owner-outbox';
-  const MAX_TEXT = 12000, MAX_ITEMS = 100, MAX_RAW = 5 * 1024 * 1024, MAX_IMAGE = 2 * 1024 * 1024;
+  const MAX_TEXT = 12000, MAX_ITEMS = 100, MAX_RAW = 30 * 1024 * 1024, MAX_IMAGE = 2 * 1024 * 1024;
+  // v1.5: phone cameras write 5–25 MB / up to 50+ MP photos. They are decoded once and shrunk here (1920 px JPEG for the model,
+  // a small JPEG thumbnail for the chat bubble); only the shrunk copy leaves the phone.
+  const MAX_IMAGE_SIDE = 12000, MAX_IMAGE_PIXELS = 64000000, THUMB_SIDE = 320, MAX_THUMB_CHARS = 60000;
+  function validThumb(value) { return typeof value === 'string' && value.length <= MAX_THUMB_CHARS && /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value); }
   const MAX_TOTAL = 40 * 1024 * 1024, MAX_FILES = 3;
   const MAX_CHAT_FILES = 4, MAX_CHAT_TOTAL = 12 * 1024 * 1024, MAX_PDF = 8 * 1024 * 1024, MAX_TEXT_FILE = 1024 * 1024;
   const CHAT_BUCKET = 'argon-chat-ekleri';
@@ -91,8 +95,11 @@
   }
   function cleanChatHistory(items) {
     if (!Array.isArray(items)) return [];
-    return items.slice(-60).filter(m => m && typeof m.id === 'string' && m.id.length <= 160 && ['user', 'assistant', 'system'].includes(m.role) && typeof m.body === 'string' && m.body.trim() && !m.pending).map(m => {
-      const att = Array.isArray(m.attachments) ? m.attachments.slice(0, MAX_CHAT_FILES).filter(a => a && typeof a.name === 'string' && a.name.trim()).map(a => ({ name: sanitizeAttachmentName(a.name, 'ek'), mime: String(a.mime || '').slice(0, 80), size: Number(a.size) || 0 })) : [];
+    const kept = items.slice(-60).filter(m => m && typeof m.id === 'string' && m.id.length <= 160 && ['user', 'assistant', 'system'].includes(m.role) && typeof m.body === 'string' && m.body.trim() && !m.pending);
+    let thumbsLeft = 8; const thumbAllowed = new Set();
+    for (let i = kept.length - 1; i >= 0 && thumbsLeft > 0; i--) { if (Array.isArray(kept[i].attachments) && kept[i].attachments.some(a => a && validThumb(a.thumb))) { thumbAllowed.add(kept[i]); thumbsLeft--; } }
+    return kept.map(m => {
+      const att = Array.isArray(m.attachments) ? m.attachments.slice(0, MAX_CHAT_FILES).filter(a => a && typeof a.name === 'string' && a.name.trim()).map(a => ({ name: sanitizeAttachmentName(a.name, 'ek'), mime: String(a.mime || '').slice(0, 80), size: Number(a.size) || 0, ...(thumbAllowed.has(m) && validThumb(a.thumb) ? { thumb: a.thumb } : {}) })) : [];
       return {
         id: m.id,
         ...(typeof m.requestId === 'string' && m.requestId.length <= 160 ? { requestId: m.requestId } : {}),
@@ -209,6 +216,8 @@
           : chat.status !== 'done'
           ? { kind: 'provider-error', provider: providerLabel || 'Groq', evidenceLabel: 'Önceki sohbet kaydı hata ile sonuçlandı.' }
           : { kind: 'local', evidenceLabel: 'Sunucu sohbet kaydından geri yüklendi.' };
+        const contextNames = Array.isArray(chat.context_attachments) ? chat.context_attachments.slice(0, MAX_CHAT_FILES).filter(n => typeof n === 'string' && n.trim()).map(n => sanitizeAttachmentName(n, 'ek')) : [];
+        if (contextNames.length && origin.evidenceLabel) origin.evidenceLabel += ' Önceki ek bağlamda: ' + contextNames.join(', ') + '.';
         out.push({
           id: 'chat:' + id,
           requestId: id,
@@ -474,23 +483,35 @@
     }
     const drafts = {
       load: async scope => { await syncAccount(); if (!ownerId || !store) return { text: '', attachments: [] }; const id = ownerId, gen = generation, row = await store.get('drafts', key(id, scope || 'studio')); return gen === generation && id === contextOwner() && row ? { text: row.text, attachments: row.attachments, brainPending: cleanBrainPending(row.brainPending), ...(Array.isArray(row.chatHistory) ? { chatHistory: cleanChatHistory(row.chatHistory) } : {}) } : { text: '', attachments: [] }; },
-      save: async (scope, value) => { requireAccountKey(value.accountKey); await syncAccount(); const id = requireOwner(); requireAccountKey(value.accountKey); if (scope != null && !PROJECTS.includes(scope)) throw error('PROJECT_REQUIRED', 'Geçersiz kapsam.'); if (typeof value.text !== 'string' || value.text.length > MAX_TEXT) throw error('TEXT_INVALID', 'Taslak çok uzun.'); if (!Array.isArray(value.attachments || []) || (value.attachments || []).length > MAX_CHAT_FILES) throw error('ATTACHMENTS_INVALID','En fazla dört ek.'); const targetKey = key(id, scope || 'studio'); const existing = value.chatHistory === undefined ? await store.get('drafts', targetKey) : null; guardedContext(id); const chatHistory = Array.isArray(value.chatHistory) ? cleanChatHistory(value.chatHistory) : (existing && Array.isArray(existing.chatHistory) ? cleanChatHistory(existing.chatHistory) : undefined); await store.put('drafts', { key: targetKey, ownerId: id, text: value.text, brainPending: cleanBrainPending(value.brainPending), ...(chatHistory ? { chatHistory } : {}), attachments: (value.attachments || []).map(x => ({ id: x.id, name: String(x.name || '').slice(0,124), mime: x.mime, size: x.size })), updatedAt: now() }); guardedContext(id); }
+      save: async (scope, value) => { requireAccountKey(value.accountKey); await syncAccount(); const id = requireOwner(); requireAccountKey(value.accountKey); if (scope != null && !PROJECTS.includes(scope)) throw error('PROJECT_REQUIRED', 'Geçersiz kapsam.'); if (typeof value.text !== 'string' || value.text.length > MAX_TEXT) throw error('TEXT_INVALID', 'Taslak çok uzun.'); if (!Array.isArray(value.attachments || []) || (value.attachments || []).length > MAX_CHAT_FILES) throw error('ATTACHMENTS_INVALID','En fazla dört ek.'); const targetKey = key(id, scope || 'studio'); const existing = value.chatHistory === undefined ? await store.get('drafts', targetKey) : null; guardedContext(id); const chatHistory = Array.isArray(value.chatHistory) ? cleanChatHistory(value.chatHistory) : (existing && Array.isArray(existing.chatHistory) ? cleanChatHistory(existing.chatHistory) : undefined); await store.put('drafts', { key: targetKey, ownerId: id, text: value.text, brainPending: cleanBrainPending(value.brainPending), ...(chatHistory ? { chatHistory } : {}), attachments: (value.attachments || []).map(x => ({ id: x.id, name: String(x.name || '').slice(0,124), mime: x.mime, size: x.size, ...(validThumb(x.thumb) ? { thumb: x.thumb } : {}) })), updatedAt: now() }); guardedContext(id); }
     };
     async function processFile(file, id) {
       if (file && (/^image\/hei[cf]/i.test(String(file.type || '')) || /\.(?:heic|heif)$/i.test(String(file.name || '')))) throw error('IMAGE_HEIC_UNSUPPORTED', 'HEIC desteklenmiyor; ekran görüntüsü veya JPEG seç.');
-      if (!file || file.size > MAX_RAW || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw error('IMAGE_INVALID', 'JPEG, PNG veya WebP seç; dosya en fazla 5 MB olabilir.');
+      if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw error('IMAGE_INVALID', 'JPEG, PNG veya WebP fotoğraf seç.');
+      if (!(file.size > 0) || file.size > MAX_RAW) throw error('IMAGE_TOO_LARGE', 'Fotoğraf en fazla 30 MB olabilir.');
       const buffer = new Uint8Array(await file.arrayBuffer()); guardedContext(id);
       const dimensions = readImageDimensions(buffer, file.type);
-      if (!dimensions || dimensions.width < 1 || dimensions.height < 1 || dimensions.width > 4096 || dimensions.height > 4096 || dimensions.width * dimensions.height > 16000000) throw error('IMAGE_DIMENSIONS', 'Görsel en fazla 4096×4096 ve 16 megapiksel olabilir.');
-      const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-      let blob;
+      if (!dimensions || dimensions.width < 1 || dimensions.height < 1 || dimensions.width > MAX_IMAGE_SIDE || dimensions.height > MAX_IMAGE_SIDE || dimensions.width * dimensions.height > MAX_IMAGE_PIXELS) throw error('IMAGE_DIMENSIONS', 'Fotoğraf en fazla 64 megapiksel olabilir; kamera ayarından daha düşük çözünürlük seçebilirsin.');
+      let bitmap;
+      try { bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+      catch (_) { throw error('IMAGE_DECODE_FAILED', 'Fotoğraf açılamadı (çok büyük ya da bozuk olabilir). Ekran görüntüsü ya da daha küçük bir fotoğraf dene.'); }
+      let blob, thumb = null;
       try {
         guardedContext(id);
-        if (bitmap.width > 4096 || bitmap.height > 4096 || bitmap.width * bitmap.height > 16000000) throw error('IMAGE_DIMENSIONS', 'Görsel çok büyük.');
+        if (bitmap.width > MAX_IMAGE_SIDE || bitmap.height > MAX_IMAGE_SIDE || bitmap.width * bitmap.height > MAX_IMAGE_PIXELS) throw error('IMAGE_DIMENSIONS', 'Fotoğraf çok büyük.');
         const scale = Math.min(1, 1920 / Math.max(bitmap.width, bitmap.height));
         const canvas = document.createElement('canvas'); canvas.width = Math.max(1, Math.round(bitmap.width * scale)); canvas.height = Math.max(1, Math.round(bitmap.height * scale));
         const ctx = canvas.getContext('2d', { alpha: false }); if (!ctx) throw error('IMAGE_UNSUPPORTED', 'Görsel dönüştürülemedi.'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-        blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.82)); canvas.width = canvas.height = 1;
+        // A very detailed photo can exceed 2 MB at the first quality; step down before giving up.
+        for (const quality of [0.82, 0.72, 0.6]) { blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality)); if (blob && blob.size <= MAX_IMAGE) break; }
+        canvas.width = canvas.height = 1;
+        try {
+          const t = Math.min(1, THUMB_SIDE / Math.max(bitmap.width, bitmap.height)), small = document.createElement('canvas');
+          small.width = Math.max(1, Math.round(bitmap.width * t)); small.height = Math.max(1, Math.round(bitmap.height * t));
+          const sctx = small.getContext('2d', { alpha: false });
+          if (sctx && typeof small.toDataURL === 'function') { sctx.fillStyle = '#fff'; sctx.fillRect(0, 0, small.width, small.height); sctx.drawImage(bitmap, 0, 0, small.width, small.height); for (const quality of [0.72, 0.55]) { const url = small.toDataURL('image/jpeg', quality); if (validThumb(url)) { thumb = url; break; } } }
+          small.width = small.height = 1;
+        } catch (_) { thumb = null; }
       } finally { bitmap.close(); }
       if (!blob || blob.size > MAX_IMAGE) throw error('IMAGE_TOO_LARGE', 'Görseli küçültüp tekrar seç; yükleme sınırı 2 MB.');
       const sha256 = await hash(await blob.arrayBuffer()); guardedContext(id);
@@ -498,8 +519,8 @@
       const imageId = globalThis.crypto.randomUUID(); const name = String(file.name || 'gorsel').replace(/[\\/\u0000-\u001f]/g, '_').slice(0, 120).replace(/\.[^.]+$/, '') + '.jpg';
       let previewUrl = null;
       try { if (typeof URL !== 'undefined' && URL && typeof URL.createObjectURL === 'function') previewUrl = URL.createObjectURL(blob); } catch (_) {}
-      const row = { key: key(id, imageId), ownerId: id, id: imageId, name, mime: 'image/jpeg', size: blob.size, sha256, blob, uploaded: false, createdAt: now() };
-      await store.put('evidence', row); guardedContext(id); return { id: row.id, name: row.name, mime: row.mime, size: row.size, ...(previewUrl ? { previewUrl } : {}) };
+      const row = { key: key(id, imageId), ownerId: id, id: imageId, name, mime: 'image/jpeg', size: blob.size, sha256, blob, ...(thumb ? { thumb } : {}), uploaded: false, createdAt: now() };
+      await store.put('evidence', row); guardedContext(id); return { id: row.id, name: row.name, mime: row.mime, size: row.size, ...(previewUrl ? { previewUrl } : {}), ...(thumb ? { thumb } : {}) };
     }
     async function processDocument(file, id) {
       if (!file || typeof file.arrayBuffer !== 'function') throw error('FILE_INVALID', 'Geçerli bir dosya seç.');
@@ -624,5 +645,5 @@
     }
     return null;
   }
-  return Object.freeze({ create, createHostPort, PROJECTS, readImageDimensions, canonical, classifyFailure, normalizeRoute, makeIDB, TEXT_EXTENSIONS, FILE_ACCEPT, CHAT_BUCKET, limits: Object.freeze({ MAX_TEXT, MAX_ITEMS, MAX_RAW, MAX_IMAGE, MAX_TOTAL, MAX_FILES, MAX_CHAT_FILES, MAX_CHAT_TOTAL, MAX_PDF, MAX_TEXT_FILE }) });
+  return Object.freeze({ create, createHostPort, PROJECTS, readImageDimensions, canonical, classifyFailure, normalizeRoute, makeIDB, TEXT_EXTENSIONS, FILE_ACCEPT, CHAT_BUCKET, limits: Object.freeze({ MAX_TEXT, MAX_ITEMS, MAX_RAW, MAX_IMAGE, MAX_TOTAL, MAX_FILES, MAX_CHAT_FILES, MAX_CHAT_TOTAL, MAX_PDF, MAX_TEXT_FILE, MAX_IMAGE_SIDE, MAX_IMAGE_PIXELS, THUMB_SIDE }), validThumb });
 });

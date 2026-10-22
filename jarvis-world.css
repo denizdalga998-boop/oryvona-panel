@@ -59,7 +59,7 @@
 /* v1.4: professional bottom-sheet attachment menu & chip previews */
 @keyframes jw-sheet-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
 /* v1.4: the world root is isolated (stacking context) below the app's bottom tabs (z 25, z 40 in v26); lift it while the sheet is open so the sheet covers the tabs. */
-.jw-root.jw-sheet-open{position:relative;z-index:60}
+.jw-root.jw-sheet-open,.jw-root.jw-overlay-open{position:relative;z-index:60}
 .jw-attach-sheet{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,6,23,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .jw-attach-backdrop{position:absolute;inset:0}
 .jw-attach-panel{position:relative;z-index:1;width:100%;max-width:520px;border-radius:24px 24px 0 0;background:linear-gradient(180deg,var(--jw-raised),var(--jw-panel));border-top:1px solid var(--jw-line);box-shadow:0 -12px 36px rgba(0,0,0,.45);padding:0 0 calc(14px + var(--jw-bottom));animation:jw-sheet-up 180ms cubic-bezier(.22,1,.36,1)}
@@ -85,3 +85,24 @@
 .jw-message-attachments{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .jw-message-attachment{display:inline-flex;align-items:center;padding:2px 8px;border:1px solid var(--jw-line);border-radius:8px;background:var(--jw-panel);font-size:11px;color:var(--jw-text)}
 @media(prefers-reduced-motion:reduce){.jw-attach-panel,.jw-attach-tile{animation:none!important;transition:none!important}}
+/* v1.5: pictures and files inside chat bubbles (like a messenger), and a full-screen picture viewer. */
+.jw-message-attachments{display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin:2px 0 9px;min-width:0}
+.jw-message-gallery{display:grid;grid-template-columns:repeat(2,118px);gap:4px;max-width:100%;justify-items:start}
+.jw-message-gallery[data-count="1"]{grid-template-columns:minmax(0,240px)}
+.jw-message-image{display:block;padding:0;border:1px solid var(--jw-line);border-radius:14px;overflow:hidden;background:var(--jw-panel);max-width:100%;line-height:0;cursor:zoom-in}
+.jw-message-gallery[data-count="1"] .jw-message-image img{display:block;max-width:100%;max-height:260px;width:auto;height:auto}
+.jw-message-gallery:not([data-count="1"]) .jw-message-image img{display:block;width:118px;height:118px;object-fit:cover}
+.jw-message-image:active{transform:scale(.98)}
+.jw-message-files{display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:100%}
+.jw-message-file{display:inline-flex;align-items:center;gap:10px;min-width:0;max-width:min(280px,100%);padding:8px 12px 8px 8px;border:1px solid var(--jw-line);border-radius:14px;background:var(--jw-panel)}
+.jw-message-file-icon{width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;background:var(--jw-raised);color:var(--jw-accent)}
+.jw-message-file-icon svg{width:18px;height:18px;display:block;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.jw-message-file-meta{display:flex;flex-direction:column;min-width:0;line-height:1.35}
+.jw-message-file-name{font-size:12px;font-weight:600;color:var(--jw-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jw-message-file-sub{font-size:10px;color:var(--jw-muted)}
+.jw-lightbox{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:calc(58px + env(safe-area-inset-top,0px)) 16px calc(24px + var(--jw-bottom));background:rgba(2,6,23,.92);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:jw-fade-in 160ms ease}
+.jw-lightbox-img{display:block;max-width:100%;max-height:calc(100% - 36px);object-fit:contain;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.jw-lightbox-caption{margin:0;max-width:100%;color:var(--jw-muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jw-lightbox-close{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:10px;background:rgba(255,255,255,.08);color:var(--jw-text)}
+@keyframes jw-fade-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.jw-lightbox,.jw-message-image{animation:none!important;transition:none!important}}
