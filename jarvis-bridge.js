@@ -477,6 +477,7 @@
       save: async (scope, value) => { requireAccountKey(value.accountKey); await syncAccount(); const id = requireOwner(); requireAccountKey(value.accountKey); if (scope != null && !PROJECTS.includes(scope)) throw error('PROJECT_REQUIRED', 'Geçersiz kapsam.'); if (typeof value.text !== 'string' || value.text.length > MAX_TEXT) throw error('TEXT_INVALID', 'Taslak çok uzun.'); if (!Array.isArray(value.attachments || []) || (value.attachments || []).length > MAX_CHAT_FILES) throw error('ATTACHMENTS_INVALID','En fazla dört ek.'); const targetKey = key(id, scope || 'studio'); const existing = value.chatHistory === undefined ? await store.get('drafts', targetKey) : null; guardedContext(id); const chatHistory = Array.isArray(value.chatHistory) ? cleanChatHistory(value.chatHistory) : (existing && Array.isArray(existing.chatHistory) ? cleanChatHistory(existing.chatHistory) : undefined); await store.put('drafts', { key: targetKey, ownerId: id, text: value.text, brainPending: cleanBrainPending(value.brainPending), ...(chatHistory ? { chatHistory } : {}), attachments: (value.attachments || []).map(x => ({ id: x.id, name: String(x.name || '').slice(0,124), mime: x.mime, size: x.size })), updatedAt: now() }); guardedContext(id); }
     };
     async function processFile(file, id) {
+      if (file && (/^image\/hei[cf]/i.test(String(file.type || '')) || /\.(?:heic|heif)$/i.test(String(file.name || '')))) throw error('IMAGE_HEIC_UNSUPPORTED', 'HEIC desteklenmiyor; ekran görüntüsü veya JPEG seç.');
       if (!file || file.size > MAX_RAW || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw error('IMAGE_INVALID', 'JPEG, PNG veya WebP seç; dosya en fazla 5 MB olabilir.');
       const buffer = new Uint8Array(await file.arrayBuffer()); guardedContext(id);
       const dimensions = readImageDimensions(buffer, file.type);
@@ -495,8 +496,10 @@
       const sha256 = await hash(await blob.arrayBuffer()); guardedContext(id);
       const existing = await store.all('evidence', id); if (existing.reduce((sum, x) => sum + x.size, 0) + blob.size > MAX_TOTAL) throw error('EVIDENCE_FULL', 'Yerel görsel alanı dolu. Bekleyen istekler korunuyor.');
       const imageId = globalThis.crypto.randomUUID(); const name = String(file.name || 'gorsel').replace(/[\\/\u0000-\u001f]/g, '_').slice(0, 120).replace(/\.[^.]+$/, '') + '.jpg';
+      let previewUrl = null;
+      try { if (typeof URL !== 'undefined' && URL && typeof URL.createObjectURL === 'function') previewUrl = URL.createObjectURL(blob); } catch (_) {}
       const row = { key: key(id, imageId), ownerId: id, id: imageId, name, mime: 'image/jpeg', size: blob.size, sha256, blob, uploaded: false, createdAt: now() };
-      await store.put('evidence', row); guardedContext(id); return { id: row.id, name: row.name, mime: row.mime, size: row.size };
+      await store.put('evidence', row); guardedContext(id); return { id: row.id, name: row.name, mime: row.mime, size: row.size, ...(previewUrl ? { previewUrl } : {}) };
     }
     async function processDocument(file, id) {
       if (!file || typeof file.arrayBuffer !== 'function') throw error('FILE_INVALID', 'Geçerli bir dosya seç.');
@@ -540,8 +543,8 @@
         await syncAccount(); const id = requireOwner();
         requireAccountKey(args.accountKey);
         if (connectionInfo?.attachmentsAvailable === false) throw error('EVIDENCE_UNAVAILABLE', 'Görsel yükleme henüz hazır değil. Metinle komut gönderebilirsin.');
-        const kind = args && args.kind === 'file' ? 'file' : 'image';
-        const isChatKind = args && (args.kind === 'file' || args.kind === 'image');
+        const kind = args && args.kind === 'file' ? 'file' : args && args.kind === 'camera' ? 'camera' : 'image';
+        const isChatKind = args && (args.kind === 'file' || args.kind === 'image' || args.kind === 'camera');
         const cap = isChatKind ? MAX_CHAT_FILES : MAX_FILES;
         if (args && typeof args.maxFiles === 'number' && args.maxFiles < 1) throw error('TOO_MANY_ATTACHMENTS', 'En fazla ' + cap + ' ek seçebilirsin.');
         const limit = Math.min(cap, Math.max(1, Number(args && args.maxFiles) || cap));
@@ -565,7 +568,9 @@
         }
         if (typeof document === 'undefined' || typeof createImageBitmap !== 'function') throw error('IMAGE_UNSUPPORTED', 'Bu tarayıcı görsel eklemeyi desteklemiyor.');
         const files = await new Promise(resolve => {
-          const picker = document.createElement('input'); picker.type = 'file'; picker.accept = 'image/jpeg,image/png,image/webp'; picker.multiple = limit > 1;
+          const picker = document.createElement('input'); picker.type = 'file'; picker.accept = 'image/*';
+          if (kind === 'camera') { picker.capture = 'environment'; if (typeof picker.setAttribute === 'function') picker.setAttribute('capture', 'environment'); picker.multiple = false; }
+          else picker.multiple = limit > 1;
           picker.onchange = () => { resolve(Array.from(picker.files || [])); picker.remove(); };
           picker.oncancel = () => { resolve([]); picker.remove(); }; picker.click();
         });
