@@ -7,8 +7,8 @@
   "scope": "/oryvona-panel/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#040a16",
-  "theme_color": "#040a16",
+  "background_color": "#07040d",
+  "theme_color": "#07040d",
   "lang": "tr",
   "icons": [
     {

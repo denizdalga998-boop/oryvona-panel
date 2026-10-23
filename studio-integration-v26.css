@@ -1,14 +1,14 @@
 /* Company identity and lifecycle fallbacks; no per-frame styles. */
 body.oryvona-v26 #titleBtn[data-v26-legacy-title="true"]{display:none!important}
 .sv-company-brand{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;line-height:1.3;padding-inline:4px;overflow:hidden}
-.sv-company-brand span{font:600 8px/1.4 system-ui,sans-serif;letter-spacing:.18em;color:#83adc9;white-space:nowrap}
-.sv-company-brand strong{font:500 15px/1.3 system-ui,sans-serif;letter-spacing:.06em;color:#e3f3ff;white-space:nowrap}
-.sv-boot-error{padding:24px;color:#a9c4dc;font:14px/1.7 system-ui,sans-serif}
+.sv-company-brand span{font:600 8px/1.4 system-ui,sans-serif;letter-spacing:.18em;color:#918cd4;white-space:nowrap}
+.sv-company-brand strong{font:500 15px/1.3 system-ui,sans-serif;letter-spacing:.06em;color:#ebe4fe;white-space:nowrap}
+.sv-boot-error{padding:24px;color:#b8b5e4;font:14px/1.7 system-ui,sans-serif}
 [id^="v26Legacy-"][hidden]{display:none!important}
-.sv-compat{margin-top:20px;border:1px solid #2b527480;border-radius:18px;background:#091426e8;padding:0 14px;--surface:#0b1729;--surface-2:#10243a;--fg:#ecf6ff;--fg-2:#adc5dc;--fg-3:#8da8c4;--line:#2b527480;--line-2:#315879;--brand:#4de3ff;--brand-soft:#153a54}
-.sv-compat>summary{min-height:52px;display:flex;align-items:center;gap:10px;cursor:pointer;color:#9fc7e6;font:500 12px/1.5 system-ui;list-style:none}
-.sv-compat>summary::after{content:'+';margin-left:auto;color:#4de3ff}
+.sv-compat{margin-top:20px;border:1px solid #452c7080;border-radius:18px;background:#140a24e8;padding:0 14px;--surface:#160c27;--surface-2:#1f1138;--fg:#f2edfe;--fg-2:#bbb8e5;--fg-3:#9692d4;--line:#452c7080;--line-2:#4a3175;--brand:#a26cff;--brand-soft:#2c1750}
+.sv-compat>summary{min-height:52px;display:flex;align-items:center;gap:10px;cursor:pointer;color:#b6b2e7;font:500 12px/1.5 system-ui;list-style:none}
+.sv-compat>summary::after{content:'+';margin-left:auto;color:#a26cff}
 .sv-compat[open]>summary::after{content:'−'}
-.sv-compat>summary:focus-visible{outline:2px solid #4de3ff;outline-offset:3px}
+.sv-compat>summary:focus-visible{outline:2px solid #a26cff;outline-offset:3px}
 .sv-compat #v26Legacy-store{display:flex;flex-direction:column;gap:14px;padding-bottom:14px}
 .sv-compat #v26Legacy-store[hidden]{display:none!important}

@@ -90,7 +90,7 @@
     var brain = node('div', 'sf-brain'), name = node('strong', 'sf-brain-name', snapshot.conversation.label);
     brain.dataset.state = snapshot.conversation.state; brain.append(name); section.append(brain);
     var workers = node('div', 'sf-workers'); workers.setAttribute('aria-label', 'Gerçek işçi bağlantıları');
-    snapshot.workers.forEach(function (worker) { var n = node('div', 'sf-worker'); n.dataset.state = worker.state; n.append(node('span', 'sf-worker-name', worker.label), node('span', 'sf-worker-state', worker.detail)); workers.append(n); }); section.append(workers);
+    snapshot.workers.forEach(function (worker) { var n = node('div', 'sf-worker'); n.dataset.state = worker.state; n.append(node('span', 'sf-worker-name', worker.state === 'disabled' ? worker.label.replace(/ · Kapalı$/, '') : worker.label), node('span', 'sf-worker-state', worker.detail)); workers.append(n); }); section.append(workers);
     if (options.compact !== true || snapshot.flows.length) {
       var details = node('details', 'sf-flows'); details.open = options.compact !== true;
       details.append(node('summary', '', 'İş akışı · ' + snapshot.flows.length));

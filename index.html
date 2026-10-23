@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#040a16">
+<meta name="theme-color" content="#07040d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>ORYVONA ARGON</title>
@@ -17,7 +17,7 @@
 <script src="config.js?v=20261021-argon3"></script>
 <script src="studio-bootstrap.js?v=20261021-personal2"></script>
 <script src="personal-access.js?v=20261021-session1"></script>
-<script src="game-navigation.js?v=20261021-android1"></script>
+<script src="game-navigation.js?v=20261021-v18"></script>
 <script src="command-outbox.js?v=20261020-gemini1"></script>
 <script>if("serviceWorker" in navigator){if(window.__ARGON_NATIVE_BOOT__){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});}else{addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{}));}}</script>
 <style>
@@ -369,13 +369,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
 @media (max-width:420px){.app-head #topLocChip{display:none}}
 </style>
 <link rel="stylesheet" href="native-shell.css?v=20261020-gemini1">
-<link rel="stylesheet" href="jarvis-world.css?v=20261021-r6">
-<link rel="stylesheet" href="jarvis-v23-shell.css?v=20261020-gemini1">
-<link rel="stylesheet" href="studio-v26.css?v=20261021-r12">
-<link rel="stylesheet" href="studio-integration-v26.css?v=20261020-gemini1">
+<link rel="stylesheet" href="jarvis-world.css?v=20261021-v18">
+<link rel="stylesheet" href="jarvis-v23-shell.css?v=20261021-v18">
+<link rel="stylesheet" href="studio-v26.css?v=20261021-v18">
+<link rel="stylesheet" href="studio-integration-v26.css?v=20261021-v18">
 <script src="studio-facade-v26.js?v=20261021-personal2"></script>
 <script src="studio-decisions-v26.js?v=20261020-gemini1"></script>
-<link rel="stylesheet" href="studio-flow.css?v=20261021-argon3">
+<link rel="stylesheet" href="studio-flow.css?v=20261021-v18">
 </head>
 <body class="oryvona-v26">
 <header class="app-shell-top" id="topbar">
@@ -397,7 +397,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
   <div class="scrim" id="drawerScrim"></div>
   <aside class="dpanel" aria-label="Menü">
     <button type="button" class="lm-close drawer-close" id="drawerClose" aria-label="Kapat" data-i18n-aria="ui.close">✕</button>
-    <div class="dhead"><img src="logo.png" alt=""><div><b>Oryvona Games</b><span id="drawerUser">Stüdyo paneli</span></div></div>
+    <div class="dhead"><img src="mark.png" alt=""><div><b>Oryvona Games</b><span id="drawerUser">Stüdyo paneli</span></div></div>
     <div class="secthead" data-i18n="ui.games">Oyunlar</div>
     <div class="dlist" id="drawerGames"></div>
     <div class="secthead" data-i18n="ui.help">Yardım</div>
@@ -752,7 +752,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         test_publish:g=>`${g} oyununun son paketini arka planda doğrula, test durumunu kontrol et ve yayına hazırlık özetini ver.`
       }
     },
-    games:{sub:"Stüdyodaki 5 oyunumuz · dokununca komuta paneli açılır",noStatus:"Henüz durum verisi yok",notLinked:"Panele bağlı değil",noProjects:"Henüz proje yok.",allGames:"Tüm oyunlar (5)"},
+    games:{sub:"Stüdyodaki oyunlar · dokununca komuta paneli açılır",noStatus:"Henüz durum verisi yok",notLinked:"Panele bağlı değil",noProjects:"Henüz proje yok.",allGames:"Tüm oyunlar"},
     home:{whatNow:"Şimdi ne yapmalıyım?",whatNowMap:{
         USER_TEST_READY:"Sıra sende: Oyunu telefonunda deneyip son onayını verebilirsin.",
         BLOCKED:"Teknik bir sınır var: Komut Kutusu'ndan ekibe yeni yönlendirme verebilirsin.",
@@ -857,7 +857,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
         test_publish:g=>`${g} oyununun son paketini arka planda doğrula, test durumunu kontrol et ve yayına hazırlık özetini ver.`
       }
     },
-    games:{sub:"5 studio games · tap to open its command panel",noStatus:"No status data yet",notLinked:"Not linked to the panel",noProjects:"No projects yet.",allGames:"All games (5)"},
+    games:{sub:"Studio games · tap to open its command panel",noStatus:"No status data yet",notLinked:"Not linked to the panel",noProjects:"No projects yet.",allGames:"All games"},
     home:{whatNow:"What should I do now?",whatNowMap:{
         USER_TEST_READY:"Your turn: Try the game on your phone and give final approval.",
         BLOCKED:"Technical limit: You can guide the team from the Command Box below.",
@@ -1348,7 +1348,7 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
   // ---------- theme ----------
   const mq=matchMedia("(prefers-color-scheme: dark)");
-  const applyTheme=t=>{const dark=t==="dark"||(t==="system"&&mq.matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");document.querySelector('meta[name="theme-color"]').setAttribute("content",document.body.classList.contains("oryvona-v26")?"#040a16":dark?"#0b0a1e":"#12112e");
+  const applyTheme=t=>{const dark=t==="dark"||(t==="system"&&mq.matches);document.documentElement.setAttribute("data-theme",dark?"dark":"light");document.querySelector('meta[name="theme-color"]').setAttribute("content",document.body.classList.contains("oryvona-v26")?"#07040d":dark?"#0b0a1e":"#12112e");
     document.querySelectorAll("#themeSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===t)));if(status)renderTimeline("tl",24);};
   const themePref=()=>{try{return localStorage.getItem("oryvona.theme")||"light";}catch{return"light";}};
   applyTheme(themePref());mq.addEventListener("change",()=>{if(themePref()==="system")applyTheme("system");});
@@ -2385,17 +2385,17 @@ textarea{width:100%;min-height:80px;resize:vertical}
 
 <script src="native-shell.js?v=20261021-android1"></script>
 <script src="game-lab.js?v=20261021-android1"></script>
-<script src="jarvis-energy.js?v=20261020-gemini1"></script>
+<script src="jarvis-energy.js?v=20261021-v18"></script>
 <script src="jarvis-bridge.js?v=20261021-sync1"></script>
 <script src="supabase-host-port.js?v=20261021-sync1"></script>
 <script src="studio-data-v26.js?v=20261020-gemini1"></script>
 <script src="jarvis-brief.js?v=20261020-gemini1"></script>
 <script src="studio-gemini-client.js?v=20261021-argon3"></script>
 <script src="jarvis-voice.js?v=20261021-sync1"></script>
-<script src="studio-world-v26.js?v=20261021-personal2"></script>
-<script src="jarvis-world.js?v=20261021-sync1"></script>
+<script src="studio-world-v26.js?v=20261021-v18"></script>
+<script src="jarvis-world.js?v=20261021-v18"></script>
 <script src="studio-v26-bootstrap.js?v=20261021-personal2"></script>
-<script src="studio-flow.js?v=20261021-argon3"></script>
+<script src="studio-flow.js?v=20261021-v18"></script>
 <script src="studio-flow-bootstrap.js?v=20261021-argon3"></script>
 </body>
 </html>
