@@ -17,7 +17,7 @@
 <script src="config.js?v=20261021-argon3"></script>
 <script src="studio-bootstrap.js?v=20261021-personal2"></script>
 <script src="personal-access.js?v=20261021-session1"></script>
-<script src="game-navigation.js?v=20261021-v18"></script>
+<script src="game-navigation.js?v=20261021-v19"></script>
 <script src="command-outbox.js?v=20261020-gemini1"></script>
 <script>if("serviceWorker" in navigator){if(window.__ARGON_NATIVE_BOOT__){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});}else{addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(()=>{}));}}</script>
 <style>
@@ -371,26 +371,48 @@ textarea{width:100%;min-height:80px;resize:vertical}
 <link rel="stylesheet" href="native-shell.css?v=20261020-gemini1">
 <link rel="stylesheet" href="jarvis-world.css?v=20261021-v18">
 <link rel="stylesheet" href="jarvis-v23-shell.css?v=20261021-v18">
-<link rel="stylesheet" href="studio-v26.css?v=20261021-v18">
+<link rel="stylesheet" href="studio-v26.css?v=20261021-v19">
 <link rel="stylesheet" href="studio-integration-v26.css?v=20261021-v18">
 <script src="studio-facade-v26.js?v=20261021-personal2"></script>
 <script src="studio-decisions-v26.js?v=20261020-gemini1"></script>
 <link rel="stylesheet" href="studio-flow.css?v=20261021-v18">
 </head>
 <body class="oryvona-v26">
-<!-- v1.8.1: opening title (about 2.5 s): the ring from the splash wakes up, a beam cuts it, ORYVONA GAMES appears. Tap skips. -->
-<div id="ovIntro" aria-hidden="true"><div class="ovi-glow"></div><div class="ovi-wave"></div><div class="ovi-ring"></div><div class="ovi-beam"></div><div class="ovi-word"></div></div>
-<script>(()=>{const el=document.getElementById("ovIntro");if(!el)return;let seen=false;try{seen=sessionStorage.getItem("ov-intro")==="1";sessionStorage.setItem("ov-intro","1");}catch(_){}
-const reduce=matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;if(seen){el.remove();return;}
-const done=()=>{if(!el.isConnected)return;el.classList.add("ovi-out");setTimeout(()=>el.remove(),520);};el.addEventListener("pointerdown",done,{once:true});
-el.classList.add(reduce?"ovi-still":"ovi-play");setTimeout(done,reduce?900:2150);if(reduce)return;
-/* Sound: a deep boom, a rising whoosh and a soft shimmer, synthesised (no file). Silent if the system keeps audio locked. */
-try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=new AC(),now=ac.currentTime+0.05,out=ac.createGain();out.gain.value=0.55;out.connect(ac.destination);
-const boom=(t)=>{const o=ac.createOscillator(),g=ac.createGain();o.type="sine";o.frequency.setValueAtTime(78,t);o.frequency.exponentialRampToValueAtTime(32,t+1.1);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.9,t+0.03);g.gain.exponentialRampToValueAtTime(0.0001,t+1.4);o.connect(g).connect(out);o.start(t);o.stop(t+1.5);};
-const whoosh=(t)=>{const n=ac.createBuffer(1,ac.sampleRate*0.9,ac.sampleRate),d=n.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;const src=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();src.buffer=n;f.type="bandpass";f.Q.value=1.4;f.frequency.setValueAtTime(220,t);f.frequency.exponentialRampToValueAtTime(3200,t+0.55);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.32,t+0.45);g.gain.exponentialRampToValueAtTime(0.0001,t+0.85);src.connect(f).connect(g).connect(out);src.start(t);};
-const chime=(t,fq,v)=>{const o=ac.createOscillator(),g=ac.createGain();o.type="triangle";o.frequency.value=fq;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+1.2);o.connect(g).connect(out);o.start(t);o.stop(t+1.3);};
-const play=()=>{const t=ac.currentTime+0.02;whoosh(t);boom(t+0.40);chime(t+0.78,659.3,0.10);chime(t+0.86,987.8,0.07);chime(t+0.94,1318.5,0.05);setTimeout(()=>ac.close().catch(()=>{}),2600);};
-if(ac.state==="running")play();else ac.resume().then(()=>{if(ac.state==="running")play();}).catch(()=>{});}catch(_){}})();</script>
+<!-- v1.9 opening title "uzaya giriş" (~3.4 s, once per app start): the camera flies in to the black hole, ORYVONA GAMES surfaces, then a dive into the hole reveals the app. Space sound is synthesised (no file). Tap skips. -->
+<script src="jarvis-energy.js?v=20261021-v19"></script>
+<div id="ovIntro" aria-hidden="true"><canvas class="ovi-sky"></canvas><div class="ovi-title"><span class="ovi-name"><i style="--i:0">O</i><i style="--i:1">R</i><i style="--i:2">Y</i><i style="--i:3">V</i><i style="--i:4">O</i><i style="--i:5">N</i><i style="--i:6">A</i></span><span class="ovi-line"></span><span class="ovi-sub">GAMES</span></div><div class="ovi-flash"></div></div>
+<script>(()=>{const el=document.getElementById("ovIntro");if(!el)return;const root=document.documentElement;let seen=false;try{seen=sessionStorage.getItem("ov-intro")==="1";sessionStorage.setItem("ov-intro","1");}catch(_){}
+if(seen){el.remove();return;}
+const reduce=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);root.setAttribute("data-ov-intro","");
+let core=null,audio=null,raf=0,ended=false,going=false;const t0=performance.now();
+const finish=skip=>{if(ended)return;ended=true;cancelAnimationFrame(raf);el.classList.add("ovi-out");root.removeAttribute("data-ov-intro");try{document.dispatchEvent(new Event("ov-intro-end"));}catch(_){}
+  if(audio)audio.fade(skip===true);setTimeout(()=>{try{if(core)core.destroy();}catch(_){}el.remove();},480);};
+/* Camera flight (Schwarzschild radii, degrees): from far away and nearly edge-on, a steep diagonal disk turns towards us while we close in; then the dive. */
+const ease=u=>{u=Math.min(1,Math.max(0,u));return 0.5-0.5*Math.cos(Math.PI*u);};
+const cam=s=>{if(s<2.75){const e=ease(s/2.75),f=1-Math.pow(1-Math.min(1,s/2.75),2);return{dist:160*Math.pow(19/160,f),incl:87-23*e,tilt:62-82*e};}const u=Math.min(1,(s-2.75)/0.5),k=Math.pow(u,1.6);return{dist:19-17.2*k,incl:64-24*k,tilt:-20-90*k};};
+const tick=now=>{const s=(now-t0)/1000;if(core){try{core.setCamera(cam(s));}catch(_){}}if(s>=2.75&&!going){going=true;el.classList.add("ovi-go");if(audio)audio.dive();}if(s>=3.32){finish();return;}raf=requestAnimationFrame(tick);};
+el.addEventListener("pointerdown",()=>finish(true),{once:true});
+try{const E=window.JarvisEnergyCore;if(E&&typeof E.mount==="function"){core=E.mount(el.querySelector(".ovi-sky"),{state:"idle",fps:60,intro:true,reducedMotion:reduce});core.setCamera(reduce?{dist:22,incl:66,tilt:-16}:cam(0));}}catch(_){core=null;}
+if(reduce){el.classList.add("ovi-still");setTimeout(finish,1400);return;}
+el.classList.add("ovi-play");raf=requestAnimationFrame(tick);setTimeout(finish,4200);
+/* Space sound: a deep drone that swells, cosmic wind rising through a band filter, a high shimmer far away in a long
+   reverb, and at the dive a rushing sweep with a sub drop. Silent if the system keeps audio locked. */
+try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=new AC(),out=ac.createGain(),comp=ac.createDynamicsCompressor();
+  comp.threshold.value=-16;comp.ratio.value=4;out.gain.value=0.85;out.connect(comp);comp.connect(ac.destination);
+  const sr=ac.sampleRate,len=Math.floor(sr*3.4),ir=ac.createBuffer(2,len,sr);for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.8);}
+  const verb=ac.createConvolver();verb.buffer=ir;const wet=ac.createGain();wet.gain.value=0.6;verb.connect(wet);wet.connect(out);
+  const brown=sec=>{const b=ac.createBuffer(2,Math.floor(sr*sec),sr);for(let c=0;c<2;c++){const d=b.getChannelData(c);let l=0;for(let i=0;i<d.length;i++){l=(l+0.02*(Math.random()*2-1))/1.02;d[i]=l*3.4;}}return b;};
+  const env=(g,t,peak,att,hold,rel)=>{g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+att);g.gain.setValueAtTime(peak,t+att+hold);g.gain.exponentialRampToValueAtTime(0.0001,t+att+hold+rel);};
+  let started=false;
+  const play=()=>{if(started)return;started=true;const T=ac.currentTime+0.03;
+    [[36.7,0.30],[55.0,0.15],[73.4,0.06]].forEach(([f,v])=>{const o=ac.createOscillator(),g=ac.createGain();o.type="sine";o.frequency.setValueAtTime(f,T);o.frequency.linearRampToValueAtTime(f*1.03,T+2.7);env(g,T,v,1.9,0.9,0.9);o.connect(g);g.connect(out);g.connect(verb);o.start(T);o.stop(T+3.8);});
+    {const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();s.buffer=brown(3.6);f.type="bandpass";f.Q.value=0.8;f.frequency.setValueAtTime(160,T);f.frequency.exponentialRampToValueAtTime(820,T+2.7);env(g,T,0.55,2.0,0.6,0.7);s.connect(f);f.connect(g);g.connect(out);g.connect(verb);s.start(T);s.stop(T+3.5);}
+    [659.25,987.77,1318.5,1760.0].forEach((f,k)=>{[-5,5].forEach(dt=>{const o=ac.createOscillator(),g=ac.createGain();o.type="sine";o.frequency.value=f;o.detune.value=dt;env(g,T+0.7+k*0.18,0.012,1.3,0.5,0.8);o.connect(g);g.connect(verb);o.start(T+0.6);o.stop(T+3.9);});});};
+  audio={dive:()=>{if(!started)return;const T=ac.currentTime+0.01;
+      {const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();s.buffer=brown(1.3);f.type="bandpass";f.Q.value=1.2;f.frequency.setValueAtTime(500,T);f.frequency.exponentialRampToValueAtTime(5200,T+0.45);f.frequency.exponentialRampToValueAtTime(300,T+1.1);env(g,T,0.95,0.32,0.05,0.8);s.connect(f);f.connect(g);g.connect(out);g.connect(verb);s.start(T);s.stop(T+1.3);}
+      {const o=ac.createOscillator(),g=ac.createGain();o.type="sine";o.frequency.setValueAtTime(96,T+0.32);o.frequency.exponentialRampToValueAtTime(28,T+1.6);env(g,T+0.32,0.85,0.02,0.05,1.5);o.connect(g);g.connect(out);g.connect(verb);o.start(T+0.3);o.stop(T+2.0);}},
+    fade:quick=>{try{out.gain.setTargetAtTime(0.0001,ac.currentTime+(quick?0.02:1.5),quick?0.12:0.5);setTimeout(()=>ac.close().catch(()=>{}),4200);}catch(_){}}};
+  if(ac.state==="running")play();else ac.resume().then(()=>{if(ac.state==="running")play();}).catch(()=>{});}catch(_){audio=null;}})();</script>
 <header class="app-shell-top" id="topbar">
   <div class="app-top-inner">
     <div class="app-head">
@@ -2398,14 +2420,13 @@ if(ac.state==="running")play();else ac.resume().then(()=>{if(ac.state==="running
 
 <script src="native-shell.js?v=20261021-android1"></script>
 <script src="game-lab.js?v=20261021-android1"></script>
-<script src="jarvis-energy.js?v=20261021-v18"></script>
 <script src="jarvis-bridge.js?v=20261021-sync1"></script>
 <script src="supabase-host-port.js?v=20261021-sync1"></script>
 <script src="studio-data-v26.js?v=20261020-gemini1"></script>
 <script src="jarvis-brief.js?v=20261020-gemini1"></script>
 <script src="studio-gemini-client.js?v=20261021-argon3"></script>
 <script src="jarvis-voice.js?v=20261021-sync1"></script>
-<script src="studio-world-v26.js?v=20261021-v18"></script>
+<script src="studio-world-v26.js?v=20261021-v19"></script>
 <script src="jarvis-world.js?v=20261021-v18"></script>
 <script src="studio-v26-bootstrap.js?v=20261021-personal2"></script>
 <script src="studio-flow.js?v=20261021-v18"></script>
