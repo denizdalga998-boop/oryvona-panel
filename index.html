@@ -378,6 +378,19 @@ textarea{width:100%;min-height:80px;resize:vertical}
 <link rel="stylesheet" href="studio-flow.css?v=20261021-v18">
 </head>
 <body class="oryvona-v26">
+<!-- v1.8.1: opening title (about 2.5 s): the ring from the splash wakes up, a beam cuts it, ORYVONA GAMES appears. Tap skips. -->
+<div id="ovIntro" aria-hidden="true"><div class="ovi-glow"></div><div class="ovi-wave"></div><div class="ovi-ring"></div><div class="ovi-beam"></div><div class="ovi-word"></div></div>
+<script>(()=>{const el=document.getElementById("ovIntro");if(!el)return;let seen=false;try{seen=sessionStorage.getItem("ov-intro")==="1";sessionStorage.setItem("ov-intro","1");}catch(_){}
+const reduce=matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;if(seen){el.remove();return;}
+const done=()=>{if(!el.isConnected)return;el.classList.add("ovi-out");setTimeout(()=>el.remove(),520);};el.addEventListener("pointerdown",done,{once:true});
+el.classList.add(reduce?"ovi-still":"ovi-play");setTimeout(done,reduce?900:2150);if(reduce)return;
+/* Sound: a deep boom, a rising whoosh and a soft shimmer, synthesised (no file). Silent if the system keeps audio locked. */
+try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=new AC(),now=ac.currentTime+0.05,out=ac.createGain();out.gain.value=0.55;out.connect(ac.destination);
+const boom=(t)=>{const o=ac.createOscillator(),g=ac.createGain();o.type="sine";o.frequency.setValueAtTime(78,t);o.frequency.exponentialRampToValueAtTime(32,t+1.1);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.9,t+0.03);g.gain.exponentialRampToValueAtTime(0.0001,t+1.4);o.connect(g).connect(out);o.start(t);o.stop(t+1.5);};
+const whoosh=(t)=>{const n=ac.createBuffer(1,ac.sampleRate*0.9,ac.sampleRate),d=n.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;const src=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();src.buffer=n;f.type="bandpass";f.Q.value=1.4;f.frequency.setValueAtTime(220,t);f.frequency.exponentialRampToValueAtTime(3200,t+0.55);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.32,t+0.45);g.gain.exponentialRampToValueAtTime(0.0001,t+0.85);src.connect(f).connect(g).connect(out);src.start(t);};
+const chime=(t,fq,v)=>{const o=ac.createOscillator(),g=ac.createGain();o.type="triangle";o.frequency.value=fq;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+1.2);o.connect(g).connect(out);o.start(t);o.stop(t+1.3);};
+const play=()=>{const t=ac.currentTime+0.02;whoosh(t);boom(t+0.40);chime(t+0.78,659.3,0.10);chime(t+0.86,987.8,0.07);chime(t+0.94,1318.5,0.05);setTimeout(()=>ac.close().catch(()=>{}),2600);};
+if(ac.state==="running")play();else ac.resume().then(()=>{if(ac.state==="running")play();}).catch(()=>{});}catch(_){}})();</script>
 <header class="app-shell-top" id="topbar">
   <div class="app-top-inner">
     <div class="app-head">

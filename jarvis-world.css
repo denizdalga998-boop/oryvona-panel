@@ -160,8 +160,8 @@
 .jw-root .jw-shell .jw-orb-stage,.jw-root .jw-shell[data-conversation="true"] .jw-orb-stage,.jw-root .jw-shell[data-compact="true"] .jw-orb-stage{position:absolute;inset:0;top:0;left:0;transform:none;z-index:0;display:block;opacity:1;padding:0;pointer-events:none}
 .jw-root .jw-shell[data-tight="true"] .jw-orb-stage{display:none}
 .jw-root .jw-shell .jw-energy,.jw-root .jw-shell[data-compact="true"] .jw-energy{position:absolute;inset:0;width:100%;height:100%;max-width:none;border-radius:0;background:none;overflow:hidden;pointer-events:none}
-.jw-root .jw-shell .jw-energy canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:0;--bh-x:50%;--bh-y:31%;--bh-r:27%;--bh-dim:0;--bh-stars:1}
-.jw-root .jw-shell[data-conversation="true"] .jw-energy canvas{--bh-y:45%;--bh-r:40%;--bh-dim:.72;--bh-stars:.8}
+.jw-root .jw-shell .jw-energy canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:0;--bh-x:50%;--bh-y:31%;--bh-r:42%;--bh-dim:0;--bh-stars:1;--bh-tilt:-24;--bh-incl:76}
+.jw-root .jw-shell[data-conversation="true"] .jw-energy canvas{--bh-y:44%;--bh-r:62%;--bh-dim:.66;--bh-stars:.8;--bh-tilt:16;--bh-incl:71}
 .jw-root .jw-energy[data-energy-fallback="mark"]{background:radial-gradient(circle at 50% 31%,rgba(110,60,230,.28),transparent 42%),url(mark.png) 50% 31%/min(56vw,250px) no-repeat}
 .jw-root .jw-shell[data-conversation="true"] .jw-energy[data-energy-fallback="mark"]{opacity:.32;background-position:50% 45%,50% 45%}
 .jw-root .jw-orb-label,.jw-root .jw-orb-hint{display:none}

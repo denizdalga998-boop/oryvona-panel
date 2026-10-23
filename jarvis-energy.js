@@ -99,7 +99,7 @@
       '#else',
       'precision mediump float;',
       '#endif',
-      'uniform vec2 uRes;uniform vec4 uGeo;uniform vec4 uA;uniform vec4 uB;uniform vec4 uC;',
+      'uniform vec2 uRes;uniform vec4 uGeo;uniform vec4 uA;uniform vec4 uB;uniform vec4 uC;uniform vec4 uD;',
       'uniform vec4 uSparks[' + sparks + '];uniform vec4 uJobs[' + jobs + '];',
       'float hash21(vec2 p){p=fract(p*vec2(234.34,435.345));p+=dot(p,p+34.23);return fract(p.x*p.y);}',
       'float vnoise(vec2 p){vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);',
@@ -112,6 +112,22 @@
       'float angle(vec2 v){return atan(v.y,abs(v.x)+abs(v.y)<1e-6?1.0:v.x);}',
       // A comet on the ring: d>0 is behind the head (long tail), d<0 ahead of it (quick soft edge).
       'float arcGlow(float d){return d>=0.0?exp(-d*1.7):exp(-d*d*160.0);}',
+      // Disk emission at disk radius rd (horizon 0.40) and disk angle ad: two crossfaded Keplerian layers keep the
+      // differential rotation from shearing forever; white-hot inside, lilac, violet, deep blue outside; dust lanes.
+      'vec3 diskEmit(float rd,float ad,float rot,float energy,float level){',
+      '  if(rd<0.52||rd>6.0)return vec3(0.0);',
+      '  float kep=1.0/pow(max(rd,0.6),1.5);float P=4.0;float r1=mod(rot,P);float r2=mod(rot+0.5*P,P);float w=abs(r1/P*2.0-1.0);',
+      '  float a1=ad+r1*kep*1.6;float a2=ad+r2*kep*1.6;vec2 c1=vec2(cos(a1),sin(a1))*2.4;vec2 c2=vec2(cos(a2),sin(a2))*2.4;',
+      '  float lr=log(rd);vec2 k=vec2(lr*15.0,lr*11.0);',
+      '  float n=mix(fbm(c1+k),fbm(c2+k+17.0),w);float ridge=1.0-abs(2.0*n-1.0);ridge=ridge*ridge*ridge;',
+      '  float dust=mix(fbm2(c1*1.3+k*0.45+3.0),fbm2(c2*1.3+k*0.45+31.0),w);',
+      '  float prof=smoothstep(0.54,0.72,rd)*exp(-(rd-0.62)*1.05);',
+      '  float heat=clamp(exp(-(rd-0.62)*1.7)*1.1+ridge*0.22,0.0,1.0);',
+      '  vec3 c=mix(mix(vec3(0.22,0.08,1.35),vec3(0.95,0.62,3.0),smoothstep(0.12,0.55,heat)),vec3(3.2,2.8,3.3),smoothstep(0.55,0.95,heat));',
+      '  return c*prof*(0.30+1.05*ridge)*(1.0-0.78*smoothstep(0.38,0.78,dust))*(0.85+0.35*energy+0.30*level);}',
+      // Faint galactic arms beyond the disk (log spirals with dusty texture).
+      'float arms(float rd,float ad,float rot){if(rd<1.1)return 0.0;float s=ad-log(rd)*2.6+rot*0.04;float a=sq(sq(0.5+0.5*cos(2.0*s)));',
+      '  float f=fbm2(vec2(cos(ad),sin(ad))*3.0+log(rd)*5.0+7.0);return a*f*exp(-(rd-1.1)*0.42)*smoothstep(1.1,2.0,rd);}',
       // One candidate star per cell, sized in real pixels, so lensing stretches the stars near the hole into arcs.
       'vec3 starLayer(vec2 px,float cell,float density,float size,float seed,float t){',
       '  vec2 g=px/cell;vec2 id=floor(g);vec2 f=fract(g);float h=hash21(id+seed);if(h>density)return vec3(0.0);',
@@ -133,56 +149,28 @@
       '  col+=vec3(0.62,0.22,1.0)*exp(-max(r-1.0,0.0)*4.2)*smoothstep(0.66,0.98,r)*(0.20+0.14*energy+0.10*level);',
       '  col+=vec3(0.30,0.08,0.62)*exp(-max(r-1.0,0.0)*1.1)*0.075*uC.w;',
       '  col+=vec3(0.62,0.32,1.0)*pow(max(ripple,0.0),10.0)*wv*0.24;',
-      // The accretion ring, cut by the slash like the logo: the upper-left half is thick and white-hot and pours into
-      // the cut; the lower-right half is thinner, violet-blue, and keeps a dark gap from it. Fine filaments stream
-      // around (two crossfaded layers keep the differential rotation from shearing forever).
-      '  vec2 sd=vec2(0.6025,0.7981);vec2 sn=vec2(-sd.y,sd.x);float dn=dot(p,sn)-0.045;float side=dn>=0.0?1.0:-1.0;float cut=abs(dn);',
-      '  vec2 pr=p-sd*side*0.018;float rr=length(pr);float tr=angle(pr);',
-      '  float dop=0.5+0.5*cos(tr-2.40);float outerR=0.905+0.14*dop;float u=(rr-0.685)/(outerR-0.685);',
-      '  vec3 HOT=vec3(3.2,2.75,3.2);',
-      '  if(u>-0.1&&u<1.9){',
-      '    float kep=1.0/pow(max(rr,0.6),1.5);float P=4.0;float r1=mod(uA.y,P);float r2=mod(uA.y+0.5*P,P);float wgt=abs(r1/P*2.0-1.0);',
-      '    float a1=tr+r1*kep;float a2=tr+r2*kep;vec2 c1=vec2(cos(a1),sin(a1))*2.1;vec2 c2=vec2(cos(a2),sin(a2))*2.1;',
-      '    vec2 k=vec2(rr*31.0,rr*23.0);',
-      '    float n=mix(fbm(c1+k),fbm(c2+k+17.0),wgt);float ridge=1.0-abs(2.0*n-1.0);ridge=ridge*ridge*ridge;',
-      '    float coarse=mix(fbm2(c1*0.6+rr*4.0+5.0),fbm2(c2*0.6+rr*4.0+29.0),wgt);',
-      '    float band=smoothstep(0.0,0.05,u)*(1.0-smoothstep(0.70,1.04,u));float edge=exp(-sq(u/0.11));',
-      '    float heat=clamp((1.0-u)*(0.30+0.52*dop)+0.50*ridge*(0.45+0.55*dop)+0.22*(coarse-0.5)+0.30*edge-0.04,0.0,1.0);',
-      '    vec3 VIO=vec3(0.50,0.20,3.0);vec3 LIL=vec3(0.95,0.72,3.1);vec3 MAG=vec3(1.15,0.16,3.0);',
-      '    vec3 rc=mix(mix(VIO,LIL,clamp(heat*2.0,0.0,1.0)),HOT,clamp(heat*2.0-1.0,0.0,1.0));',
-      '    float bright=band*(0.30+0.70*(0.35+0.65*ridge)*(0.75+0.5*coarse))*mix(0.55,1.25,dop)*(0.85+0.35*energy+0.35*level);',
-      '    float rim=exp(-sq((u-0.95)/0.09))*(0.55+0.45*coarse);float halo=exp(-max(u-0.95,0.0)*5.5)*smoothstep(0.55,0.95,u);',
-      '    float gap=side>0.0?0.30+0.70*smoothstep(0.0,0.024,cut):smoothstep(0.03,0.072,cut);',
-      '    vec3 ring=rc*bright+MAG*rim*(0.32+0.30*dop)+vec3(0.32,0.03,0.58)*halo*0.85;',
-      '    if(side>0.0)ring+=vec3(1.6,1.0,3.0)*exp(-cut/0.03)*band*0.45;',
-      // Thinking: two hot arcs race around the inner edge with the flow.
-      '    if(uB.y>0.01){float hd=-t*2.3;float d1=mod(tr-hd+3.1415927,6.2831853)-3.1415927;float d2=mod(tr-hd,6.2831853)-3.1415927;',
-      '      ring+=HOT*(arcGlow(d1)+arcGlow(d2))*exp(-sq((u-0.20)/0.17))*uB.y*0.6;}',
-      '    col+=ring*gap;',
-      '  }',
-      '  col+=vec3(0.75,0.55,1.0)*uB.y*(0.5+0.5*sin(t*4.2))*exp(-sq((r-0.76)/0.09))*0.28;',
-      // The event horizon swallows everything behind it.
-      '  float horizon=smoothstep(0.655,0.688,r);col*=horizon;float alpha=1.0-horizon;',
-      // Photon ring: thin and bright on the hot side; it answers the voice.
-      '  float pr0=0.688+0.004*sin(th*3.0+t*0.9);float photon=exp(-sq((r-pr0)/0.0085));',
+      // v1.8.1 "sinema" black hole: a thin accretion disk seen from an angle (tilt and inclination come from CSS), its far
+      // side lensed into an arc over the hole, fine plasma filaments streaming around (inner edge faster), dark dust
+      // lanes, the approaching side brighter, and faint galactic arms swirling out into the sky.
+      '  vec2 rp=vec2(uD.x*p.x+uD.y*p.y,-uD.y*p.x+uD.x*p.y);float ci=max(uD.z,0.08);float H=0.40;',
+      '  vec2 dp=vec2(rp.x,rp.y/ci);float rd=length(dp);float ad=angle(dp);',
+      '  float thick=min(0.32/ci,2.2)+0.35;float beam=0.50+1.10*(0.5-0.5*cos(ad));',
+      '  vec3 disk=diskEmit(rd,ad,uA.y,energy,level)*beam*thick+vec3(0.30,0.12,1.05)*arms(rd,ad,uA.y)*1.1*uC.w;',
+      // Thinking: two hot comets race around the inner edge of the disk.
+      '  if(uB.y>0.01){float hd=-t*2.3;float d1=mod(ad-hd+3.1415927,6.2831853)-3.1415927;float d2=mod(ad-hd,6.2831853)-3.1415927;',
+      '    disk+=vec3(3.2,2.75,3.2)*(arcGlow(d1)+arcGlow(d2))*exp(-sq((rd-0.74)/0.10))*uB.y*0.55*thick*0.6;}',
+      // Lensed image of the disk's far side: an arc hugging the hole, strongest over the top, a thin one underneath.
+      '  float up=rp.y/max(r,0.0001);float lw=smoothstep(H*0.99,H*1.06,r)*exp(-max(r-H*1.06,0.0)*3.4);',
+      '  float al=angle(rp);vec3 lens=diskEmit(0.62+(r-H)*2.3,al,uA.y,energy,level)*lw*1.5*(0.20+1.20*sq(0.5+0.5*up))*(0.55+1.0*(0.5-0.5*cos(al)));',
+      '  float far=smoothstep(-0.015,0.015,rp.y);',
+      '  col+=vec3(0.55,0.22,1.0)*exp(-max(r-H,0.0)*3.0)*(0.18+0.12*energy)*smoothstep(H*0.9,H*1.2,r);',
+      '  col+=lens+disk*far;',
+      '  float sky=fbm(q*1.6+vec2(7.0,3.0));col*=1.0-0.55*smoothstep(0.55,0.85,sky)*smoothstep(0.5,1.4,r)*uC.w;',
+      // The event horizon swallows everything behind it; the near half of the disk passes in front of it.
+      '  float horizon=smoothstep(H*0.965,H*1.0,r);col*=horizon;float alpha=1.0-horizon;',
       '  float pulse=1.0+1.2*level+uB.y*0.45*(0.5+0.5*sin(t*6.0));',
-      '  float pd=0.5+0.5*cos(th-2.4);col+=mix(vec3(0.55,0.42,1.6),vec3(1.25,1.12,1.3),pd)*photon*(0.70+0.40*pd)*pulse;',
-      // The slash of the logo: a tapered blade of light with a wandering electric core, a second strand that splits
-      // off and rejoins, sparks running along it, brightest where it crosses the ring.
-      '  float s=dot(p,sd);float L=s>0.0?1.78:1.52;float env=clamp(1.0-sq(s/L),0.0,1.0);',
-      '  if(env>0.0&&cut<0.6&&uB.x>0.01){',
-      '    float wander=0.25+0.75*(1.0-env);',
-      '    float j=(vnoise(vec2(s*5.0-t*0.9,3.1))-0.5)*0.034+(vnoise(vec2(s*14.0+t*2.3,7.7))-0.5)*0.016+(vnoise(vec2(s*41.0-t*5.9,1.3))-0.5)*0.007;',
-      '    float dl=dn-j*wander;float dd=abs(dl);float w=0.0028+0.0080*env;float core=exp(-dd*dd/(w*w));',
-      '    float split=smoothstep(0.50,0.80,vnoise(vec2(s*2.6-t*0.7,5.0)));float j2=(vnoise(vec2(s*8.0+t*1.6,11.0))-0.5)*0.07*split;',
-      '    float strand=exp(-sq((dl-j2)/(w*0.6)))*split;',
-      '    float glow=exp(-dd/(0.012+0.024*env));float wide=exp(-dd/0.10);',
-      '    float xr=smoothstep(0.58,0.70,abs(s))*(1.0-smoothstep(0.96,1.12,abs(s)));',
-      '    float spark=smoothstep(0.80,1.0,vnoise(vec2(s*36.0-t*9.0,floor(t*14.0))))*exp(-dd/0.018);',
-      '    float flick=0.86+0.14*sin(t*17.0+s*9.0)*sin(t*7.3);',
-      '    vec3 sc=vec3(3.1,2.9,3.2)*(core*1.2+strand*0.65)+vec3(1.0,0.42,3.1)*glow*(0.48+0.60*xr)+vec3(0.45,0.12,1.4)*wide*(0.22+0.55*xr)+vec3(2.2,1.6,3.1)*spark*0.8+HOT*exp(-dd/0.03)*xr*0.35;',
-      '    col+=sc*uB.x*env*flick*(0.80+0.35*energy+0.25*level);',
-      '  }',
+      '  float photon=exp(-sq((r-H*1.025-0.003*sin(th*3.0+t*0.9))/0.007));col+=vec3(1.0,0.85,1.5)*photon*(0.55+0.55*abs(up))*pulse;',
+      '  col+=disk*(1.0-far);',
       // Matter spiralling in (positions come from the CPU): a soft head with a short tail along its path.
       '  if(r<2.4){for(int i=0;i<' + sparks + ';i++){vec4 sp=uSparks[i];vec2 pa=p-sp.xy;if(sp.z<0.004||dot(pa,pa)>0.04)continue;',
       '    vec2 h=sp.xy;float hl=max(length(h),0.001);vec2 vel=normalize(vec2(h.y,-h.x)/hl*0.9-h/hl*0.45);',
@@ -238,8 +226,8 @@
     // Eased values (current) and the values they move toward (target).
     var start = MOOD[mode];
     var cur = { spin: start.spin, energy: start.energy, slash: start.slash, inflow: start.inflow, think: start.think, wave: start.wave, lift: start.lift, mono: start.mono,
-      level: 0, x: null, y: null, r: null, dim: 0, fade: 0, stars: 1, haze: 1 };
-    var scene = { x: null, y: null, r: null, dim: 0, fade: 0, stars: 1, haze: 1 };
+      level: 0, x: null, y: null, r: null, dim: 0, fade: 0, stars: 1, haze: 1, tilt: -24, incl: 76 };
+    var scene = { x: null, y: null, r: null, dim: 0, fade: 0, stars: 1, haze: 1, tilt: -24, incl: 76 };
     // Integrated phases: speed changes alter how fast they advance, never where they are.
     var clock = 0, rotation = 0, infall = 0, wavePhase = 0;
     var jobData = new Float32Array(MAX_JOBS * 4), sparkData = new Float32Array(MAX_SPARKS * 4);
@@ -270,7 +258,7 @@
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);   // one full-screen triangle
       var aPos = gl.getAttribLocation(program, 'aPos'); gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
       loc = {};
-      ['uRes', 'uGeo', 'uA', 'uB', 'uC'].forEach(function (name) { loc[name] = gl.getUniformLocation(program, name); });
+      ['uRes', 'uGeo', 'uA', 'uB', 'uC', 'uD'].forEach(function (name) { loc[name] = gl.getUniformLocation(program, name); });
       loc.uSparks = gl.getUniformLocation(program, 'uSparks[0]');
       loc.uJobs = gl.getUniformLocation(program, 'uJobs[0]');
       gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
@@ -294,7 +282,9 @@
       var fade = parseLength(get('--bh-fade'), Math.min(w, h), 0); scene.fade = Math.max(0, fade);
       var stars = parseFloat(get('--bh-stars')); scene.stars = Number.isFinite(stars) ? Math.max(0, Math.min(1.5, stars)) : 1;
       var haze = parseFloat(get('--bh-haze')); scene.haze = Number.isFinite(haze) ? Math.max(0, Math.min(1.5, haze)) : 1;
-      if (cur.x === null) { cur.x = scene.x; cur.y = scene.y; cur.r = scene.r; cur.dim = scene.dim; cur.fade = scene.fade; cur.stars = scene.stars; cur.haze = scene.haze; }
+      var tilt = parseFloat(get('--bh-tilt')); scene.tilt = Number.isFinite(tilt) ? Math.max(-90, Math.min(90, tilt)) : -24;
+      var incl = parseFloat(get('--bh-incl')); scene.incl = Number.isFinite(incl) ? Math.max(0, Math.min(86, incl)) : 76;
+      if (cur.x === null) { cur.x = scene.x; cur.y = scene.y; cur.r = scene.r; cur.dim = scene.dim; cur.fade = scene.fade; cur.stars = scene.stars; cur.haze = scene.haze; cur.tilt = scene.tilt; cur.incl = scene.incl; }
     }
     function resize() {
       if (destroyed || fallback) return;
@@ -323,7 +313,7 @@
       cur.level += (targetLevel - cur.level) * (1 - Math.exp(-dt / 0.12));
       if (scene.x !== null) {
         cur.x += (scene.x - cur.x) * ks; cur.y += (scene.y - cur.y) * ks; cur.r += (scene.r - cur.r) * ks;
-        cur.dim += (scene.dim - cur.dim) * ks; cur.fade += (scene.fade - cur.fade) * ks; cur.stars += (scene.stars - cur.stars) * ks; cur.haze += (scene.haze - cur.haze) * ks;
+        cur.dim += (scene.dim - cur.dim) * ks; cur.fade += (scene.fade - cur.fade) * ks; cur.stars += (scene.stars - cur.stars) * ks; cur.haze += (scene.haze - cur.haze) * ks; cur.tilt += (scene.tilt - cur.tilt) * ks; cur.incl += (scene.incl - cur.incl) * ks;
       }
     }
     function advance(dt) {
@@ -383,6 +373,9 @@
       gl.uniform4f(loc.uA, clock % 3600, rotation % 3600, cur.energy, cur.level);
       gl.uniform4f(loc.uB, cur.slash, cur.think, cur.wave * (0.5 + 0.7 * cur.level), wavePhase % 3600);
       gl.uniform4f(loc.uC, cur.mono, cur.dim * (1 - cur.lift), cur.stars, cur.haze);
+      // The camera drifts a few degrees around its CSS angle, so the disk slowly turns in space.
+      var roll = (cur.tilt + 3.5 * Math.sin(clock * 0.021)) * Math.PI / 180, inc = (cur.incl + 2.5 * Math.sin(clock * 0.017 + 1.3)) * Math.PI / 180;
+      gl.uniform4f(loc.uD, Math.cos(roll), Math.sin(roll), Math.cos(inc), 0);
       gl.uniform4fv(loc.uSparks, sparkUniforms().subarray(0, sparkCount * 4));
       gl.uniform4fv(loc.uJobs, jobData.subarray(0, jobCount * 4));
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -498,7 +491,8 @@
     if (Intersect) {
       intersectionObserver = new Intersect(function (entries) {
         if (destroyed) return;
-        for (var i = 0; i < entries.length; i += 1) if (entries[i].target === canvas) { visible = entries[i].isIntersecting; break; }
+        // One batch can hold several entries for this canvas (hidden, then shown): the newest one is the truth.
+        for (var i = 0; i < entries.length; i += 1) if (entries[i].target === canvas) visible = entries[i].isIntersecting;
         refresh();
       }, { threshold: 0 });
       intersectionObserver.observe(canvas);
