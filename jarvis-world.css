@@ -106,3 +106,36 @@
 .jw-lightbox-close{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:10px;background:rgba(255,255,255,.08);color:var(--jw-text)}
 @keyframes jw-fade-in{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.jw-lightbox,.jw-message-image{animation:none!important;transition:none!important}}
+/* v1.6: clean Argon screen. The big headers are gone; one slim transparent strip floats over the conversation (Claude-like). */
+.jw-shell{position:relative}
+.jw-shell .jw-header{position:absolute;top:0;left:0;right:0;z-index:4;display:flex;align-items:center;gap:0;height:calc(46px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 4px 0 2px;background:transparent;pointer-events:none}
+.jw-shell .jw-header>*{pointer-events:auto}
+.jw-shell .jw-header .jw-menu-button{order:1;width:40px;height:40px;min-width:40px;flex:0 0 40px;border:0;background:transparent;color:#a8c7dd;opacity:.9}
+.jw-shell .jw-header .jw-identity{order:2;display:flex;align-items:center;min-width:0;padding-left:4px}
+.jw-shell .jw-header .jw-brand{display:none}
+.jw-shell .jw-header .jw-title{margin:0;font-size:15px;font-weight:600;letter-spacing:.01em;line-height:1;color:#d9edfb;opacity:.82}
+.jw-shell .jw-header .jw-status{order:3;display:flex;align-items:center;margin:0 0 0 7px;min-height:0;font-size:0;line-height:0;color:transparent}
+.jw-shell .jw-header .jw-status span:not(.jw-status-dot){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.jw-shell .jw-header .jw-status-dot{width:7px;height:7px;margin:0;border-radius:50%;background:#e9a65a;box-shadow:0 0 0 3px #e9a65a1f}
+.jw-shell .jw-header .jw-status[data-status="connected"] .jw-status-dot{background:var(--jw-accent);box-shadow:0 0 0 3px #4de3ff1f}
+.jw-shell .jw-header .jw-daily-brief{order:5;margin-left:auto;width:40px;height:40px;min-height:40px;min-width:40px;padding:0;border:0;border-radius:50%;background:transparent;color:#a8c7dd;font-size:0}
+.jw-shell .jw-header .jw-daily-brief span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.jw-shell .jw-header .jw-daily-brief svg{width:19px;height:19px}
+.jw-shell .jw-header .jw-output-toggle{order:6;width:40px;height:40px;min-width:40px;flex-basis:40px;border:0;background:transparent;color:#a8c7dd}
+.jw-shell .jw-header .jw-output-toggle[aria-pressed="true"]{color:var(--jw-accent)}
+.jw-shell .jw-header .jw-activity-toggle{order:7;min-height:30px;height:30px;margin:0 4px 0 2px;padding:0 9px;gap:3px;border:1px solid #2c4d6b99;border-radius:15px;background:#10243b8c;color:#a8d4ea;font-size:11px}
+.jw-shell .jw-header .jw-icon-button:hover,.jw-shell .jw-header .jw-daily-brief:hover{background:#ffffff0f}
+.jw-shell .jw-orb-stage{padding-top:calc(48px + env(safe-area-inset-top,0px))}
+.jw-shell[data-conversation="true"] .jw-orb-stage{padding-top:0;top:90px}
+.jw-shell[data-conversation="true"] .jw-timeline{padding-top:calc(58px + env(safe-area-inset-top,0px))}
+/* Messages fade out before they reach the strip, so nothing shows behind "Argon" while scrolling. */
+.jw-shell[data-conversation="true"] .jw-thread{-webkit-mask-image:linear-gradient(180deg,transparent 0,transparent calc(38px + env(safe-area-inset-top,0px)),#000 calc(58px + env(safe-area-inset-top,0px)));mask-image:linear-gradient(180deg,transparent 0,transparent calc(38px + env(safe-area-inset-top,0px)),#000 calc(58px + env(safe-area-inset-top,0px)))}
+.jw-shell[data-conversation="true"] .jw-orb-label{display:none}
+.jw-shell[data-compact="true"] .jw-header{padding:env(safe-area-inset-top,0px) 4px 0 2px}
+/* Clean bubbles: no author label or delivery line on Deniz's messages. */
+.jw-message[data-role="user"]{padding:11px 15px}
+.jw-message[data-resent="true"]{opacity:.5}
+.jw-retry{display:inline-flex;align-items:center;gap:6px;margin-top:9px;min-height:36px;padding:0 13px 0 10px;border:1px solid #4de3ff66;border-radius:18px;background:#0d2a40;color:#9eeaff;font-size:12px;font-weight:600}
+.jw-retry svg{width:16px;height:16px;display:block;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.jw-retry:active{transform:scale(.97)}
+.jw-resent-note{margin:6px 0 0;font-size:10px;color:#8fb0c9}

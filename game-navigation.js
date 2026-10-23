@@ -63,6 +63,9 @@
   }
   function handleBack(event) {
     if(close())return 'handled';
+    // v1.6: Argon's own layers (picture viewer, attachment sheet) close on Back instead of leaving the Argon screen.
+    var argonLayer=doc.querySelector('.jw-lightbox:not([hidden]) .jw-lightbox-close, .jw-attach-sheet:not([hidden]) .jw-attach-close');
+    if(argonLayer){argonLayer.click();return 'handled';}
     if(win.OryvonaNativeShell){
       if(event && win.OryvonaNativeShell.handlePopState(event))return 'handled';
       if(win.OryvonaNativeShell.dismissActive())return 'handled';
@@ -73,7 +76,7 @@
     if(config.getView()!=='home'){config.goHome();return 'handled';}
     return 'home'; // Android requests explicit exit confirmation. Browser PWA retains its guard.
   }
-  var WEB_BUILD='Argon v1.5 stabil (2026-10-23)';
+  var WEB_BUILD='Argon v1.6 stabil (2026-10-23)';
   function renderVersion() {
     var target=doc.getElementById('verInfo');if(!target)return;
     var info=win.ArgonNative && win.ArgonNative.getAppInfo();

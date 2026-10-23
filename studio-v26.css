@@ -35,3 +35,19 @@ body.oryvona-v26 .tabs button{min-width:0;min-height:54px;height:100%;padding:4p
 .sv-game-frame, #gamePlayer iframe {width:100vw!important;height:100vh!important;border:none!important;display:block!important}
 #gamePlayer .player-stage{width:100%!important;height:100%!important}
 @supports(height:100dvh){.sv-game-window,#gamePlayer{height:100dvh!important;max-height:100dvh!important}.sv-game-frame,#gamePlayer iframe{height:100dvh!important}}
+
+/* v1.6: the Argon screen uses the whole height; its slim strip replaces the app top bar there (other tabs keep it). */
+body[data-oryvona-view="jarvis"] #topbar{display:none!important}
+/* v1.6: older panels (side menu, Settings, game detail) follow the command-center palette and font instead of the purple theme. */
+body.oryvona-v26{--bg:#040a16;--surface:#0b1729;--surface-2:#10233a;--line:rgba(77,227,255,.10);--line-2:rgba(77,227,255,.20);--fg:#ecf6ff;--fg-2:#a9c0d6;--fg-3:#8da8c4;--ink:#0b1729;--ink-2:#12304e;--on-ink:#ffffff;--on-ink-2:#a9c0d6;--brand:#4de3ff;--brand-soft:#12304e;--brand-ink:#bff4ff;--good:#5bd68a;--good-soft:#183a28;--warn:#f3b629;--warn-soft:#3d2d10;--bad:#ff8b8b;--bad-soft:#4a2020;--info:#7db0ff;--info-soft:#1d2c52;--glass:rgba(6,16,31,.92);--sans:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-family:var(--sans);color-scheme:dark}
+body.oryvona-v26 .dpanel{background:linear-gradient(180deg,#0b1729,#071222);border-right:1px solid #244768;box-shadow:16px 0 44px #0008}
+body.oryvona-v26 .dhead{background:linear-gradient(135deg,#10294a,#0b1c33);border:1px solid #244768}
+body.oryvona-v26 .ditem{font-weight:600}
+body.oryvona-v26 .ditem .ic{background:#10233a;color:#4de3ff;font-weight:700}
+body.oryvona-v26 .ditem:active,body.oryvona-v26 .ditem[aria-current="true"]{background:#12304e;color:#ecf6ff}
+body.oryvona-v26 .ditem .tx b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.oryvona-v26 .ditem .chip{flex:none;white-space:nowrap;font-size:.62rem;padding:2px 7px;font-weight:600}
+body.oryvona-v26 .secthead{color:#6f93b3;font-weight:700}
+body.oryvona-v26 .lm-close{background:#10233a;border-color:#244768;color:#ecf6ff}
+/* v1.6: the app has one navy theme now; the old Light/Dark switch no longer changes anything, so it is hidden. */
+body.oryvona-v26 .item:has(#themeSeg){display:none}
