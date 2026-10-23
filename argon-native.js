@@ -6,7 +6,7 @@
       (window.location.pathname !== path && window.location.pathname !== path + 'index.html') ||
       !window.__ARGON_NATIVE_BOOT__ || window.__ARGON_NATIVE_BOOT__.channel !== 'capabilities' || window.__argonNative) return;
   var caps = window.__ARGON_NATIVE_BOOT__, port = null, paused = false, seq = 0;
-  var utterances = Object.create(null), recognitions = Object.create(null), listeners = [], launches = Object.create(null), personal = Object.create(null);
+  var utterances = Object.create(null), recognitions = Object.create(null), listeners = [], launches = Object.create(null), personal = Object.create(null), replies = Object.create(null);
   function dispatch(target, name, event) { try { if (typeof target['on' + name] === 'function') target['on' + name](event || { type: name }); } catch (_) {} }
   function command(message) {
     if (!port || paused) return false;
@@ -24,6 +24,18 @@
     return new Promise(function(resolve,reject){
       var id='p'+(++seq),entry={message:Object.assign({op:op,id:id},payload||{}),resolve:resolve,reject:reject,sent:false,timer:null};
       personal[id]=entry;armPersonal(id);flushPersonal();
+    });
+  }
+  // v1.7: Paylaş / Kopyala under an Argon reply. Text only; the APK answers once per id (opened, copied, no_app, invalid...).
+  function nativeText(op, prefix, channel, text, supported) {
+    var value = String(text == null ? '' : text);
+    if (!supported) return Promise.resolve({ status: 'unsupported' });
+    if (!value.trim() || value.length > 12000) return Promise.resolve({ status: 'invalid' });
+    return new Promise(function (resolve) {
+      var id = prefix + (++seq), entry = { channel: channel, resolve: resolve, timer: null };
+      entry.timer = setTimeout(function () { if (replies[id] === entry) { delete replies[id]; resolve({ status: 'no_reply' }); } }, 4000);
+      replies[id] = entry;
+      if (!command({ op: op, id: id, text: value })) { clearTimeout(entry.timer); delete replies[id]; resolve({ status: 'native_not_ready' }); }
     });
   }
   function selectedVoice() {
@@ -75,6 +87,11 @@
       var rpc=personal[data.id];if(!rpc)return;delete personal[data.id];clearTimeout(rpc.timer);
       if(data.ok===true)rpc.resolve(data.value);else {var error=new Error(data.error||'device_storage_unavailable');error.code=data.error||'device_storage_unavailable';error.diagnostic=data.diagnostic;rpc.reject(error);}return;
     }
+    // Answered before a possible pause: the share sheet pauses the app right after Android opens it.
+    if (data.channel === 'share' || data.channel === 'clipboard') {
+      var waiting = replies[data.id]; if (!waiting || waiting.channel !== data.channel) return;
+      delete replies[data.id]; clearTimeout(waiting.timer); waiting.resolve({ status: String(data.status || 'failed').slice(0, 40) }); return;
+    }
     if (data.channel === 'lifecycle') { paused = data.event !== 'resume'; if (paused) { cancelLocally(); disarmPersonal(); } else { Object.keys(personal).forEach(function(id){personal[id].sent=false;armPersonal(id);}); flushPersonal(); } return; }
     if (paused) return;
     if (data.channel === 'gameLaunch') {
@@ -122,6 +139,8 @@
     signDeviceChallenge:function(challenge){return personalRpc('personalSign',{challengeId:challenge.challengeId,nonce:challenge.nonce});},
     ownerStorage:function(operation,key,value){return personalRpc('personalStorage',{operation:operation,key:key,value:value||''});},
     getAppInfo: function () { return caps.app ? JSON.parse(JSON.stringify(caps.app)) : null; },
+    shareText: function (text) { return nativeText('shareText', 's', 'share', text, caps.share === true); },
+    copyText: function (text) { return nativeText('copyText', 'c', 'clipboard', text, caps.clipboard === true); },
     launchGame: function (gameId) {
       if (['forge-run','aeryo','tupsper'].indexOf(gameId) < 0) return Promise.resolve({ status: 'not_allowed', gameId: gameId });
       return new Promise(function (resolve) {

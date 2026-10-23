@@ -31,6 +31,8 @@
     if (!client || typeof client.synthesize !== 'function' || typeof client.startLive !== 'function' || typeof options.getAccountKey !== 'function') throw TypeError('Google voice client required');
     var listeners = new Set(), removers = [], enabled = false, destroyed = false, gestureGranted = false, owner = options.getAccountKey(), epoch = 0;
     var context = null, capture = null, live = null, sources = new Set(), activeUtterance = null, nextAt = 0, spoken = new Set(), ttsIds = new Map(), playbackPrepareMs = null;
+    // v1.7: Charon audio of the last spoken replies (by reply id) for "Dinle", and which reply is being read right now.
+    var clips = new Map(), reading = null;
     var state = { mode: 'idle', notice: 'Ses kapalı. Telefonda ses düğmesine dokun.', error: null, audioLevel: null, voiceName: 'Charon', voiceProvider: 'google-ai-studio', voiceLang: 'tr-TR', localVoice: false };
     function phone() { var n = win.navigator || {}, mobile = !!win.ArgonNative || n.userAgentData && n.userAgentData.mobile === true || /Android|iPhone|iPad|iPod/i.test(n.userAgent || ''); return mobile && n.webdriver !== true; }
     function visible() { return !doc || doc.hidden !== true; }
@@ -71,6 +73,8 @@
         notice: state.notice,
         error: state.error,
         conversationActive: !!live,
+        readingId: reading ? reading.id : null,
+        readingPhase: reading ? reading.phase : 'idle',
         timings: { playback_prepare_ms: playbackPrepareMs }
       });
     }
@@ -88,6 +92,7 @@
       }
       nextAt = 0;
       state.audioLevel = null;
+      reading = null;
     }
     function stopCapture() { var c = capture; capture = null; if (!c) return; if (c.processor) { c.processor.onaudioprocess = null; try { c.processor.disconnect(); } catch (_) {} } if (c.source) try { c.source.disconnect(); } catch (_) {} if (c.gain) try { c.gain.disconnect(); } catch (_) {} if (c.stream) c.stream.getTracks().forEach(function (t) { try { t.stop(); } catch (_) {} }); }
     function stopConversation() { live = null; client.stopLive('owner-stop'); stopCapture(); if (state.mode !== 'tts-loading') state.mode = 'idle'; state.notice = 'Canlı ses kapalı.'; emit(); }
@@ -114,7 +119,7 @@
       if (!current(ticket, captured) || !enabled || !gestureGranted || !phone() || !context || context.state !== 'running') return false;
       var source = context.createBufferSource(); source.buffer = buffer; source.connect(context.destination); sources.add(source);
       var start = streaming ? Math.max(context.currentTime, nextAt) : context.currentTime; nextAt = start + buffer.duration;
-      source.onended = function () { sources.delete(source); try { source.disconnect(); } catch (_) {} if (!sources.size && current(ticket, captured)) { state.mode = live ? 'listening' : 'idle'; state.audioLevel = null; emit(); } };
+      source.onended = function () { sources.delete(source); try { source.disconnect(); } catch (_) {} if (!sources.size && current(ticket, captured)) { state.mode = live ? 'listening' : 'idle'; state.audioLevel = null; if (reading && reading.ticket === ticket) reading = null; emit(); } };
       state.voiceName = 'Charon'; state.voiceProvider = 'google-ai-studio'; state.voiceLang = 'tr-TR'; state.localVoice = false;
       var meta = { ok: true, provider: streaming ? 'google-ai-studio-live' : 'google-ai-studio', voiceName: 'Charon', voiceLang: 'tr-TR', localVoice: false };
       source.start(start); if (typeof onStart === 'function') onStart(meta); state.mode = 'speaking'; state.notice = streaming ? 'Argon konuşuyor (Gemini Live · Charon).' : 'Argon konuşuyor (Google TTS · Charon).'; emit(); return true;
@@ -182,6 +187,8 @@
           state.notice = 'Telefonun Türkçe sesi (' + voiceLabel + ') konuşuyor · ' + reasonText + '.';
           emit();
           spoken.add(input.id);
+          reading = { id: input.id, phase: 'playing', ticket: ticket };
+          emit();
           resolve(meta);
         };
         u.onend = function () {
@@ -193,6 +200,7 @@
           if (current(ticket, captured)) {
             state.mode = live ? 'listening' : 'idle';
             state.audioLevel = null;
+            if (reading && reading.ticket === ticket) reading = null;
             emit();
           }
         };
@@ -205,6 +213,7 @@
           if (current(ticket, captured)) {
             state.mode = live ? 'listening' : 'idle';
             state.audioLevel = null;
+            if (reading && reading.ticket === ticket) reading = null;
             emit();
           }
         };
@@ -286,7 +295,9 @@
           var buffer = await context.decodeAudioData(wav.buffer.slice(wav.byteOffset, wav.byteOffset + wav.byteLength));
           if (!current(charonTicket, captured)) return { ok: false, reason: 'CANCELLED' };
           playbackPrepareMs = Math.round(clock() - began);
-          if (!playBuffer(buffer, charonTicket, captured, false, input.onStart)) return { ok: false, reason: 'CANCELLED' };
+          reading = { id: input.id, phase: 'playing', ticket: charonTicket };
+          if (!playBuffer(buffer, charonTicket, captured, false, input.onStart)) { if (reading && reading.ticket === charonTicket) reading = null; return { ok: false, reason: 'CANCELLED' }; }
+          rememberClip(input.id, input.text, r.audio);
           spoken.add(input.id); return { ok: true, provider: 'google-ai-studio', voiceSource: mp3 ? 'google-cloud' : 'google-ai-studio', voiceName: 'Charon', voiceLang: 'tr-TR', localVoice: false, timings: { playback_prepare_ms: playbackPrepareMs } };
         })(ticket);
         return await Promise.race([work, new Promise(function (_resolve, reject) { timer = setTimeout(function () { reject(Error('AUDIO_PREPARATION_TIMEOUT')); }, options.preparationTimeoutMs || 12000); })]);
@@ -297,6 +308,151 @@
         return await phoneVoiceOrFail(failureCode(error));
       } finally { clearTimeout(timer); }
     }
+    /* v1.7 "Dinle": a tap under a reply reads that whole reply aloud, even when automatic voice replies are off.
+       The reply's own Charon audio is replayed while this phone still has it; otherwise DJ-KABIN prepares Charon piece by
+       piece (a short first piece so the voice starts quickly; the next piece is prepared while the current one plays).
+       Whatever Charon cannot prepare is read by the phone's Turkish voice, so a tap is never silent while such a voice exists. */
+    function rememberClip(id, text, audio) {
+      if (!id || !audio || typeof audio.data !== 'string' || audio.data.length > 4 * 1024 * 1024) return;
+      clips.delete(id); clips.set(id, { text: String(text || ''), audio: { mimeType: audio.mimeType === 'audio/mpeg' ? 'audio/mpeg' : 'audio/wav', data: audio.data } });
+      while (clips.size > 12) clips.delete(clips.keys().next().value);
+    }
+    function speechKey(text) { return String(text || '').replace(/[*`#•_]/g, '').replace(/[\s.,;:!?…]+/g, ' ').trim().toLocaleLowerCase('tr-TR'); }
+    // Lines are read as sentences: list marks are dropped and every line ends with a pause.
+    function speechReady(text) {
+      return String(text || '').replace(/\r\n?/g, '\n').split('\n').map(function (line) {
+        line = line.replace(/^[\s•*\-–]+/, '').replace(/[*`#_]+/g, '').trim();
+        return line && !/[.!?…:;,]$/.test(line) ? line + '.' : line;
+      }).filter(Boolean).join('\n');
+    }
+    function speechPieces(text, firstLimit, limit) {
+      var rest = String(text || '').trim(), out = [], max = firstLimit;
+      while (rest) {
+        if (rest.length <= max) { out.push(rest); break; }
+        var head = rest.slice(0, max), cut = Math.max(head.lastIndexOf('. '), head.lastIndexOf('! '), head.lastIndexOf('? '), head.lastIndexOf('\n'), head.lastIndexOf('… '));
+        if (cut < max * 0.35) cut = Math.max(head.lastIndexOf(', '), head.lastIndexOf('; '));
+        if (cut < max * 0.25) cut = head.lastIndexOf(' ');
+        if (cut < 1) cut = max - 1;
+        out.push(rest.slice(0, cut + 1).trim()); rest = rest.slice(cut + 1).trim(); max = limit;
+      }
+      return out.filter(Boolean);
+    }
+    function readingCurrent(ticket, captured) { return current(ticket, captured) && !!reading && reading.ticket === ticket; }
+    function readingDone(ticket) {
+      if (!reading || reading.ticket !== ticket) return;
+      reading = null; state.mode = live ? 'listening' : 'idle'; state.audioLevel = null; state.notice = 'Okuma bitti.'; emit();
+    }
+    function scheduleReading(buffer, ticket, captured) {
+      if (!readingCurrent(ticket, captured) || !context || context.state !== 'running') return false;
+      var source = context.createBufferSource(); source.buffer = buffer; source.connect(context.destination); sources.add(source);
+      var start = Math.max(context.currentTime, nextAt); nextAt = start + buffer.duration;
+      source.onended = function () {
+        sources.delete(source); try { source.disconnect(); } catch (_) {}
+        // Waiting for the next piece: the button shows "preparing" again until it starts.
+        if (!sources.size && readingCurrent(ticket, captured) && !reading.allScheduled && reading.phase === 'playing') { reading.phase = 'preparing'; state.mode = 'tts-loading'; state.notice = 'Argon devamını hazırlıyor…'; emit(); }
+      };
+      source.start(start); return true;
+    }
+    function drained(ticket, captured) {
+      return new Promise(function (resolve) {
+        (function check() { if (!readingCurrent(ticket, captured) || !sources.size) { resolve(); return; } setTimeout(check, 120); })();
+      });
+    }
+    function withTimeout(promise, ms, code) {
+      var timer;
+      return Promise.race([promise, new Promise(function (_resolve, reject) { timer = setTimeout(function () { reject(Object.assign(Error(code), { code: code })); }, ms); })])
+        .then(function (value) { clearTimeout(timer); return value; }, function (error) { clearTimeout(timer); throw error; });
+    }
+    function readWithPhone(text, ticket, captured, reasonCode) {
+      var trVoice = turkishAndroidVoice();
+      if (!trVoice) {
+        reading = null; state.mode = live ? 'listening' : 'idle';
+        return Promise.resolve(fail('READ_ALOUD_UNAVAILABLE', 'Okunamadı: ' + charonFailureText(reasonCode) + '. Telefonda Türkçe metin okuma sesi de yok (Ayarlar › Metin okuma çıkışı › Türkçe ses paketi).'));
+      }
+      var parts = speechPieces(text, 2400, 2400), k = 0, voiceLabel = String(trVoice.name || trVoice.voiceURI || 'Android Türkçe');
+      return new Promise(function (resolve) {
+        function next() {
+          if (!readingCurrent(ticket, captured)) { resolve({ ok: false, reason: 'CANCELLED' }); return; }
+          if (k >= parts.length) { readingDone(ticket); resolve({ ok: true, provider: 'android-tts', voiceName: voiceLabel }); return; }
+          var u;
+          try { u = new win.SpeechSynthesisUtterance(parts[k++]); u.lang = String(trVoice.lang || 'tr-TR'); u.voice = trVoice; u.rate = 0.98; u.pitch = 0.92; u.volume = 1; }
+          catch (_) { readingDone(ticket); resolve({ ok: false, reason: 'ANDROID_TTS_FAILED' }); return; }
+          activeUtterance = u;
+          u.onstart = function () {
+            if (!readingCurrent(ticket, captured) || activeUtterance !== u) return;
+            reading.phase = 'playing'; state.mode = 'speaking'; state.error = null;
+            state.voiceName = voiceLabel; state.voiceProvider = 'android-tts'; state.voiceLang = String(trVoice.lang || 'tr-TR'); state.localVoice = trVoice.localService !== false;
+            state.notice = 'Telefonun Türkçe sesi okuyor · ' + charonFailureText(reasonCode) + '.'; emit();
+          };
+          u.onend = function () { if (activeUtterance !== u) return; activeUtterance = null; next(); };
+          u.onerror = function () { if (activeUtterance !== u) return; activeUtterance = null; if (readingCurrent(ticket, captured)) readingDone(ticket); resolve({ ok: false, reason: 'ANDROID_TTS_FAILED' }); };
+          try { win.speechSynthesis.speak(u); } catch (_) { u.onerror(); }
+        }
+        next();
+      });
+    }
+    async function runReading(id, text, ticket, captured, unlocking) {
+      var unlocked = await unlocking;
+      if (!readingCurrent(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+      var cached = clips.get(id), pieces = cached && speechKey(cached.text) === speechKey(text) ? [{ text: text, audio: cached.audio }]
+        : speechPieces(text, 240, 1500).map(function (piece) { return { text: piece }; });
+      var webAudio = !!(unlocked && unlocked.ok === true) && await ensureContext();
+      if (!readingCurrent(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+      if (!webAudio) return await readWithPhone(text, ticket, captured, 'AUDIO_CONTEXT_' + String(context ? context.state : 'missing').toUpperCase());
+      var started = false;
+      for (var i = 0; i < pieces.length; i++) {
+        var buffer = null, failure = null;
+        try {
+          var audio = pieces[i].audio;
+          if (!audio) {
+            var r = await withTimeout(Promise.resolve(client.synthesize({ requestId: win.crypto.randomUUID(), text: pieces[i].text, voice: 'Charon', speech_metadata: { style: STYLE } })), started ? 90000 : (options.readPreparationTimeoutMs || 15000), 'AUDIO_PREPARATION_TIMEOUT');
+            if (!readingCurrent(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+            if (r && (r.status === 'quota_exhausted' || r.reason === 'QUOTA_EXHAUSTED')) throw Object.assign(Error('GOOGLE_TTS_QUOTA'), { code: 'GOOGLE_TTS_QUOTA' });
+            if (!r || r.ok !== true || !r.audio) throw Object.assign(Error('TTS_UNAVAILABLE'), { code: 'SERVER_TTS_' + String(r && (r.status || r.error || r.reason) || 'unavailable').replace(/[^A-Za-z0-9_]+/g, '_').toUpperCase().slice(0, 40) });
+            audio = r.audio;
+            if (pieces.length === 1) rememberClip(id, text, audio);
+          }
+          var mp3 = audio.mimeType === 'audio/mpeg', raw = bytes(audio.data);
+          if (mp3 ? !mp3Valid(raw) : !wavValid(raw)) throw Error(mp3 ? 'INVALID_MP3' : 'INVALID_WAV');
+          buffer = await context.decodeAudioData(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength));
+        } catch (error) { failure = failureCode(error); }
+        if (!readingCurrent(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+        if (!buffer) {
+          // The phone's voice continues from this piece once what is already playing has finished.
+          await drained(ticket, captured);
+          if (!readingCurrent(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+          return await readWithPhone(pieces.slice(i).map(function (p) { return p.text; }).join('\n'), ticket, captured, failure);
+        }
+        if (!scheduleReading(buffer, ticket, captured)) return { ok: false, reason: 'CANCELLED' };
+        if (!started || reading.phase !== 'playing') {
+          started = true; reading.phase = 'playing'; state.mode = 'speaking'; state.error = null;
+          state.voiceName = 'Charon'; state.voiceProvider = 'google-ai-studio'; state.voiceLang = 'tr-TR'; state.localVoice = false;
+          state.notice = 'Argon okuyor (Google TTS · Charon).'; emit();
+        }
+      }
+      reading.allScheduled = true;
+      await drained(ticket, captured);
+      if (readingCurrent(ticket, captured)) readingDone(ticket);
+      return { ok: true, provider: 'google-ai-studio', voiceName: 'Charon' };
+    }
+    function readAloud(input) {
+      input = input || {};
+      var id = typeof input.id === 'string' ? input.id.slice(0, 200) : '', text = speechReady(String(input.text || '').slice(0, 12000));
+      if (!ownerCurrent() || !id || !text) return Promise.resolve({ ok: false, reason: 'NOTHING_TO_READ' });
+      if (!phone()) return Promise.resolve(fail('PHONE_ONLY', 'Sesli dinleme yalnız telefonda çalışır; DJ-KABIN’de ses kapalı.'));
+      // The tap itself unlocks web audio, exactly like the sound button, so this runs before anything waits.
+      var unlocking = unlockAudio();
+      if (live || capture || state.mode === 'starting') cancel();
+      stopPlayback();
+      var ticket = ++epoch, captured = owner;
+      reading = { id: id, phase: 'preparing', ticket: ticket, allScheduled: false };
+      state.mode = 'tts-loading'; state.error = null; state.notice = 'Argon okumaya hazırlanıyor…'; emit();
+      return runReading(id, text, ticket, captured, unlocking).catch(function () {
+        if (readingCurrent(ticket, captured)) readingDone(ticket);
+        return { ok: false, reason: 'READ_ALOUD_FAILED' };
+      });
+    }
+    function stopReading() { if (!reading) return; epoch++; stopPlayback(); state.mode = live ? 'listening' : 'idle'; state.notice = 'Okuma durduruldu.'; emit(); }
     async function startConversation(handlers) {
       handlers = handlers || {};
       if (!ownerCurrent() || !gesture()) return fail('PHONE_GESTURE_REQUIRED', 'Canlı ses yalnız telefonda mikrofon düğmesine dokunulduğunda açılır.');
@@ -332,7 +488,7 @@
     }
     function bind(target, name, fn) { if (target && target.addEventListener) { target.addEventListener(name, fn); removers.push(function () { target.removeEventListener(name, fn); }); } }
     bind(doc, 'visibilitychange', function () { if (!visible()) cancel(); }); bind(doc, 'oryvona:lifecycle-pause', cancel); bind(doc, 'oryvona:studio-context-change', ownerCurrent); bind(win, 'pagehide', cancel);
-    return Object.freeze({ getSnapshot: snapshot, subscribe: function (fn) { listeners.add(fn); fn(snapshot()); return function () { listeners.delete(fn); }; }, setEnabled: setEnabled, unlockAudio: unlockAudio, speak: speak, startConversation: startConversation, startListening: startConversation, conversationActive: function () { return !!live; }, stopConversation: cancel, stopListening: function () { if (live || capture || state.mode === 'starting') cancel(); }, stopSpeaking: function () { if (live || capture) cancel(); else epoch++; stopPlayback(); state.mode = 'idle'; emit(); }, cancel: cancel, destroy: function () { if (destroyed) return; cancel(); destroyed = true; enabled = false; removers.forEach(function (off) { off(); }); if (context && context.close) Promise.resolve(context.close()).catch(function () {}); context = null; listeners.clear(); } });
+    return Object.freeze({ getSnapshot: snapshot, subscribe: function (fn) { listeners.add(fn); fn(snapshot()); return function () { listeners.delete(fn); }; }, setEnabled: setEnabled, unlockAudio: unlockAudio, speak: speak, startConversation: startConversation, startListening: startConversation, conversationActive: function () { return !!live; }, stopConversation: cancel, stopListening: function () { if (live || capture || state.mode === 'starting') cancel(); }, stopSpeaking: function () { if (live || capture) cancel(); else epoch++; stopPlayback(); state.mode = 'idle'; emit(); }, readAloud: readAloud, stopReading: stopReading, cancel: cancel, destroy: function () { if (destroyed) return; cancel(); destroyed = true; enabled = false; removers.forEach(function (off) { off(); }); if (context && context.close) Promise.resolve(context.close()).catch(function () {}); context = null; listeners.clear(); } });
   }
   return Object.freeze({ create: create, pcmWav: pcmWav, wavValid: wavValid, resample16k: resample16k, STYLE: STYLE });
 });
