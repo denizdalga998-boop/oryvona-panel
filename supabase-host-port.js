@@ -50,6 +50,10 @@
       : 'recorded';
     const actorId = (typeof r.execution?.actor === 'string' && r.execution.actor.trim()) ? r.execution.actor.trim().slice(0, 80) : ((typeof receipt?.actorId === 'string' && receipt.actorId.trim()) ? receipt.actorId.trim().slice(0, 80) : null);
     const actorLabel = /^codex/i.test(actorId || '') ? 'Codex' : /^gemini/i.test(actorId || '') ? 'Antigravity' : null;
+    const isReview = r.execution?.operation === 'review' || receipt?.operation === 'review' || receipt?.mode === 'studio-review';
+    const rawStages = Array.isArray(r.execution?.stages) ? r.execution.stages : [];
+    const hasRevDev = isReview && rawStages.some(s => s && s.id === 'development');
+    const filteredStages = hasRevDev ? rawStages.filter(s => !(s && s.id === 'review' && s.status === 'not_run')) : rawStages;
     return { request_id: row.id, requested_project: r.target_game, text: row.text, attachments: r.attachments || [],
       status: mappedStatus,
       cancel_requested: row.status === 'cancelled', worker_id: receipt?.workerId || null, ...(actorId ? { actor_id: actorId } : {}), receipt, note_tr: String(r.note_tr || '').slice(0, 600),
@@ -58,8 +62,8 @@
       studioFlow: r.studioFlow || r.execution?.studioFlow || r.receipt?.studioFlow || null,
       created_at: row.created_at,
       finished_at: row.finished_at || null,
-      stage: typeof r.execution?.stage === 'string' ? r.execution.stage : null,
-      steps: Array.isArray(r.execution?.stages) ? r.execution.stages.slice(0,6).map(s=>{const d=String(s.detail_tr||'').slice(0,300);return {id:String(s.id||'').slice(0,40),title:String(s.title_tr||'').slice(0,100),status:String(s.status||'').slice(0,40),detail:actorLabel?d.replace(/\bClaude\b/g,actorLabel):d};}) : [],
+      stage: typeof r.execution?.stage === 'string' ? r.execution.stage : (isReview && (r.execution || ['RUNNING', 'FINISHED'].includes(rs)) ? 'review' : null),
+      steps: filteredStages.slice(0,6).map(s=>{const d=String(s.detail_tr||'').slice(0,300),id=String((hasRevDev&&s.id==='development'?'review':s.id)||'').slice(0,40);return {id,title:String(s.title_tr||'').slice(0,100),status:String(s.status||'').slice(0,40),detail:actorLabel?d.replace(/\bClaude\b/g,actorLabel):d};}),
       updated_at: r.execution?.updatedAt || row.finished_at || r.received_at || row.started_at || row.created_at };
   }
   // Chat history is read without `result` (each reply carries its ~1.3 MB voice recording there): only the fields shown are selected.
