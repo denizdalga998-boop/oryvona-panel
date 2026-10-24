@@ -81,7 +81,7 @@ function classifyOwnerSource(text, catalog) {
             var id = win.crypto.randomUUID();
             var operation = request('createWorkerTask', { requestId: id, sourceRequestId: c.requestId, liveSessionId: c.requestId, sourceText: source, originalText: source, toolCallId: call.id, project: target, instruction: source, task: args }).then(function (receipt) {
               var uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-              if (!receipt || receipt.accepted !== true || receipt.status !== 'durably_queued' || (receipt.requestId || receipt.commandId) !== id || !uuid.test(id) || !uuid.test(receipt.flowId || '')) return { status: 'not_queued', reason: 'DURABLE_RECEIPT_REQUIRED' };
+              if (!receipt || receipt.accepted !== true || receipt.status !== 'durably_queued' || (receipt.requestId || receipt.commandId) !== id || !uuid.test(id) || !(uuid.test(receipt.flowId || '') || (receipt.mode === 'studio-review' && uuid.test(receipt.jobId || '')))) return { status: 'not_queued', reason: 'DURABLE_RECEIPT_REQUIRED' };
               turn.consumed = true;
               return receipt;
             }).catch(function () { return { status: 'not_queued', reason: 'QUEUE_UNAVAILABLE' }; });

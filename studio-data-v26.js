@@ -87,14 +87,16 @@
     if (!pid) return null;
     const status = text(row.status, 80).toLowerCase() || 'unknown', receipt = object(row.receipt);
     const finishAt = iso(row.finishedAt || row.finished_at || receipt.finishedAt || receipt.finished_at);
-    const worker = text(row.expert || row.worker_id || receipt.workerId || receipt.worker_id, 160);
+    const rawWorker = text(row.actorId || row.actor_id || receipt.actorId || row.expert || row.worker_id || receipt.workerId || receipt.worker_id, 160);
+    const isCoord = /(?:^|[-:])coordinator$|^dj-kabin:v2\d-(?:queued|claim|ingress)$/i.test(rawWorker);
+    const worker = isCoord ? text(row.actorId || row.actor_id || receipt.actorId, 160) : rawWorker;
     const receiptProject = receipt.projectId || receipt.project_id;
     const receiptId = receipt.requestId || receipt.request_id;
     const id = text(row.id || row.requestId || row.request_id, 160);
     const completed = status === 'completed';
-    const verified = completed && receipt.status === 'FINISHED' && !!worker && projectId(receiptProject) === pid && receiptId === id;
+    const verified = completed && receipt.status === 'FINISHED' && !!(worker || rawWorker) && projectId(receiptProject) === pid && receiptId === id;
     const finished = stamp(finishAt);
-    return { id, projectId: pid, title: text(row.title || row.text, 300), status, statusText: text(row.statusText || row.note_tr, 1000),
+    return { id, projectId: pid, title: text(row.title || row.text, 300), status, statusText: text(row.statusText || row.note_tr, 1500),
       expert: worker || null, workspaceLabel: text(row.workspaceLabel || row.workspace_label, 200) || null, stage: stageId(row.stage || receipt.stage),
       originalStage: text(row.stage || receipt.stage, 60) || null,
       steps: list(row.steps, 8).map(s => ({ id: stageId(s.id), originalId: text(s.id, 60), title: text(s.title, 100), status: ({ done: 'completed', not_run: 'pending' })[s.status] || text(s.status, 60), originalStatus: text(s.status, 60) })),
@@ -103,7 +105,7 @@
       canCancel: row.canCancel === true && !['completed', 'failed', 'cancelled'].includes(status),
       completionEvidence: verified ? 'worker-receipt' : completed ? 'recorded-status-only' : 'none',
       verifiedCompletedToday: verified && finished !== null && finished >= stamp(today.from) && finished <= now,
-      receipt: { status: text(receipt.status, 100) || null, workerId: worker || null, projectId: receiptProject ? projectId(receiptProject) : null, requestId: receiptId ? text(receiptId, 160) : null }
+      receipt: { status: text(receipt.status, 100) || null, workerId: (worker || rawWorker) || null, projectId: receiptProject ? projectId(receiptProject) : null, requestId: receiptId ? text(receiptId, 160) : null }
     };
   }
   function normalizeEvent(row, now, today) {

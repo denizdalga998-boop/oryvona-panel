@@ -48,19 +48,22 @@
       : receipt
       ? 'claimed'
       : 'recorded';
+    const actorId = (typeof r.execution?.actor === 'string' && r.execution.actor.trim()) ? r.execution.actor.trim().slice(0, 80) : ((typeof receipt?.actorId === 'string' && receipt.actorId.trim()) ? receipt.actorId.trim().slice(0, 80) : null);
+    const actorLabel = /^codex/i.test(actorId || '') ? 'Codex' : /^gemini/i.test(actorId || '') ? 'Antigravity' : null;
     return { request_id: row.id, requested_project: r.target_game, text: row.text, attachments: r.attachments || [],
       status: mappedStatus,
-      cancel_requested: row.status === 'cancelled', worker_id: receipt?.workerId || null, receipt, note_tr: String(r.note_tr || '').slice(0, 600),
+      cancel_requested: row.status === 'cancelled', worker_id: receipt?.workerId || null, ...(actorId ? { actor_id: actorId } : {}), receipt, note_tr: String(r.note_tr || '').slice(0, 600),
+      ...(typeof r.execution?.summary_tr === 'string' && r.execution.summary_tr.trim() ? { summary_tr: r.execution.summary_tr.slice(0, 1500) } : {}),
       ...(r.execution && r.execution.projectId ? { workspace_label: 'izole çalışma klasörü' } : {}),
       studioFlow: r.studioFlow || r.execution?.studioFlow || r.receipt?.studioFlow || null,
       created_at: row.created_at,
       finished_at: row.finished_at || null,
       stage: typeof r.execution?.stage === 'string' ? r.execution.stage : null,
-      steps: Array.isArray(r.execution?.stages) ? r.execution.stages.slice(0,6).map(s=>({id:String(s.id||'').slice(0,40),title:String(s.title_tr||'').slice(0,100),status:String(s.status||'').slice(0,40),detail:String(s.detail_tr||'').slice(0,300)})) : [],
+      steps: Array.isArray(r.execution?.stages) ? r.execution.stages.slice(0,6).map(s=>{const d=String(s.detail_tr||'').slice(0,300);return {id:String(s.id||'').slice(0,40),title:String(s.title_tr||'').slice(0,100),status:String(s.status||'').slice(0,40),detail:actorLabel?d.replace(/\bClaude\b/g,actorLabel):d};}) : [],
       updated_at: r.execution?.updatedAt || row.finished_at || r.received_at || row.started_at || row.created_at };
   }
   // Chat history is read without `result` (each reply carries its ~1.3 MB voice recording there): only the fields shown are selected.
-  const CHAT_HISTORY_COLUMNS = 'id,text,status,created_at,started_at,finished_at,answer_tr:result->>answer_tr,provider:result->>provider,model:result->>model,audio_status:result->>audio_status,actions:result->actions,attachments:result->attachments,context_attachments:result->context_attachments,transport:result->receipt->>transport,model_verified:result->receipt->>modelVerified';
+  const CHAT_HISTORY_COLUMNS = 'id,text,status,created_at,started_at,finished_at,answer_tr:result->>answer_tr,provider:result->>provider,model:result->>model,audio_status:result->>audio_status,actions:result->actions,worker_receipt:result->workerReceipt,dispatch_receipt:result->dispatchReceipt,attachments:result->attachments,context_attachments:result->context_attachments,transport:result->receipt->>transport,model_verified:result->receipt->>modelVerified';
   // v1.5: names of earlier files a follow-up answer used (the server keeps them briefly; never paths or contents).
   function contextAttachmentNames(value) { return Array.isArray(value) ? value.slice(0, MAX_CHAT_ATTACHMENTS).filter(n => typeof n === 'string' && n.trim()).map(n => sanitizeChatAttachmentName(n)) : []; }
   // v1.2: Charon arrives as MP3 from Google Cloud (about ten times smaller); the older WAV voice still plays.
@@ -68,6 +71,8 @@
   function rowToChatTurn(row) {
     const slim = !row.result || typeof row.result !== 'object';
     const r = slim ? row : row.result, receipt = slim ? { transport: row.transport || null, modelVerified: row.model_verified === true || row.model_verified === 'true' } : (r.receipt || null);
+    const workerReceipt = slim ? (row.worker_receipt || row.dispatch_receipt || null) : (r.workerReceipt || r.dispatchReceipt || null);
+    const dispatchReceipt = slim ? (row.dispatch_receipt || row.worker_receipt || null) : (r.dispatchReceipt || r.workerReceipt || null);
     return {
       request_id: row.id,
       operation: 'argon_chat',
@@ -80,6 +85,8 @@
       model_verified: receipt?.modelVerified === true,
       audio_status: typeof r.audio_status === 'string' ? r.audio_status.slice(0, 80) : null,
       actions: Array.isArray(r.actions) ? r.actions.slice(0, 4) : [],
+      ...(workerReceipt && typeof workerReceipt === 'object' ? { workerReceipt } : {}),
+      ...(dispatchReceipt && typeof dispatchReceipt === 'object' ? { dispatchReceipt } : {}),
       ...(Array.isArray(r.attachments) && r.attachments.length ? { attachments: r.attachments.slice(0, MAX_CHAT_ATTACHMENTS).filter(a => a && typeof a === 'object' && typeof a.name === 'string' && a.name.trim()).map(a => ({ name: sanitizeChatAttachmentName(a.name), mime: String(a.mime || '').slice(0, 80), size: Number(a.size) || 0 })) } : {}),
       ...(contextAttachmentNames(r.context_attachments).length ? { context_attachments: contextAttachmentNames(r.context_attachments) } : {}),
       created_at: row.created_at,
@@ -191,11 +198,14 @@
         if (sessionRow?.status !== 'done' || live?.operation !== 'studio_gemini_service' || live?.service !== 'live_token' || live?.serviceResult?.ok !== true || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) throw failure('LIVE_SESSION_REQUIRED', 'Geçerli sahip ses oturumu doğrulanamadı.');
         const expectedHash = await digest(new TextEncoder().encode(canonical({text:payload.sourceText,requested_project:payload.project,attachments:[]})));
         await request('submitIntent',{expectedUserId:payload.expectedUserId,signal:payload.signal,requestId:payload.requestId,requestedProject:payload.project,text:payload.sourceText,attachments:[]});
-        const row = await poll(() => find(payload.requestId,context),12000, row => !!row && (['done','failed','cancelled'].includes(row.status) || (row.runner === 'DJ-KABIN:v24-queued' && typeof row.result?.receipt?.flowId === 'string')));
+        const row = await poll(() => find(payload.requestId,context),12000, row => !!row && (['done','failed','cancelled'].includes(row.status) || (row.runner === 'DJ-KABIN:v24-queued' && (typeof row.result?.receipt?.flowId === 'string' || (row.result?.receipt?.mode === 'studio-review' && (typeof row.result?.receipt?.jobId === 'string' || Array.isArray(row.result?.receipt?.jobIds)))))));
         const receipt = row.result?.receipt;
         const r = row.result;
-        const durable = !['failed','cancelled'].includes(row.status) && row.runner === 'DJ-KABIN:v24-queued' && r?.operation === 'studio_v24_intent' && r?.owner_id === context.userId && r?.client_request_id === payload.requestId && r?.target_game === payload.project && r?.payload_hash === expectedHash && UUID.test(receipt?.flowId || '') && ['STUDIO_FLOW_QUEUED','STUDIO_FLOW_WAITING','STUDIO_FLOW_RUNNING','USER_TEST_READY'].includes(receipt.status);
-        return {accepted:durable,status:durable?'durably_queued':'not_queued',requestId:row.id,flowId:durable?receipt.flowId:null};
+        const reviewJobId = receipt?.jobId || (Array.isArray(receipt?.jobIds) && receipt.jobIds.length === 1 ? receipt.jobIds[0] : null);
+        const flowVerified = UUID.test(receipt?.flowId || '') && ['STUDIO_FLOW_QUEUED','STUDIO_FLOW_WAITING','STUDIO_FLOW_RUNNING','USER_TEST_READY'].includes(receipt?.status);
+        const reviewVerified = receipt?.mode === 'studio-review' && UUID.test(reviewJobId || '') && ['DURABLY_QUEUED','WAITING','RUNNING','FINISHED'].includes(receipt?.status);
+        const durable = !['failed','cancelled'].includes(row.status) && row.runner === 'DJ-KABIN:v24-queued' && r?.operation === 'studio_v24_intent' && r?.owner_id === context.userId && r?.client_request_id === payload.requestId && r?.target_game === payload.project && r?.payload_hash === expectedHash && (flowVerified || reviewVerified);
+        return {accepted:durable,status:durable?'durably_queued':'not_queued',requestId:row.id,flowId:durable&&flowVerified?receipt.flowId:null,...(durable&&reviewVerified?{mode:'studio-review',jobId:reviewJobId}:{})};
       }
       if (operation === 'getConnection') {
         const [probe, status] = await Promise.all([
@@ -293,7 +303,7 @@
         const row = await find(payload.requestId, context);
         if (!row || row.result?.operation !== 'argon_chat') return { data: { status: 'missing' }, error: null };
         const r = row.result || {};
-        return { data: { status: row.status, payloadHash:r.payload_hash, timings:r.timings||{}, answer_tr: String(r.answer_tr || '').slice(0, 8000), audio_b64:playableAudio(r.audio)?r.audio.data:null, audio:playableAudio(r.audio)?{mimeType:r.audio.mimeType,data:r.audio.data}:null, audio_status:typeof r.audio_status==='string'?r.audio_status.slice(0,80):null, project_catalog:Array.isArray(r.project_catalog)?r.project_catalog.slice(0,128).filter(p=>p&&/^[a-z][a-z0-9-]{0,63}$/.test(p.id)).map(p=>({id:p.id,name:String(p.name||p.id).slice(0,120)})):[], actions: Array.isArray(r.actions) ? r.actions.slice(0, 4) : [], dispatchReceipt:r.dispatchReceipt || null, model: typeof r.model === 'string' ? r.model : null, provider: ['groq','openai','claude','gemini','google'].includes(r.provider) ? r.provider : null, transport: r.receipt?.transport || null, model_verified: r.receipt?.modelVerified === true, executionCapabilities: r.executionCapabilities && typeof r.executionCapabilities === 'object' ? {claudeLocalWorker:false,googleWorker:r.executionCapabilities.googleWorker === true,openaiWorker:r.executionCapabilities.openaiWorker === true} : null, receipt: r.receipt && typeof r.receipt.status === 'string' ? { status: r.receipt.status, ...(typeof r.receipt.modelCall === 'boolean' ? { modelCall: r.receipt.modelCall } : {}), ...(Number.isSafeInteger(r.receipt.httpStatus) ? { httpStatus: r.receipt.httpStatus } : {}) } : null, ...(contextAttachmentNames(r.context_attachments).length ? { context_attachments: contextAttachmentNames(r.context_attachments) } : {}) }, error: null };
+        return { data: { status: row.status, payloadHash:r.payload_hash, timings:r.timings||{}, answer_tr: String(r.answer_tr || '').slice(0, 8000), audio_b64:playableAudio(r.audio)?r.audio.data:null, audio:playableAudio(r.audio)?{mimeType:r.audio.mimeType,data:r.audio.data}:null, audio_status:typeof r.audio_status==='string'?r.audio_status.slice(0,80):null, project_catalog:Array.isArray(r.project_catalog)?r.project_catalog.slice(0,128).filter(p=>p&&/^[a-z][a-z0-9-]{0,63}$/.test(p.id)).map(p=>({id:p.id,name:String(p.name||p.id).slice(0,120)})):[], actions: Array.isArray(r.actions) ? r.actions.slice(0, 4) : [], workerReceipt:r.workerReceipt || r.dispatchReceipt || null, dispatchReceipt:r.dispatchReceipt || r.workerReceipt || null, model: typeof r.model === 'string' ? r.model : null, provider: ['groq','openai','claude','gemini','google'].includes(r.provider) ? r.provider : null, transport: r.receipt?.transport || null, model_verified: r.receipt?.modelVerified === true, executionCapabilities: r.executionCapabilities && typeof r.executionCapabilities === 'object' ? {claudeLocalWorker:false,googleWorker:r.executionCapabilities.googleWorker === true,openaiWorker:r.executionCapabilities.openaiWorker === true} : null, receipt: r.receipt && typeof r.receipt.status === 'string' ? { status: r.receipt.status, ...(typeof r.receipt.modelCall === 'boolean' ? { modelCall: r.receipt.modelCall } : {}), ...(Number.isSafeInteger(r.receipt.httpStatus) ? { httpStatus: r.receipt.httpStatus } : {}) } : null, ...(contextAttachmentNames(r.context_attachments).length ? { context_attachments: contextAttachmentNames(r.context_attachments) } : {}) }, error: null };
       }
       if (operation === 'getArchiveAnswer') {
         if (!UUID.test(payload.requestId || '')) throw failure('PAYLOAD_MISMATCH', 'Soru kimliği geçersiz.');

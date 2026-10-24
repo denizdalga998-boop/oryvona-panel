@@ -198,6 +198,8 @@
         origin: { kind: 'user-input', evidenceLabel: 'Canlı beyne gönderildi.' }
       }];
       const answerText = typeof chat.answer_tr === 'string' ? chat.answer_tr.trim() : '';
+      const isVerifiedReceipt = r => !!(r && typeof r === 'object' && r.accepted === true && r.status === 'durably_queued' && UUID.test(r.requestId || r.commandId || '') && (UUID.test(r.flowId || '') || (r.mode === 'studio-review' && UUID.test(r.jobId || ''))));
+      const verifiedQueueReceipt = isVerifiedReceipt(chat.workerReceipt) || isVerifiedReceipt(chat.dispatchReceipt) || (Array.isArray(chat.actions) && chat.actions.some(a => a && a.alreadyQueued === true && isVerifiedReceipt(a.receipt || a)));
       if (answerText) {
         const providerLabel = ({ groq: 'Groq', google: 'Google AI Studio', gemini: 'Gemini', openai: 'OpenAI Codex', claude: 'Claude' })[chat.provider] || null;
         const verifiedGroq = chat.provider === 'groq' && chat.transport === 'groq-api' && chat.model_verified === true;
@@ -224,6 +226,9 @@
           requestId: id,
           role: 'assistant',
           body: answerText.slice(0, 8000),
+          ...(verifiedQueueReceipt ? { verifiedQueueReceipt: true } : {}),
+          ...(chat.workerReceipt && typeof chat.workerReceipt === 'object' ? { workerReceipt: chat.workerReceipt } : {}),
+          ...(chat.dispatchReceipt && typeof chat.dispatchReceipt === 'object' ? { dispatchReceipt: chat.dispatchReceipt } : {}),
           failed: chat.status === 'failed' || chat.status === 'cancelled',
           createdAt: chat.finished_at || chat.created_at || null,
           origin
@@ -242,11 +247,20 @@
         let status = 'queued', statusText = 'Cihazda kaydedildi · sunucuya iletilmedi';
         if (remote) { const s = remote.status; status = ({ recorded: 'queued', claimed: 'queued', running: 'running', waiting_review: 'waiting_review', completed: 'completed', failed: 'failed', cancelled: 'cancelled' })[s] || 'blocked'; statusText = ({ recorded: 'İstek sunucuda kayıtlı · ajan başlamadı', claimed: 'İzole işçi teslim aldı · çalışma kanıtı bekleniyor', running: 'İşçi çalışma bildirimi alındı', waiting_review: 'İnceleme bekliyor', completed: 'İşçi tamamlanma kaydı alındı · test kanıtlarını incele', failed: 'İşçi hata kaydı alındı', cancelled: 'İstek iptal edildi' })[s] || 'Bilinmeyen sunucu durumu'; }
         const terminalRemote = remote && ['completed','failed','cancelled'].includes(remote.status), runningRemote = remote && remote.status === 'running';
-        const note = remote && typeof remote.note_tr === 'string' ? remote.note_tr.trim().slice(0, 240) : '';
+        const rawNote = remote && typeof remote.note_tr === 'string' ? remote.note_tr.trim() : '';
+        const rawSummary = remote && typeof remote.summary_tr === 'string' ? remote.summary_tr.trim() : '';
+        let note = rawNote.slice(0, 240);
+        if (rawSummary) {
+          const head = rawSummary.slice(0, 48);
+          const idx = head ? rawNote.indexOf(head) : -1;
+          const prefix = idx > 0 ? rawNote.slice(0, idx).trim() : '';
+          note = (prefix ? prefix + ' ' + rawSummary : rawSummary).slice(0, 1500);
+        }
         if (note && (terminalRemote || runningRemote)) statusText = note;
         if (remote?.receipt?.status === 'DURABLY_QUEUED' && !terminalRemote && !runningRemote) statusText = 'DJ-KABIN izole kalıcı kuyruğa aldı · ajan başlatılmadı';
         if (remote?.receipt?.status === 'STUDIO_FLOW_QUEUED' && !terminalRemote && !runningRemote) statusText = 'DJ-KABIN kalıcı işçi kuyruğuna aldı · sırası bekleniyor';
-        if ((remote?.receipt?.status === 'WAITING' || remote?.receipt?.status === 'STUDIO_FLOW_WAITING') && !terminalRemote) statusText = note || 'DJ-KABIN işçi sırası bekleniyor';
+        if (remote?.receipt?.status === 'WAITING' && note && !terminalRemote) statusText = note;
+        if (remote?.receipt?.status === 'STUDIO_FLOW_WAITING' && !terminalRemote) statusText = note || 'DJ-KABIN işçi sırası bekleniyor';
         if (remote?.receipt?.status === 'STUDIO_FLOW_RUNNING' && !terminalRemote) { status = 'running'; statusText = note || 'DJ-KABIN üzerinde işçi çalışıyor'; }
         if (remote?.receipt?.status === 'USER_TEST_READY') { status = 'waiting_review'; statusText = note || 'Test paketi hazır · Deniz incelemesi bekleniyor'; }
         if (remote?.receipt?.status === 'NEEDS_CLARIFICATION' && !terminalRemote) { status = 'blocked'; statusText = 'DJ-KABIN kaydetti · işlem netleştirme bekliyor'; }
@@ -258,8 +272,10 @@
           if (row.status === 'cancelled') { status = 'cancelled'; statusText = 'İstek iptal edildi'; }
           if (row.status === 'failed') { status = 'failed'; statusText = row.lastError || 'İstek gönderilemedi; metin cihazda saklanıyor'; }
         }
+        const isCoordinatorId = v => /(?:^|[-:])coordinator$|^dj-kabin:v2\d-(?:queued|claim|ingress)$/i.test(String(v || '').trim());
+        const expertId = (remote && (remote.actor_id || remote.receipt?.actorId || remote.studioFlow?.activeActor || (!isCoordinatorId(remote.worker_id) ? remote.worker_id : null))) || null;
         messages.push({ id: 'intent-' + id, role: 'user', body: row.text || '', projectId, createdAt: row.createdAt || row.created_at, commandId: id, origin: { kind: 'local' } });
-        jobs.push({ id, projectId, title: (row.text || '').slice(0, 90), status, statusText, canCancel: !['completed', 'failed', 'cancelled'].includes(status), ...(remote && remote.worker_id ? { expert: remote.worker_id } : {}), ...(remote && remote.workspace_label ? { workspaceLabel: remote.workspace_label } : {}),
+        jobs.push({ id, projectId, title: (row.text || '').slice(0, 90), status, statusText, canCancel: !['completed', 'failed', 'cancelled'].includes(status), ...(expertId ? { expert: expertId } : {}), ...(remote && (remote.actor_id || remote.receipt?.actorId) ? { actorId: remote.actor_id || remote.receipt?.actorId } : {}), ...(remote && remote.workspace_label ? { workspaceLabel: remote.workspace_label } : {}),
           createdAt: row.createdAt || row.created_at || null,
           updatedAt: remote?.updated_at || null, finishedAt: remote?.finished_at || null,
           receipt: remote?.receipt ? JSON.parse(JSON.stringify(remote.receipt)) : null,

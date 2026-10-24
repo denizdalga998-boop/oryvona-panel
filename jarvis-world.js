@@ -54,13 +54,31 @@
     if(firstPersonOnly===true)return /(?:başlattım|görevi\s+dağıttım|görev\s+paketini\s+açtım|işçilere\s+ilettim|işçilere\s+dağıttım|kuyruğa\s+aldım|kuyruğa\s+ekledim|kuyruğa\s+kaydettim)/i.test(s);
     return /(?:işçi\S*|kuyru\S*|görev\S*|paket\S*|codex\S*|antigravity\S*).{0,48}(?:atad|atan|başlatt|başlatıyor|başladı|dağıtt|dağıtıldı|ilett|iletildi|gönderd|gönderildi|kaydett|kaydedildi|açtım|açıldı|tamamlad|tamamlandı|çalışıyor|kodluyor)|(?:başlattım|başlatıyorum|görev\s+dağıtıldı|görevi\s+dağıttım|görev\s+paketini\s+açtım|işçiler\s+çalışıyor|işçilere\s+ilettim|işçilere\s+dağıttım|kuyruğa\s+aldım|kuyruğa\s+ekledim|kuyruğa\s+kaydettim|atadım|tamamladım|testler\s+geçti)/i.test(s);
   }
+  function isVerifiedQueueReceipt(r){
+    var UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return !!(r&&typeof r==='object'&&r.accepted===true&&r.status==='durably_queued'&&UUID.test(r.requestId||r.commandId||'')&&(UUID.test(r.flowId||'')||(r.mode==='studio-review'&&UUID.test(r.jobId||''))));
+  }
   function hasVerifiedQueueReceipt(result){
     if(!result||result.ok!==true)return false;
-    var UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    var r=result.workerReceipt||null;
-    if(r&&r.accepted===true&&r.status==='durably_queued'&&UUID.test(r.requestId||r.commandId||'')&&UUID.test(r.flowId||''))return true;
+    if(isVerifiedQueueReceipt(result.workerReceipt)||isVerifiedQueueReceipt(result.dispatchReceipt))return true;
     var actions=Array.isArray(result.actions)?result.actions:[];
-    return actions.some(function(a){var ar=a&&(a.receipt||a);return a&&a.alreadyQueued===true&&ar&&ar.accepted===true&&ar.status==='durably_queued'&&UUID.test(ar.requestId||ar.commandId||'')&&UUID.test(ar.flowId||'');});
+    return actions.some(function(a){return a&&a.alreadyQueued===true&&isVerifiedQueueReceipt(a.receipt||a);});
+  }
+  function formatExpertLabel(job){
+    var raw=job&&(job.actorId||job.actor||job.expert||(job.receipt&&job.receipt.actorId))||'';
+    var v=String(raw).trim();
+    if(v==='codex-review')return 'OpenAI Codex (codex-review)';
+    if(v==='codex-work')return 'OpenAI Codex (codex-work)';
+    if(v==='gemini-review')return 'Google Antigravity (gemini-review)';
+    if(v==='gemini-work')return 'Google Antigravity (gemini-work)';
+    if(v==='claude-review')return 'Anthropic Claude (claude-review)';
+    if(v==='claude-work')return 'Anthropic Claude (claude-work)';
+    if(/^codex/i.test(v))return 'OpenAI Codex ('+v+')';
+    if(/^gemini/i.test(v))return 'Google Antigravity ('+v+')';
+    if(/^claude/i.test(v))return 'Anthropic Claude ('+v+')';
+    if(/(?:^|[-:])coordinator$|^dj-kabin:v2\d-(?:queued|claim|ingress)$/i.test(v))v='';
+    if(v)return v;
+    return job&&['running','completed','failed','waiting_review'].indexOf(job.status)!==-1?'Uzman doğrulanmadı':'Atama bekliyor';
   }
   function isDesignCardText(text){
     var s=String(text||'');
@@ -314,8 +332,7 @@
       if(!proposal){clearConfirmation();setStatus('İş önerisinin Google API yanıtı ve kaynak mesajı doğrulanamadı. Yeni iş gönderilmedi.','error');return;}
       if(action.alreadyQueued===true){
         var receipt=action.receipt||action;
-        var queueUuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        if(receipt.accepted===true&&receipt.status==='durably_queued'&&queueUuid.test(receipt.requestId||receipt.commandId||'')&&queueUuid.test(receipt.flowId||'')){
+        if(isVerifiedQueueReceipt(receipt)){
           setStatus('Görev kalıcı işçi kuyruğuna alındı · '+label(proposal.projectId)+'. Çalışma durumu gerçek iş kartında görünür.');
           if(typeof bridge.refresh==='function')bridge.refresh().catch(function(){});
         }else setStatus('Kuyruk onayı doğrulanmadı; işi yeniden göndermeden iş kayıtlarını kontrol et.','error');
@@ -467,7 +484,7 @@
     /* A failed send is retried with the same words (and, in this session, the same files); the old pair stays, dimmed. */
     function resendFailed(message){if(!accountKey){setStatus('Önce sahip hesabıyla giriş yapmalısın.','error');return;}if(answerBusy){setStatus('Önceki yanıt hazırlanıyor; bitince yeniden gönderebilirsin.');return;}if(!canResend(message))return;var text=message.body.trim(),atts=message.retry&&Array.isArray(message.retry.attachments)?message.retry.attachments:[];readMessages=readMessages.map(function(m){return m&&m.requestId&&m.requestId===message.requestId&&!m.pending?Object.assign({},m,{resent:true}):m;});queueSave(null);update(snapshot);brainTurn(text,-1,atts);}
     function field(labelText,value){var n=el('div','jw-job-field');n.append(el('span','',labelText),el('strong','',value));return n;}
-    function renderJob(job){var cardOwner=accountKey,cardEpoch=accountEpoch,card=el('article','jw-job');card.dataset.jobId=safeText(job.id,150);var h=el('div','jw-job-head'),t=el('h3','jw-job-title',job.title||'Komut'),state=el('span','jw-job-state',STATUS[job.status]||'Durum doğrulanmadı');state.dataset.state=job.status||'unknown';h.append(t,state);var grid=el('div','jw-job-grid');grid.append(field('HEDEF',label(job.projectId)),field('UZMAN',job.expert||'Atama bekliyor'),field('İZOLE ALAN',job.workspaceLabel||'Doğrulanmadı'),field('CANLI DURUM',job.statusText||STATUS[job.status]||'Doğrulanmadı'));card.append(h,grid);if(job.workspacePath||job.id||job.blockReason){var details=el('details'),summary=el('summary','','İş ayrıntıları');details.append(summary,el('pre','','İş: '+safeText(job.id,150)+(job.workspacePath?'\nÇalışma alanı: '+safeText(job.workspacePath,500):'')+(job.blockReason?'\nBekleme nedeni: '+safeText(job.blockReason,700):'')));card.appendChild(details);}if(job.canCancel&&typeof bridge.cancelJob==='function'){var row=el('div','jw-job-actions'),cancel=btn(null,'jw-text-button','İşi durdur: '+(job.title||job.id));cancel.textContent='Durdur';dynamicOn(cancel,'click',async function(){if(!owns(cardOwner,cardEpoch))return;cancel.disabled=true;try{await bridge.cancelJob({jobId:job.id,accountKey:cardOwner});if(!owns(cardOwner,cardEpoch))return;setStatus('Durdurma isteği iletildi; işçi yanıtı bekleniyor.');}catch(_e){if(!owns(cardOwner,cardEpoch))return;setStatus('Durdurma isteği iletilemedi.','error');cancel.disabled=false;}});row.appendChild(cancel);card.appendChild(row);}return card;}
+    function renderJob(job){var cardOwner=accountKey,cardEpoch=accountEpoch,card=el('article','jw-job');card.dataset.jobId=safeText(job.id,150);var h=el('div','jw-job-head'),t=el('h3','jw-job-title',job.title||'Komut'),state=el('span','jw-job-state',STATUS[job.status]||'Durum doğrulanmadı');state.dataset.state=job.status||'unknown';h.append(t,state);var grid=el('div','jw-job-grid');grid.append(field('HEDEF',label(job.projectId)),field('UZMAN',formatExpertLabel(job)),field('İZOLE ALAN',job.workspaceLabel||'Doğrulanmadı'),field('CANLI DURUM',job.statusText||STATUS[job.status]||'Doğrulanmadı'));card.append(h,grid);if(job.workspacePath||job.id||job.blockReason){var details=el('details'),summary=el('summary','','İş ayrıntıları');details.append(summary,el('pre','','İş: '+safeText(job.id,150)+(job.workspacePath?'\nÇalışma alanı: '+safeText(job.workspacePath,500):'')+(job.blockReason?'\nBekleme nedeni: '+safeText(job.blockReason,700):'')));card.appendChild(details);}if(job.canCancel&&typeof bridge.cancelJob==='function'){var row=el('div','jw-job-actions'),cancel=btn(null,'jw-text-button','İşi durdur: '+(job.title||job.id));cancel.textContent='Durdur';dynamicOn(cancel,'click',async function(){if(!owns(cardOwner,cardEpoch))return;cancel.disabled=true;try{await bridge.cancelJob({jobId:job.id,accountKey:cardOwner});if(!owns(cardOwner,cardEpoch))return;setStatus('Durdurma isteği iletildi; işçi yanıtı bekleniyor.');}catch(_e){if(!owns(cardOwner,cardEpoch))return;setStatus('Durdurma isteği iletilemedi.','error');cancel.disabled=false;}});row.appendChild(cancel);card.appendChild(row);}return card;}
     function renderEmpty(){var box=el('div','jw-empty');box.append(el('span','jw-kicker','STÜDYO KOMUTA MERKEZİ'),el('h2','','Bugün neyi değiştirelim?'),el('p','','Bir oyunun durumunu sor, bir düzeltme iste ya da günün özetini al. Hedef, uzman ve doğrulanmış sonuç burada görünür.'));var suggestions=el('div','jw-suggestions');['Forge Run ne durumda?','Bugün neler oldu?','Şu anda öncelikli olan ne?'].forEach(function(text){var b=btn(null,'jw-suggestion',text);b.textContent=text;dynamicOn(b,'click',function(){drafts.update(scope,{text:text});renderDraft();queueSave(scope);input.focus();});suggestions.appendChild(b);});box.appendChild(suggestions);timeline.appendChild(box);}
     function syncEnergy(){
       var running=snapshot.jobs.some(function(job){return job.status==='running';});
@@ -482,6 +499,17 @@
       if(!active)return;var follow=isNearBottom(),hadContent=nodesByKey.size>0;var c=snapshot.connection,connected=c.status==='connected';connection.dataset.status=c.status||'offline';connectionText.textContent=mode==='preview'?'Çevrimdışı tasarım önizlemesi':safeText(c.label||(connected?'Kontrol hattı bağlı':'Bağlantı doğrulanmadı'),160);connection.title=connectionText.textContent;var running=snapshot.jobs.filter(function(j){return ['queued','running','blocked','paused','waiting_review'].indexOf(j.status)!==-1;});activityCount.textContent=String(running.length);
       /* The job counter appears only when there is work to see (or the job list is open and can be closed). */
       activity.hidden=running.length===0&&!(activityVisible&&snapshot.jobs.length>0);
+      // Reconcile any local assistant fallback message whose server turn now carries a verified queue receipt.
+      var serverAssistantByReq=new Map();
+      snapshot.messages.forEach(function(m){if(m&&m.role==='assistant'&&m.requestId&&m.verifiedQueueReceipt===true&&typeof m.body==='string'&&m.body.trim())serverAssistantByReq.set(m.requestId,m);});
+      var reconciledLocal=false;
+      readMessages.forEach(function(m){
+        if(m&&m.role==='assistant'&&m.requestId&&serverAssistantByReq.has(m.requestId)&&/^Kalıcı kuyruk onayı olmadan görev başlatıldı/.test(String(m.body||''))){
+          var srv=serverAssistantByReq.get(m.requestId);
+          m.body=srv.body;m.verifiedQueueReceipt=true;reconciledLocal=true;
+        }
+      });
+      if(reconciledLocal)queueSave(null);
       // Deduplicate server-restored chat turns against in-memory/local readMessages by requestId+role or id.
       var localReqRoles=new Set(readMessages.filter(function(m){return m&&m.requestId;}).map(function(m){return m.requestId+':'+m.role;}));
       var localIds=new Set(readMessages.map(function(m){return m&&m.id;}));
@@ -717,8 +745,7 @@
             },
             onTask:function(receipt){
               if(!valid())return;
-              var queueUuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-              var verified=!!(receipt&&receipt.accepted===true&&receipt.status==='durably_queued'&&queueUuid.test(receipt.requestId||receipt.commandId||'')&&queueUuid.test(receipt.flowId||''));
+              var verified=isVerifiedQueueReceipt(receipt);
               var t=ensureLiveTurn(activeLiveTurnId);
               if(verified){
                 t.taskReceipt=receipt;renderLiveReply(t,true);
@@ -790,5 +817,5 @@
     unsub=bridge.subscribe(update);Promise.resolve(bridge.getSnapshot()).then(update).catch(function(){if(lastRevision<0)update({connection:{status:'offline',label:'Kontrol hattına ulaşılamıyor'},messages:[],jobs:[]});});renderDraft();loadDraft(null);measure();
     return {setActive:function(value){var next=!!value;if(next!==active)activeEpoch++;active=next;root.hidden=!active;if(!active){clearConfirmation();closeAttachSheet();closeLightbox();stopSpeech();if(voice&&typeof voice.cancel==='function')voice.cancel();if(energy)energy.setState('offline');}else{scheduleMeasure();update(snapshot);}},refresh:function(){return Promise.resolve(bridge.getSnapshot()).then(update);},selectScope:selectScope,destroy:function(){if(destroyed)return;stopWaitTicker();revokeAllPreviewUrls();flushDrafts();destroyed=true;stopSpeech();if(voice&&typeof voice.cancel==='function')voice.cancel();if(typeof voiceUnsub==='function')voiceUnsub();if(typeof dataUnsub==='function')dataUnsub();if(typeof unsub==='function')unsub();listeners.forEach(function(off){off();});saveTimers.forEach(function(timer){win.clearTimeout(timer);});if(raf)win.cancelAnimationFrame(raf);if(measureTimer)win.clearTimeout(measureTimer);if(energy)energy.destroy();root.replaceChildren();root.classList.remove('jw-root','jw-sheet-open','jw-overlay-open');root.removeAttribute('data-jarvis-world');root.style.removeProperty('--jw-shell-height');}};
   }
-  return Object.freeze({mount:mount,PROJECTS:PROJECTS,_test:Object.freeze({DraftStore:DraftStore,validateResolution:validateResolution,sourceLabel:sourceLabel,cloneAttachments:cloneAttachments,uuid:uuid,validateStudioProposal:validateStudioProposal,nativeReplyOrigin:nativeReplyOrigin,limitDailyReplySentences:limitDailyReplySentences,hasUnverifiedExecutionClaim:hasUnverifiedExecutionClaim})});
+  return Object.freeze({mount:mount,PROJECTS:PROJECTS,_test:Object.freeze({DraftStore:DraftStore,validateResolution:validateResolution,sourceLabel:sourceLabel,cloneAttachments:cloneAttachments,uuid:uuid,validateStudioProposal:validateStudioProposal,nativeReplyOrigin:nativeReplyOrigin,limitDailyReplySentences:limitDailyReplySentences,hasUnverifiedExecutionClaim:hasUnverifiedExecutionClaim,isVerifiedQueueReceipt:isVerifiedQueueReceipt,hasVerifiedQueueReceipt:hasVerifiedQueueReceipt,formatExpertLabel:formatExpertLabel})});
 });
