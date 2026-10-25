@@ -45,7 +45,8 @@
         canFollowup: fresh && template.enabled && raw.providerEnabled !== false && raw.legacy !== true && SESSION.test(raw.sessionId || '') && ['completed','succeeded'].includes(state),
         turns: (Array.isArray(raw.turns) ? raw.turns : []).slice(-12).map(function (turn) { turn = object(turn); if (!UUID.test(turn.requestId || '')) return null; return { requestId: turn.requestId, instruction: text(turn.instruction, 2000), result: text(turn.result, 4000), state: Object.prototype.hasOwnProperty.call(WORKER_LABELS, turn.state) ? turn.state : 'unknown', updatedAt: timestamp(turn.updatedAt) }; }).filter(Boolean) };
     }).filter(Boolean);
-    return { fresh: fresh, maxActiveWorkers: 2, activeCount: fresh && Number.isSafeInteger(value.activeCount) && value.activeCount >= 0 ? Math.min(40, value.activeCount) : null, roster: roster, workers: workers };
+    var capacity = Number.isSafeInteger(value.maxActiveWorkers) && value.maxActiveWorkers >= 1 && value.maxActiveWorkers <= 8 ? value.maxActiveWorkers : 2;
+    return { fresh: fresh, maxActiveWorkers: capacity, activeCount: fresh && Number.isSafeInteger(value.activeCount) && value.activeCount >= 0 ? Math.min(40, value.activeCount) : null, roster: roster, workers: workers };
   }
   function safeDelivery(flow, options) {
     options = options || {}; var d = object(flow.delivery), gates = canonicalGates(flow.gates), now = options.now == null ? Date.now() : options.now;
@@ -121,7 +122,7 @@
     var independent = snapshot.independentWorkers;
     if (independent) {
       var iw = node('section', 'sf-independent'); iw.setAttribute('aria-label', 'Bağımsız işçi oturumları');
-      iw.append(node('strong', 'sf-independent-title', 'Bağımsız işçiler'), node('p', 'sf-capacity', (independent.activeCount == null ? 'Güncel kapasite sinyali bekleniyor' : independent.activeCount + ' / 2 etkin işçi') + ' · ' + independent.roster.length + ' uzman şablonu'));
+      iw.append(node('strong', 'sf-independent-title', 'Bağımsız işçiler'), node('p', 'sf-capacity', (independent.activeCount == null ? 'Güncel kapasite sinyali bekleniyor' : independent.activeCount + ' / ' + independent.maxActiveWorkers + ' etkin işçi') + ' · ' + independent.roster.length + ' uzman şablonu'));
       var instances = node('div', 'sf-instance-list');
       independent.workers.forEach(function (worker) {
         var button = node('button', 'sf-instance'); button.type = 'button'; button.dataset.workerId = worker.id; button.dataset.state = worker.state; button.setAttribute('aria-expanded', String(options.selectedWorkerId === worker.id));
