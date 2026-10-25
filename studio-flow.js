@@ -11,11 +11,13 @@
   var STAGES = Object.freeze(['development', 'review', 'test', 'package', 'delivery']);
   var LABELS = Object.freeze({ development: 'Geliştirme', test: 'Test', review: 'İnceleme', package: 'Paketleme', delivery: 'Teslim' });
   var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  var PUBLIC_ID = /^[a-z][a-z0-9-]{0,63}$/, SESSION = /^(?:[0-9a-f-]{36}|(?:thread|session|conversation)_[a-zA-Z0-9_-]{8,100})$/i;
+  var WORKER_LABELS = Object.freeze({ not_started: 'Başlatılmadı', queued: 'Sırada', starting: 'Başlatılıyor', leased: 'İş ayrıldı', running: 'Çalışıyor', busy: 'Çalışıyor', paused: 'Duraklatıldı', quota_wait: 'Kota bekliyor', auth_required: 'Giriş bekliyor', blocked: 'Bekliyor', failed: 'Başarısız', completed: 'Tamamlandı', succeeded: 'Tamamlandı', cancelled: 'İptal edildi', idle: 'Boşta', waiting: 'Bekliyor', disabled: 'Kapalı', unknown: 'Güncel sinyal yok' });
   var HEAD = /^[a-f0-9]{40}$/i, HASH = /^[a-f0-9]{64}$/i;
-  var DEFAULT_ORIGINS = Object.freeze(['https://denizdalga998-boop.github.io']);
+  var DEFAULT_ORIGINS = Object.freeze(['https://denizdalga998-boop.github.io', 'https://dj-kabin.tail0c7f5d.ts.net', 'https://dj-kabin.tail0c7f5d.ts.net:8443']);
   function object(v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
   function text(v, max) {
-    return typeof v === 'string' ? v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').replace(/(?:Bearer\s+|\b(?:sk-[a-z0-9_-]{12,}|AIza[a-z0-9_-]{20,}|gh[pousr]_[a-z0-9_]{15,}))\S*/gi, '[gizlendi]').slice(0, max || 500) : '';
+    return typeof v === 'string' ? v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').replace(/(?:Bearer\s+\S+|\b(?:sk-|gsk_|AIza|gh[pousr]_)[a-z0-9_-]{12,}|eyJ[\w-]+\.[\w-]+\.[\w-]+)/gi, '[gizlendi]').slice(0, max || 500) : '';
   }
   function timestamp(v) { var n = typeof v === 'number' ? v : Date.parse(v || ''); return Number.isFinite(n) && n >= 0 ? n : null; }
   function recent(v, now, maxAge) { var at = timestamp(v); return at !== null && at <= now + 5000 && now - at <= maxAge; }
@@ -25,6 +27,26 @@
   function flowStatus(value) { return ({ QUEUED: 'queued', IMPLEMENTING: 'running', REVIEWING: 'running', TESTING: 'running', BUILDING: 'running', VERIFYING_DELIVERY: 'running', USER_TEST_READY: 'ready', NEEDS_ATTENTION: 'blocked', CANCELLED: 'cancelled' })[value] || (/^WAITING_/.test(value || '') ? 'blocked' : ['queued', 'running', 'blocked', 'paused', 'failed', 'cancelled', 'ready', 'completed', 'delivered'].includes(value) ? value : 'unknown'); }
   function canonicalGates(value) { var gates = object(value); return { development: object(gates.development || gates.implement), test: object(gates.test), review: object(gates.review), package: object(gates.package || gates.build), delivery: object(gates.delivery) }; }
   function unwrap(v) { if (v && v.error) throw new Error('READ_FAILED'); return v && Object.prototype.hasOwnProperty.call(v, 'data') ? v.data : v; }
+  function normalizeIndependent(value, options) {
+    options = options || {}; value = object(value); var now = options.now == null ? Date.now() : options.now;
+    if (value.schemaVersion !== 1) return null;
+    var fresh = options.studioMode === true && recent(value.observedAt, now, 120000), seen = new Set();
+    var roster = (Array.isArray(value.roster) ? value.roster : []).slice(0, 24).map(function (raw) {
+      raw = object(raw); var id = text(raw.id, 64), p = provider(raw.provider); if (!PUBLIC_ID.test(id) || !p || seen.has(id)) return null; seen.add(id);
+      return { id: id, label: text(raw.label, 100) || id, specialty: text(raw.specialty, 240), provider: p, enabled: raw.enabled === true };
+    }).filter(Boolean);
+    seen = new Set();
+    var workers = (Array.isArray(value.workers) ? value.workers : []).slice(0, 40).map(function (raw) {
+      raw = object(raw); var template = roster.find(function (item) { return item.id === raw.templateId; }), p = provider(raw.provider);
+      if (!UUID.test(raw.id || '') || seen.has(raw.id) || !template || !p || !PUBLIC_ID.test(raw.projectId || '')) return null; seen.add(raw.id);
+      var state = fresh ? Object.prototype.hasOwnProperty.call(WORKER_LABELS, raw.state) ? raw.state : 'unknown' : 'unknown';
+      return { id: raw.id, templateId: template.id, label: text(raw.label, 100) || template.label, specialty: text(raw.specialty, 240) || template.specialty, provider: p, projectId: raw.projectId, projectLabel: PROJECTS[raw.projectId] || raw.projectId,
+        jobId: UUID.test(raw.jobId || '') ? raw.jobId : null, sessionId: SESSION.test(raw.sessionId || '') ? raw.sessionId : null, state: state, updatedAt: timestamp(raw.updatedAt), workspaceLabel: text(raw.workspaceLabel, 160), legacy: raw.legacy === true, historyLimited: raw.historyLimited === true || (Array.isArray(raw.turns) && raw.turns.length > 12),
+        canFollowup: fresh && template.enabled && raw.providerEnabled !== false && raw.legacy !== true && SESSION.test(raw.sessionId || '') && ['completed','succeeded'].includes(state),
+        turns: (Array.isArray(raw.turns) ? raw.turns : []).slice(-12).map(function (turn) { turn = object(turn); if (!UUID.test(turn.requestId || '')) return null; return { requestId: turn.requestId, instruction: text(turn.instruction, 2000), result: text(turn.result, 4000), state: Object.prototype.hasOwnProperty.call(WORKER_LABELS, turn.state) ? turn.state : 'unknown', updatedAt: timestamp(turn.updatedAt) }; }).filter(Boolean) };
+    }).filter(Boolean);
+    return { fresh: fresh, maxActiveWorkers: 2, activeCount: fresh && Number.isSafeInteger(value.activeCount) && value.activeCount >= 0 ? Math.min(40, value.activeCount) : null, roster: roster, workers: workers };
+  }
   function safeDelivery(flow, options) {
     options = options || {}; var d = object(flow.delivery), gates = canonicalGates(flow.gates), now = options.now == null ? Date.now() : options.now;
     var developer = provider(flow.developer), reviewer = provider(flow.reviewer);
@@ -46,10 +68,15 @@
     if (!pid || project(f.projectId) !== pid) return null;
     var id = text(row.request_id || row.id || f.id, 160); if (!id) return null;
     var stage = stageId(f.stage || f.phase);
+    var rawWait = text(f.waitingReason, 400);
+    var rowNote = text(row.note_tr || row.note || (row.result && row.result.note_tr), 400);
+    var waitingReason = /^(?:IMPLEMENT|REVIEW|TEST|BUILD|DELIVERY)_FAILED$|^REVISION_LIMIT_REACHED$/.test(rawWait) && rowNote && !/aşaması:\s*NEEDS_ATTENTION$/i.test(rowNote)
+      ? rowNote + ' (' + rawWait + ')'
+      : rawWait;
     var result = { id: id, projectId: pid, projectLabel: PROJECTS[pid], title: text(row.title || row.text || f.title, 220), headSha: HEAD.test(f.headSha || '') ? f.headSha.toLowerCase() : null,
       lastEditor: provider(f.lastEditor), developer: provider(f.developer), reviewer: provider(f.reviewer), stage: stage,
       status: flowStatus(f.status || f.state),
-      waitingReason: text(f.waitingReason, 400), updatedAt: timestamp(f.updatedAt || row.updated_at), steps: [], delivery: null };
+      waitingReason: waitingReason, updatedAt: timestamp(f.updatedAt || row.updated_at), steps: [], delivery: null };
     var gates = canonicalGates(f.gates);
     result.steps = STAGES.map(function (s) {
       var gate = object(gates[s]);
@@ -81,7 +108,7 @@
     });
     var rows = Array.isArray(input.rows) ? input.rows : [];
     var flows = rows.slice(0, 50).map(function (row) { return normalizeFlow(row, options); }).filter(Boolean);
-    return { conversation: brain, workers: workers, flows: flows, readState: text(input.readState, 80) || 'unknown', accountKey: text(input.accountKey, 100) || null };
+    return { conversation: brain, workers: workers, independentWorkers: normalizeIndependent(c.independentWorkers, { now: now, studioMode: studioMode }), flows: flows, readState: text(input.readState, 80) || 'unknown', accountKey: text(input.accountKey, 100) || null };
   }
   function render(doc, target, snapshot, options) {
     options = options || {}; if (!doc || !target) return null;
@@ -91,6 +118,42 @@
     brain.dataset.state = snapshot.conversation.state; brain.append(name); section.append(brain);
     var workers = node('div', 'sf-workers'); workers.setAttribute('aria-label', 'Gerçek işçi bağlantıları');
     snapshot.workers.forEach(function (worker) { var n = node('div', 'sf-worker'); n.dataset.state = worker.state; n.append(node('span', 'sf-worker-name', worker.state === 'disabled' ? worker.label.replace(/ · Kapalı$/, '') : worker.label), node('span', 'sf-worker-state', worker.detail)); workers.append(n); }); section.append(workers);
+    var independent = snapshot.independentWorkers;
+    if (independent) {
+      var iw = node('section', 'sf-independent'); iw.setAttribute('aria-label', 'Bağımsız işçi oturumları');
+      iw.append(node('strong', 'sf-independent-title', 'Bağımsız işçiler'), node('p', 'sf-capacity', (independent.activeCount == null ? 'Güncel kapasite sinyali bekleniyor' : independent.activeCount + ' / 2 etkin işçi') + ' · ' + independent.roster.length + ' uzman şablonu'));
+      var instances = node('div', 'sf-instance-list');
+      independent.workers.forEach(function (worker) {
+        var button = node('button', 'sf-instance'); button.type = 'button'; button.dataset.workerId = worker.id; button.dataset.state = worker.state; button.setAttribute('aria-expanded', String(options.selectedWorkerId === worker.id));
+        button.append(node('strong', '', worker.label), node('span', '', worker.projectLabel + ' · ' + WORKER_LABELS[worker.state]), node('small', '', PROVIDERS[worker.provider].replace(/ · Kapalı$/, '') + ' · ' + worker.specialty));
+        button.addEventListener('click', function () { if (typeof options.onSelectWorker === 'function') options.onSelectWorker(worker.id); }); instances.append(button);
+      });
+      if (!independent.workers.length) instances.append(node('p', 'sf-empty', 'Henüz bağımsız işçi başlatılmadı.'));
+      iw.append(instances);
+      var selected = independent.workers.find(function (worker) { return worker.id === options.selectedWorkerId; });
+      if (selected) {
+        var detail = node('section', 'sf-worker-detail'); detail.setAttribute('aria-label', selected.label + ' oturum ayrıntıları');
+        var close = node('button', 'sf-detail-close', 'Ayrıntıları kapat'); close.type = 'button'; close.addEventListener('click', function () { if (typeof options.onSelectWorker === 'function') options.onSelectWorker(null); });
+        detail.append(node('strong', '', selected.label + ' · ' + selected.projectLabel), close, node('p', 'sf-session-id', 'Sağlayıcı: ' + PROVIDERS[selected.provider].replace(/ · Kapalı$/, '')), node('p', 'sf-session-id', 'İşçi: ' + selected.id), node('p', 'sf-session-id', 'Oturum: ' + (selected.sessionId || 'Henüz doğrulanmadı')));
+        if (selected.workspaceLabel) detail.append(node('p', 'sf-workspace', selected.workspaceLabel));
+        if (selected.legacy) detail.append(node('p', 'sf-evidence-note', 'Önceki sistemden gelen iş kaydı. Bu kayıt salt okunur; bağımsız işçiye takip görevi gönderilemez.'));
+        detail.append(node('p', 'sf-evidence-note', 'Kaynak incelemesi, çalıştırılmış oyun testi veya paket kabulü anlamına gelmez.'));
+        if (selected.historyLimited) detail.append(node('p', 'sf-evidence-note', 'Panel son tur kayıtlarının sınırlı bir özetini gösteriyor; eski kayıtlar yerel işçi geçmişinde korunur.'));
+        var turns = node('ol', 'sf-worker-turns');
+        selected.turns.forEach(function (turn, index) { var item = node('li', ''); item.append(node('strong', '', 'Tur ' + (index + 1) + ' · ' + WORKER_LABELS[turn.state]), node('p', 'sf-turn-instruction', turn.instruction || 'Talimat kaydı yok'), node('p', 'sf-turn-result', turn.result || 'Sonuç bekleniyor')); turns.append(item); }); detail.append(turns);
+        if (!selected.turns.length) detail.append(node('p', 'sf-empty', 'Bu oturumun tur kaydı henüz yok.'));
+        if (typeof options.onFollowup === 'function') {
+          var form = node('form', 'sf-followup'), label = node('label', '', 'Aynı işçiye takip görevi'), input = node('textarea', ''); input.rows = 3; input.required = true; input.maxLength = 1800; input.value = options.followupDraft || ''; input.placeholder = 'Bu oturumda devam etmesini istediğin görevi yaz'; input.disabled = !selected.canFollowup || options.followupBusy === true; label.append(input);
+          input.addEventListener('input', function () { if (typeof options.onDraft === 'function') options.onDraft(selected.id, input.value); });
+          var submit = node('button', '', options.followupBusy ? 'Gönderiliyor…' : 'Takip görevini gönder'); submit.type = 'submit'; submit.disabled = !selected.canFollowup || options.followupBusy === true;
+          var status = node('p', 'sf-submit-status', options.followupMessage || (selected.canFollowup ? 'Aynı işçi ve doğrulanmış oturum kaydıyla devam eder.' : independent.fresh ? 'Başarıyla tamamlanmış bağımsız işçi, açık sağlayıcı ve doğrulanmış oturum kaydı gerekir.' : 'Güncel bağlantı gelince takip görevi gönderilebilir.')); status.setAttribute('role', 'status');
+          form.append(label, submit, status); form.addEventListener('submit', function (event) { event.preventDefault(); if (!submit.disabled) options.onFollowup(selected.id, input.value); }); detail.append(form);
+        }
+        iw.append(detail);
+      }
+      var templates = node('details', 'sf-roster'); templates.append(node('summary', '', 'Uzman kadrosu · ' + independent.roster.length)); var rosterList = node('div', 'sf-roster-list');
+      independent.roster.forEach(function (template) { var assigned = independent.workers.filter(function (worker) { return worker.templateId === template.id; }), item = node('div', 'sf-template'); item.dataset.state = !template.enabled ? 'disabled' : assigned.length ? 'assigned' : 'not_started'; item.append(node('strong', '', template.label), node('span', '', PROVIDERS[template.provider].replace(/ · Kapalı$/, '') + ' · ' + (!template.enabled ? 'Kapalı' : assigned.length ? assigned.length + ' oturum' : 'Başlatılmadı')), node('small', '', template.specialty)); rosterList.append(item); }); templates.append(rosterList); iw.append(templates); section.append(iw);
+    }
     if (options.compact !== true || snapshot.flows.length) {
       var details = node('details', 'sf-flows'); details.open = options.compact !== true;
       details.append(node('summary', '', 'İş akışı · ' + snapshot.flows.length));
@@ -114,12 +177,12 @@
   function create(options) {
     options = options || {}; var host = options.host, doc = options.document || (typeof document !== 'undefined' ? document : null), win = doc && doc.defaultView || (typeof window !== 'undefined' ? window : null), clock = options.clock || Date.now;
     if (!host || typeof host.context !== 'function' || typeof host.request !== 'function') throw new TypeError('Authenticated studio host required');
-    var disposed = false, epoch = 0, inflight = null, account = null, proposal = null, submitBusy = false, observer = null, timer = null, listeners = [], containers = new Map(), observedInput = {}, snapshot = normalize({}, { now: clock() });
+    var disposed = false, epoch = 0, inflight = null, account = null, proposal = null, submitBusy = false, observer = null, timer = null, listeners = [], containers = new Map(), observedInput = {}, snapshot = normalize({}, { now: clock() }), selectedWorkerId = null, followups = new Map();
     function context() { return object(host.context()); }
     function identity() { var c = context(); return c.authenticated === true && c.isOwner === true && c.demo !== true && UUID.test(c.userId || '') ? c.userId : null; }
     function same(owner, ticket) { return !disposed && owner && owner === account && owner === identity() && ticket === epoch; }
     function build() { snapshot = normalize(Object.assign({}, observedInput, { accountKey: account }), { now: clock(), allowedArtifactOrigins: options.allowedArtifactOrigins }); return snapshot; }
-    function syncAccount() { var next = identity(); if (next !== account) { account = next; epoch++; inflight = null; proposal = null; submitBusy = false; observedInput = {}; build(); containers.forEach(function (container) { container.replaceChildren(); }); } return account; }
+    function syncAccount() { var next = identity(); if (next !== account) { account = next; epoch++; inflight = null; proposal = null; submitBusy = false; selectedWorkerId = null; followups.clear(); observedInput = {}; build(); containers.forEach(function (container) { container.replaceChildren(); }); } return account; }
     function active() { var c = context(); return !doc || (!doc.hidden && ['jarvis', 'feed'].includes(c.view)); }
     function mountPoint(id, selector) { if (!doc) return null; var root = doc.getElementById(id), parent = root && (selector ? root.querySelector(selector) : root); if (!parent) return null; var record = containers.get(id); if (!record || record.parentNode !== parent) { if (record) record.remove(); record = doc.createElement('div'); record.className = 'sf-mount'; record.setAttribute('data-studio-flow', id); parent.insertBefore(record, parent.firstChild); containers.set(id, record); } return record; }
     function renderProposal(target) {
@@ -133,7 +196,26 @@
     }
     function paint() {
       syncAccount(); build(); if (!doc || disposed || !account) return;
-      [['jarvisWorld', '.jw-thread', true], ['studioWorld-feed', null, false]].forEach(function (item) { var point = mountPoint(item[0], item[1]); if (!point) return; render(doc, point, snapshot, { compact: item[2] }); if (item[2]) renderProposal(point); });
+      [['jarvisWorld', '.jw-thread', true], ['studioWorld-feed', null, false]].forEach(function (item) { var point = mountPoint(item[0], item[1]); if (!point) return; var followup = followups.get(selectedWorkerId) || {}; render(doc, point, snapshot, { compact: item[2], selectedWorkerId: selectedWorkerId, onSelectWorker: selectWorker, onFollowup: function (id, body) { void requestWorkerFollowup({ workerId: id, text: body }); }, onDraft: function (id, body) { var previous = followups.get(id) || {}; followups.set(id, { text: body, requestId: previous.text === body ? previous.requestId : null, message: '', busy: false }); }, followupDraft: followup.text || '', followupBusy: followup.busy === true, followupMessage: followup.message || '' }); if (item[2]) renderProposal(point); });
+    }
+    function selectWorker(id) { syncAccount(); if (id !== null && (!snapshot.independentWorkers || !snapshot.independentWorkers.workers.some(function (worker) { return worker.id === id; }))) return false; selectedWorkerId = id; paint(); return true; }
+    async function requestWorkerFollowup(payload) {
+      payload = object(payload); var owner = syncAccount(), ticket = epoch; build();
+      var id = payload.workerId, worker = snapshot.independentWorkers && snapshot.independentWorkers.workers.find(function (item) { return item.id === id; }), body = typeof payload.text === 'string' ? payload.text.trim() : '';
+      if (disposed || !owner || !active() || !worker || !worker.canFollowup) return { accepted: false, message: 'Güncel, doğrulanmış ve başarıyla tamamlanmış bağımsız işçi oturumu gerekli.' };
+      if (!body || body.length > 1800) { followups.set(id, { text: body, busy: false, message: 'Takip görevi 1–1800 karakter olmalı.' }); paint(); return { accepted: false, message: 'Takip görevi 1–1800 karakter olmalı.' }; }
+      var prior = followups.get(id) || {}; if (prior.busy) return { accepted: false, message: 'Bu takip isteği gönderiliyor.' };
+      var requestId = prior.text === body && UUID.test(prior.requestId || '') ? prior.requestId : null;
+      if (!requestId) { if (!win || !win.crypto || typeof win.crypto.randomUUID !== 'function') return { accepted: false, message: 'Güvenli istek kimliği üretilemedi.' }; requestId = win.crypto.randomUUID(); }
+      var record = { text: body, requestId: requestId, busy: true, message: '' }; followups.set(id, record); paint();
+      try {
+        var answer = unwrap(await host.request('submitIntent', { expectedUserId: owner, requestId: requestId, requestedProject: worker.projectId, text: worker.projectLabel + ' projesinde çalışan ' + id + ' işçisine takip görevi: ' + body, attachments: [] }));
+        if (!same(owner, ticket)) return { accepted: false, message: 'Hesap değişti; sonuç yeni hesaba taşınmadı.' };
+        if (!answer || (answer.request_id || answer.requestId || answer.id) !== requestId || (answer.requested_project && answer.requested_project !== worker.projectId)) throw new Error('FOLLOWUP_RECEIPT_MISMATCH');
+        record.message = 'Takip isteği komut kuyruğuna kaydedildi. Başlaması ve sonucu işçi kaydında görünecek.'; record.text = ''; record.requestId = null;
+        return { accepted: true, requestId: requestId };
+      } catch (_) { if (same(owner, ticket)) record.message = 'Kuyruk kaydı doğrulanamadı. Aynı istek kimliğiyle tekrar deneyebilirsin.'; return { accepted: false, requestId: requestId, message: 'Kuyruk kaydı doğrulanamadı.' }; }
+      finally { if (same(owner, ticket)) { record.busy = false; paint(); } }
     }
     async function refresh() {
       var owner = syncAccount(), ticket = epoch; paint(); if (disposed || !owner || !active()) return snapshot; if (inflight) return inflight;
@@ -183,7 +265,7 @@
     if (doc && win && typeof win.MutationObserver === 'function') { observer = new win.MutationObserver(function (records) { var structural = records.some(function (record) { return record.target && (record.target.id === 'jarvisWorld' || record.target.id === 'studioWorld-feed'); }); if (structural) paint(); }); ['jarvisWorld', 'studioWorld-feed'].forEach(function (id) { var root = doc.getElementById(id); if (root) observer.observe(root, { childList: true }); }); }
     if (win && typeof win.setInterval === 'function' && options.autoRefresh !== false) timer = win.setInterval(function () { if (active()) void refresh(); }, 30000);
     syncAccount(); paint();
-    return Object.freeze({ refresh: refresh, getSnapshot: function () { syncAccount(); build(); return JSON.parse(JSON.stringify(snapshot)); }, proposeWork: proposeWork, requestWork: requestWork, dispose: function () { if (disposed) return; disposed = true; epoch++; proposal = null; inflight = null; observedInput = {}; build(); if (timer !== null && win) win.clearInterval(timer); if (observer) observer.disconnect(); listeners.forEach(function (off) { off(); }); containers.forEach(function (container) { container.remove(); }); containers.clear(); } });
+    return Object.freeze({ refresh: refresh, getSnapshot: function () { syncAccount(); build(); return JSON.parse(JSON.stringify(snapshot)); }, proposeWork: proposeWork, requestWork: requestWork, selectWorker: selectWorker, requestWorkerFollowup: requestWorkerFollowup, dispose: function () { if (disposed) return; disposed = true; epoch++; proposal = null; inflight = null; selectedWorkerId = null; followups.clear(); observedInput = {}; build(); if (timer !== null && win) win.clearInterval(timer); if (observer) observer.disconnect(); listeners.forEach(function (off) { off(); }); containers.forEach(function (container) { container.remove(); }); containers.clear(); } });
   }
-  return Object.freeze({ create: create, normalize: normalize, normalizeFlow: normalizeFlow, safeDelivery: safeDelivery, render: render, DEFAULT_ORIGINS: DEFAULT_ORIGINS });
+  return Object.freeze({ create: create, normalize: normalize, normalizeIndependent: normalizeIndependent, normalizeFlow: normalizeFlow, safeDelivery: safeDelivery, render: render, DEFAULT_ORIGINS: DEFAULT_ORIGINS });
 });
