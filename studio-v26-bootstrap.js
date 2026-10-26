@@ -68,7 +68,7 @@
       const feedback=payload=>decisions.record({...payload,kind:'feedback'});
       const approve=payload=>decisions.record({...payload,kind:'accept'});
       for(const view of VIEWS){const root=rootFor(view);if(!root)throw Error('VIEW_ROOT_MISSING');const ui=view==='jarvis'?
-        window.OryvonaJarvisWorld.mount(root,{bridge,studioData:data,voice,geminiClient,brief:window.OryvonaJarvisBrief,mode:'live',showActivity:true,bottomInset}):
+        window.OryvonaJarvisWorld.mount(root,{bridge,studioData:data,voice,geminiClient,brief:window.OryvonaJarvisBrief,mode:'live',voiceMode:'live-first',showActivity:true,bottomInset}):
         window.OryvonaStudioWorldV26.mount(root,{data,bridge,view,onOpenTests:id=>panel.openTests(id),onRefresh:()=>panel.getAccessStatus?.()?panel.reconnectAccess():data.refresh(),onFeedback:feedback,onApprove:approve});
         worlds.set(view,{ui,active:null});
       }

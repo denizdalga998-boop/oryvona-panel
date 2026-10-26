@@ -211,7 +211,7 @@
               model: String(chat.model || (verifiedGroq ? 'openai/gpt-oss-120b' : 'gemini-3.8-flash')).slice(0, 100),
               modelVerified: true,
               evidenceLabel: verifiedGroq
-                ? 'Groq API yanıtında doğrulanan model (düşünme: düşük). Günlük sohbet Codex işçisine gönderilmez.'
+                ? 'Groq API yanıtında doğrulanan model (düşünme: orta). Günlük sohbet Codex işçisine gönderilmez.'
                 : 'Google API yanıtında bildirilen model. Günlük sohbet Codex işçisine gönderilmez.'
             }
           : chat.status === 'done' && providerLabel && chat.model
@@ -279,7 +279,9 @@
           createdAt: row.createdAt || row.created_at || null,
           updatedAt: remote?.updated_at || null, finishedAt: remote?.finished_at || null,
           receipt: remote?.receipt ? JSON.parse(JSON.stringify(remote.receipt)) : null,
-          stage: remote?.stage || null,
+          stage: remote?.stage || remote?.studioFlow?.stage || remote?.studioFlow?.phase || null,
+          completedStages: Array.isArray(remote?.studioFlow?.completedStages) ? remote.studioFlow.completedStages.slice(0, 6) : [],
+          delivery: remote?.studioFlow?.delivery && typeof remote.studioFlow.delivery === 'object' ? JSON.parse(JSON.stringify(remote.studioFlow.delivery)) : null,
           steps: Array.isArray(remote?.steps) ? remote.steps.map(s=>({...s})) : [] });
       }
       if (active && Array.isArray(serverChatRows) && serverChatRows.length) {

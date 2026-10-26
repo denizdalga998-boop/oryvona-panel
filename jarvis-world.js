@@ -88,7 +88,7 @@
     if(!result||result.ok!==true)return null;
     var v=voiceEvidenceSuffix(voiceMeta);
     if(result.provider==='groq'&&result.transport==='groq-api'){
-      return {kind:'model',provider:'Groq',model:safeText(result.model||'openai/gpt-oss-120b',100),modelVerified:result.model_verified===true,...(v.voiceLabel?{voiceLabel:v.voiceLabel}:{}),evidenceLabel:'Groq API yanıtında doğrulanan model (düşünme: düşük). Günlük sohbet Codex işçisine gönderilmez.'+v.suffix};
+      return {kind:'model',provider:'Groq',model:safeText(result.model||'openai/gpt-oss-120b',100),modelVerified:result.model_verified===true,...(v.voiceLabel?{voiceLabel:v.voiceLabel}:{}),evidenceLabel:'Groq API yanıtında doğrulanan model (düşünme: orta). Günlük sohbet Codex işçisine gönderilmez.'+v.suffix};
     }
     if(!['google','gemini'].includes(result.provider)||result.transport!=='google-ai-studio-api')return null;
     var carried=contextAttachmentNames(result);
@@ -313,7 +313,7 @@
         catch(_saveError){if(owns(owner,ticket)){if(clearDraft)recordSubmissionFailure(askScope,version,textValue,attList);answerBusy=false;syncComposer();setStatus('Mesaj kimliği cihazda saklanamadı. Hata sohbet akışında gösterildi; beyin çağrılmadı.','error');}return;}
         if(!owns(owner,ticket))return;if(!worldActive()||viewTicket!==activeEpoch){if(clearDraft)recordSubmissionFailure(askScope,version,textValue,attList);answerBusy=false;syncComposer();return;}
       }
-      answerBusy=true;readMessages.push({id:id+':user',requestId:turn.requestId,role:'user',body:textValue,...(attMeta.length?{attachments:attMeta}:{}),...(attList.length?{retry:{attachments:attList}}:{}),createdAt:createdAt,origin:{kind:'user-input',evidenceLabel:'Canlı beyne gönderildi.'}},{id:id,requestId:turn.requestId,role:'assistant',body:'…',pending:true,createdAt:createdAt,origin:attIds.length?{kind:'pending-model',provider:'Google AI Studio',evidenceLabel:'Gemini ekli mesaj yanıtı hazırlanıyor; ağır işçi başlatılmaz.'}:{kind:'pending-model',provider:'Groq',evidenceLabel:'Groq (openai/gpt-oss-120b · düşünme: düşük) yanıtı hazırlanıyor; ağır işçi başlatılmaz.'}});if(readMessages.length>80)readMessages=readMessages.slice(-80);
+      answerBusy=true;readMessages.push({id:id+':user',requestId:turn.requestId,role:'user',body:textValue,...(attMeta.length?{attachments:attMeta}:{}),...(attList.length?{retry:{attachments:attList}}:{}),createdAt:createdAt,origin:{kind:'user-input',evidenceLabel:'Canlı beyne gönderildi.'}},{id:id,requestId:turn.requestId,role:'assistant',body:'…',pending:true,createdAt:createdAt,origin:attIds.length?{kind:'pending-model',provider:'Google AI Studio',evidenceLabel:'Gemini ekli mesaj yanıtı hazırlanıyor; ağır işçi başlatılmaz.'}:{kind:'pending-model',provider:'Groq',evidenceLabel:'Groq (openai/gpt-oss-120b · düşünme: orta) yanıtı hazırlanıyor; ağır işçi başlatılmaz.'}});if(readMessages.length>80)readMessages=readMessages.slice(-80);
       if(attMeta.some(function(a){return a.previewUrl;}))pruneLivePreviews();
       syncComposer();update(snapshot);bottom(true);setStatus(attIds.length?'Ekler yükleniyor ve Argon düşünüyor…':'Argon düşünüyor…');
       /* v1.6: after 2 s the waiting bubble counts seconds (file reviews can take Google 20–60 s). */
@@ -697,10 +697,18 @@
     });on(daily,'click',function(){enableOutputFromSend();if(!accountKey||answerBusy)return;stopSpeech();if(brainOn){brainTurn('Bugün stüdyoda neler oldu? Kısaca özetle.',-1);return;}answerRead('Bugün neler oldu?',-1,false);});
     /* Microphone engine choice. 'speech' (default) = phone recognizer + Groq text brain; 'live' = Gemini Live audio session.
        options.voiceMode wins; otherwise the per-device setting localStorage['oryvona.argon.voiceMode'] ('live' | 'speech'). */
-    function liveVoicePreferred(){if(options.voiceMode==='live')return true;if(options.voiceMode==='speech')return false;try{return !!(win.localStorage&&win.localStorage.getItem('oryvona.argon.voiceMode')==='live');}catch(_e){return false;}}
-    on(mic,'click',function(){
+    /* v2.3 'live-first' (production): Gemini Live answers the microphone while its free quota lasts. If Live cannot start
+       (quota, network, setup) the same tap continues with the phone recognizer + Groq, and Live rests for a while: 60 min after
+       a quota error, 10 min after any other failure; then it is tried again by itself. A device setting
+       localStorage['oryvona.argon.voiceMode'] = 'speech' | 'live' still wins. */
+    var LIVE_COOLDOWN_KEY='oryvona.argon.liveCooldownUntil',liveCooldownUntil=0;
+    function liveQuotaError(why){return /quota|kota|RESOURCE_EXHAUSTED|exceeded|\b429\b|rate.?limit/i.test(String(why||''));}
+    function startLiveCooldown(why){var until=Date.now()+(liveQuotaError(why)?3600000:600000);liveCooldownUntil=until;try{if(win.localStorage)win.localStorage.setItem(LIVE_COOLDOWN_KEY,String(until));}catch(_e){}}
+    function liveCoolingDown(){var until=liveCooldownUntil;try{var v=Number(win.localStorage&&win.localStorage.getItem(LIVE_COOLDOWN_KEY));if(Number.isFinite(v)&&v>until)until=v;}catch(_e){}return until>Date.now();}
+    function liveVoicePreferred(){if(options.voiceMode==='live')return true;if(options.voiceMode==='speech')return false;var stored=null;try{stored=win.localStorage&&win.localStorage.getItem('oryvona.argon.voiceMode');}catch(_e){}if(stored==='live')return true;if(stored==='speech')return false;return options.voiceMode==='live-first'&&!liveCoolingDown();}
+    function micClick(forceSpeech,note){
       if(destroyed||!worldActive()||!accountKey)return;
-      if(speechStop||speechStarting||voiceState.conversationActive){var wasLive=speechKind==='live'||voiceState.conversationActive===true;stopSpeech();setStatus(wasLive?'Canlı ses görüşmesi durduruldu.':'Dinleme durduruldu. Söylediğin kısım taslakta duruyor.');return;}
+      if(!forceSpeech&&(speechStop||speechStarting||voiceState.conversationActive)){var wasLive=speechKind==='live'||voiceState.conversationActive===true;stopSpeech();setStatus(wasLive?'Canlı ses görüşmesi durduruldu.':'Dinleme durduruldu. Söylediğin kısım taslakta duruyor.');return;}
       if(answerBusy||busyScopes.has(draftKey(scope)))return;
       var canUseLiveVoice=!!(voice&&typeof voice.startConversation==='function'&&voiceState.recognitionAvailable!==false&&voiceState.ttsAvailable!==false);
       var canUseLegacySpeech=!!(bridge.speech&&bridge.speech.available!==false&&typeof bridge.speech.start==='function')&&(!voice||voiceState.ttsAvailable!==false);
@@ -710,7 +718,16 @@
       function valid(){return !finished&&captureTicket===speechEpoch&&owns(owner,ticket)&&worldActive()&&viewTicket===activeEpoch&&scope===captureScope;}
       /* v1.0: the phone's own speech recognizer is the default microphone (tap → speak → sent → Groq reply → Charon or phone voice).
          Gemini Live stays available but only runs when the phone has no recognizer or Deniz explicitly selects it (voiceMode 'live'). */
-      var useLiveVoice=canUseLiveVoice&&(!canUseLegacySpeech||liveVoicePreferred());
+      var liveFirst=options.voiceMode==='live-first'&&canUseLegacySpeech,useLiveVoice=!forceSpeech&&canUseLiveVoice&&(!canUseLegacySpeech||liveVoicePreferred());
+      if(!useLiveVoice&&!note&&liveFirst&&!forceSpeech&&liveCoolingDown())note='Canlı ses şimdilik dinleniyor; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.';
+      /* Live could not start: unless it is a microphone permission or a cancel, this same tap continues with the phone recognizer. */
+      function fallBackFromLive(reason,detail){
+        var why=String(reason||'')+' '+String(detail||'');
+        if(!liveFirst||/MIC_PERMISSION|PHONE_GESTURE|CANCELLED|Mikrofon izni/i.test(why))return false;
+        startLiveCooldown(why);
+        micClick(true,liveQuotaError(why)?'Canlı sesin ücretsiz kotası şimdilik doldu; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.':'Canlı ses şu an açılamadı; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.');
+        return true;
+      }
       speechKind=useLiveVoice?'live':'speech';
       if(useLiveVoice){
         var liveTurns=new Map(),activeLiveTurnId='1';
@@ -806,6 +823,7 @@
             onEnd:function(){
               if(!valid())return;
               finished=true;speechStarting=false;speechStop=null;syncComposer();
+              if(liveFirst&&liveQuotaError(voiceState.error)){startLiveCooldown(voiceState.error);setStatus('Canlı sesin ücretsiz kotası doldu. Mikrofona yeniden dokun; telefon tanımasıyla devam edeceğim.','error');return;}
               setStatus('Canlı ses bağlantısı kapandı.');
             }
           });
@@ -813,21 +831,22 @@
           if(!valid()){if(session&&typeof session.stop==='function')session.stop();return;}
           if(!session||session.ok===false){
             finished=true;speechStarting=false;speechStop=null;syncComposer();
+            if(fallBackFromLive(session&&session.reason,voiceState.error))return;
             setStatus(voiceState.error||'Gemini Live canlı ses açılamadı. Yazarak devam edebilirsin.','error');
             return;
           }
           speechStarting=false;speechStop=typeof session.stop==='function'?session.stop:function(){if(voice&&typeof voice.stopListening==='function')voice.stopListening();};
           syncComposer();setStatus('Canlı Argon açık (Gemini Live · Charon). Konuşabilirsin; bitirmek için mikrofona dokun.');
         }).catch(function(error){
-          if(valid()){finished=true;speechStarting=false;speechStop=null;syncComposer();setStatus(error&&error.message||'Gemini Live açılamadı. Yazarak devam edebilirsin.','error');}
+          if(valid()){finished=true;speechStarting=false;speechStop=null;syncComposer();if(fallBackFromLive(error&&(error.code||error.name),error&&error.message))return;setStatus(error&&error.message||'Gemini Live açılamadı. Yazarak devam edebilirsin.','error');}
         });
         return;
       }
       if(voice&&typeof voice.cancel==='function')voice.cancel();
-      speechStarting=true;syncComposer();setStatus('Dinliyorum. Konuşman bitince mesajın gönderilecek.');
+      speechStarting=true;syncComposer();setStatus(note||'Dinliyorum. Konuşman bitince mesajın gönderilecek.');
       try{
         var capture=bridge.speech.start({
-          onStart:function(){if(valid())setStatus('Dinliyorum. Konuşman bitince mesajın gönderilecek.');},
+          onStart:function(){if(valid())setStatus(note||'Dinliyorum. Konuşman bitince mesajın gönderilecek.');},
           onResult:function(result){
             if(!valid()||!result)return;var text=safeText(result.text,4000).trim();
             finalText=result.final===true?text:'';
@@ -844,7 +863,8 @@
         if(!capture||typeof capture.stop!=='function')throw new Error('Sesle yazma başlatılamadı.');
         speechStarting=false;speechStop=capture.stop;syncComposer();
       }catch(error){if(valid()){finished=true;speechStarting=false;speechStop=null;syncComposer();setStatus(error&&error.message||'Sesle yazma açılamadı. Yazarak devam edebilirsin.','error');}}
-    });
+    }
+    on(mic,'click',function(){micClick(false);});
     on(activity,'click',function(){activityToggledByUser=true;activityVisible=!activityVisible;activity.setAttribute('aria-expanded',String(activityVisible));activity.setAttribute('aria-label',activityVisible?'Aktif işleri gizle':'Aktif işleri göster');update(snapshot);if(activityVisible)bottom(true);});
     function measure(){if(raf){win.cancelAnimationFrame(raf);raf=0;}if(measureTimer){win.clearTimeout(measureTimer);measureTimer=0;}if(destroyed||!active)return;var vv=win.visualViewport,rect=root.getBoundingClientRect();/* A hidden root reports top 0: measuring it would push the composer under the navigation bar. */if(root.hidden||!root.getClientRects().length)return;var viewportTop=vv?vv.offsetTop:0,viewportBottom=viewportTop+(vv?vv.height:win.innerHeight),nav=doc.querySelector('.tabs'),navRect=nav&&!nav.hidden&&nav.getClientRects().length?nav.getBoundingClientRect():null,rawInset=typeof options.bottomInset==='function'?options.bottomInset():options.bottomInset,cssInset=parseFloat(win.getComputedStyle(doc.documentElement).getPropertyValue('--bottom-nav-h'))||0,inset=Number.isFinite(rawInset)?Math.max(0,rawInset):cssInset,lower=viewportBottom-inset;if(navRect&&navRect.bottom>viewportTop&&navRect.top<viewportBottom)lower=Math.min(lower,navRect.top);var height=Math.max(1,Math.floor(lower-Math.max(viewportTop,rect.top)));root.style.setProperty('--jw-shell-height',height+'px');shell.dataset.compact=String(height<420);shell.dataset.tight=String(height<250);shell.dataset.ultra=String(height<180);shell.dataset.micro=String(height<92);placeHole();}
     /* v1.8: on the empty screen the black hole sits in the free sky between the header and the words under it (so a short
