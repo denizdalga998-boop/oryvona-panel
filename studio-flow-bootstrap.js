@@ -44,7 +44,23 @@
     listen(win, 'pagehide', function () { suspended = true; stopTimer(); clear(); });
     listen(win, 'pageshow', function () { if (disposed) return; suspended = false; startTimer(); sync(); });
     startTimer(); sync();
-    return Object.freeze({ refresh: function () { return refresh(true); }, getClient: function () { return client; }, destroy: function () { if (disposed) return; disposed = true; stopTimer(); clear(); listeners.forEach(function (off) { off(); }); listeners = []; } });
+    return Object.freeze({
+      refresh: function () { return refresh(true); },
+      getClient: function () { return client; },
+      stopWorker: function (payload) {
+        var instance = ensure();
+        return instance && typeof instance.requestWorkerStop === 'function' ? instance.requestWorkerStop(payload) : Promise.resolve({ accepted: false });
+      },
+      exportWorkerHistory: function (payload) {
+        var instance = ensure();
+        return instance && typeof instance.exportWorkerHistory === 'function' ? instance.exportWorkerHistory(payload) : Promise.resolve({ accepted: false });
+      },
+      downloadWorkerHistory: function (payload) {
+        var instance = ensure();
+        return instance && typeof instance.downloadWorkerHistory === 'function' ? instance.downloadWorkerHistory(payload && payload.workerId ? payload.workerId : payload) : Promise.resolve({ accepted: false });
+      },
+      destroy: function () { if (disposed) return; disposed = true; stopTimer(); clear(); listeners.forEach(function (off) { off(); }); listeners = []; }
+    });
   }
   return Object.freeze({ start: start });
 });
