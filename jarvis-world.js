@@ -15,7 +15,11 @@
   function shapeAttachmentReply(text){var out=String(text||'').replace(/\r\n?/g,'\n').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').replace(/\*\*/g,'').replace(/^[ \t]*#{1,6}[ \t]+/gm,'').replace(/`{3}[a-z0-9_-]*\n?/gi,'').trim();var lines=out.split('\n');if(lines.length>120)out=lines.slice(0,120).join('\n').trim();if(out.length>8000){var head=out.slice(0,8000),cut=Math.max(head.lastIndexOf('. '),head.lastIndexOf('\n'));out=(cut>4000?head.slice(0,cut+1):head).trim()+(cut>4000?'':'…');}return out;}
   /* v1.7: replies are shown, copied, shared and read without markdown marks (**bold**, `code`, # titles, - bullets). */
   function plainReply(text){return String(text||'').replace(/\r\n?/g,'\n').replace(/^[ \t]*`{3}[^\n]*\n?/gm,'').replace(/`+/g,'').replace(/\*\*([^*\n]+)\*\*/g,'$1').replace(/\*\*/g,'').replace(/^[ \t]*#{1,6}[ \t]+/gm,'').replace(/^([ \t]*)[*-][ \t]+/gm,'$1• ').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();}
-  function spokenSummary(text){var flat=String(text||'').replace(/\s*\n+\s*/g,' ').replace(/\s{2,}/g,' ').trim(),short=limitDailyReplySentences(flat,3);if(short.length>600){var cut=short.slice(0,600),end=Math.max(cut.lastIndexOf('. '),cut.lastIndexOf('! '),cut.lastIndexOf('? '));short=(end>200?cut.slice(0,end+1):cut).trim();}return short.length<flat.length-2?short+' Ayrıntılar ekranda efendim.':short;}
+  /* v2: every reply is shown in full; only a short summary is spoken. A design card (3+ of its headings) is announced, not read aloud. */
+  function looksLikeDesignCard(text){var t=String(text||'');return [/Mekanik\s*&\s*Oynanış/i,/Denge\s*&\s*Kurallar/i,/Gereken\s+Depo\s+Varlıkları/i,/İşçi\s+Görev\s+Dağılımı/i].filter(function(re){return re.test(t);}).length>=3;}
+  /* v2: a long assistant turn keeps its head and tail in history (the approval line at the end survives); never longer than max. */
+  function clipHistoryText(text,max){var t=String(text==null?'':text),m=max||1200;if(t.length<=m)return t;var tail=Math.min(300,Math.floor(m/4));return t.slice(0,m-tail-3).replace(/\s+$/,'')+' … '+t.slice(t.length-tail).replace(/^\s+/,'');}
+  function spokenSummary(text){if(looksLikeDesignCard(text))return 'Tasarım kartını ekrana getirdim efendim. Uygunsa “Evet, kodla” demeniz yeterli.';var flat=String(text||'').replace(/\s*\n+\s*/g,' ').replace(/\s{2,}/g,' ').trim(),short=limitDailyReplySentences(flat,3);if(short.length>600){var cut=short.slice(0,600),end=Math.max(cut.lastIndexOf('. '),cut.lastIndexOf('! '),cut.lastIndexOf('? '));short=(end>200?cut.slice(0,end+1):cut).trim();}return short.length<flat.length-2?short+' Ayrıntılar ekranda efendim.':short;}
   function contextAttachmentNames(result){return result&&Array.isArray(result.context_attachments)?result.context_attachments.filter(function(n){return typeof n==='string'&&n.trim();}).slice(0,4).map(function(n){return safeText(n,120);}):[];}
   function formatAttachmentSize(bytes){var b=Number(bytes)||0;if(b<=0)return '';if(b<1024)return b+' B';if(b<1024*1024)return Math.max(1,Math.round(b/1024))+' KB';return (b/(1024*1024)).toFixed(1).replace(/\.0$/,'')+' MB';}
   function attachmentExtBadge(a){var raw=String(a&&a.name||'').trim(),m=/\.([A-Za-z0-9]{1,8})$/.exec(raw);if(m)return m[1].toUpperCase();if(a&&a.mime==='application/pdf')return 'PDF';if(a&&/^text\//i.test(a.mime||''))return 'TXT';return 'DOSYA';}
@@ -106,12 +110,14 @@
     if(keepLines===true){var lines=out.split('\n');if(lines.length>14)out=lines.slice(0,14).join('\n').trim();}
     return out;
   }
-  function sanitizeModelReplyText(result,userApproved,attachmentTurn){
-    var attTurn=attachmentTurn===true||contextAttachmentNames(result).length>0;
-    var raw=safeText(result&&(result.answer_tr||result.reply_tr)||'Yanıt alınamadı efendim.',attTurn?8000:2400);
+  function sanitizeModelReplyText(result,userApproved,attachmentTurn,strictClaims){
+    var raw=safeText(result&&(result.answer_tr||result.reply_tr)||'Yanıt alınamadı efendim.',8000);
     if(!result||result.ok!==true)return raw;
     var hasReceipt=hasVerifiedQueueReceipt(result);
-    if(!hasReceipt&&hasUnverifiedExecutionClaim(raw,attTurn)){
+    /* v2: chat replies already passed the server's check (strict for work turns). A conversation answer may report real
+       records ("görev tamamlandı"), so here only Argon's own first-person claims count. The Live transcript has no server
+       check and keeps the strict rule. */
+    if(!hasReceipt&&hasUnverifiedExecutionClaim(raw,strictClaims!==true)){
       return 'Kalıcı kuyruk onayı olmadan görev başlatıldı veya işçiler çalışıyor bilgisi verilemez. İsteğin için henüz doğrulanmış kuyruk kaydı yok.';
     }
     if(userApproved||hasReceipt){
@@ -121,7 +127,7 @@
         .replace(/\s*(?:Onaylıyor\s+musunuz|Onay\s+veriyor\s+musunuz|Ne\s+dersiniz,\s+başlayalım\s+mı)\s*(?:efendim)?\?/gi,'')
         .trim()||raw;
     }
-    return attTurn?shapeAttachmentReply(raw):limitDailyReplySentences(raw,3);
+    return shapeAttachmentReply(raw);
   }
   function DraftStore(projects){this.projects=projects||PROJECTS;this.items=new Map();}
   DraftStore.prototype.get=function(scope){var k=scope||'studio';if(scope&&!validProject(scope,this.projects))throw new Error('Geçersiz komut kapsamı.');if(!this.items.has(k))this.items.set(k,{text:'',attachments:[],version:0,pending:null,brainPending:null});return this.items.get(k);};
@@ -244,7 +250,7 @@
         all.push({m:m,i:i,t:Number.isFinite(t)?t:0});
       });
       all.sort(function(a,b){return a.t-b.t||a.i-b.i;});
-      return all.slice(-12).map(function(x){var names=x.m.role==='user'&&Array.isArray(x.m.attachments)?x.m.attachments.filter(function(a){return a&&typeof a.name==='string'&&a.name.trim();}).slice(0,4).map(function(a){return safeText(a.name,120);}):[],suffix=names.length?'\n[Ekler: '+names.join(', ')+']':'';return {role:x.m.role==='user'?'user':'assistant',text:safeText(x.m.body,1200-suffix.length)+suffix};});
+      return all.slice(-12).map(function(x){var names=x.m.role==='user'&&Array.isArray(x.m.attachments)?x.m.attachments.filter(function(a){return a&&typeof a.name==='string'&&a.name.trim();}).slice(0,4).map(function(a){return safeText(a.name,120);}):[],suffix=names.length?'\n[Ekler: '+names.join(', ')+']':'';return x.m.role==='user'?{role:'user',text:safeText(x.m.body,1200-suffix.length)+suffix}:{role:'assistant',text:clipHistoryText(x.m.body,1200)};});
     }
     /* Full-quality previews of sent pictures live only in this session (newest 12); older bubbles fall back to the thumbnail. */
     function pruneLivePreviews(){var live=0;for(var i=readMessages.length-1;i>=0;i--){var m=readMessages[i];if(!m||!Array.isArray(m.attachments)||!m.attachments.some(function(a){return a&&a.previewUrl;}))continue;live++;if(live<=12)continue;m.attachments.forEach(function(a){if(a&&a.previewUrl){revokePreviewUrl(a.previewUrl);delete a.previewUrl;}});}}
@@ -305,7 +311,7 @@
         var stopWatching=null;
         try{
           var outputDisabled=new Promise(function(resolve){if(typeof voice.subscribe==='function')stopWatching=voice.subscribe(function(v){if(v&&v.enabled===false)resolve({ok:false,reason:'VOICE_DISABLED'});});});
-          speechResult=await Promise.race([voice.speak({id:id,requestId:turn.ttsRequestId,text:attIds.length>0||contextAttachmentNames(res).length>0?spokenSummary(body):body.slice(0,2400),audioB64:res.audio_b64||null,audio:res.audio||null,audioStatus:res.audio_status||null,accountKey:owner,serverAudioOnly:typeof turn.audioOutput==='boolean',onStart:function(voiceMeta){showReply(res,voiceMeta);}}),outputDisabled]);
+          speechResult=await Promise.race([voice.speak({id:id,requestId:turn.ttsRequestId,text:spokenSummary(body),audioB64:res.audio_b64||null,audio:res.audio||null,audioStatus:res.audio_status||null,accountKey:owner,serverAudioOnly:typeof turn.audioOutput==='boolean',onStart:function(voiceMeta){showReply(res,voiceMeta);}}),outputDisabled]);
         }catch(_speechError){speechResult={ok:false,reason:'AUDIO_UNAVAILABLE'};}
         finally{if(stopWatching)stopWatching();}
         if(!owns(owner,ticket))return;
@@ -684,7 +690,7 @@
         }
         function renderLiveReply(t,persistNow){
           if(!t||!t.rawReplyText)return;
-          t.replyText=sanitizeModelReplyText({ok:true,answer_tr:t.rawReplyText,workerReceipt:t.taskReceipt},!!t.taskReceipt);
+          t.replyText=sanitizeModelReplyText({ok:true,answer_tr:t.rawReplyText,workerReceipt:t.taskReceipt},!!t.taskReceipt,false,true);
           var voiceTag='Gemini Live (Charon)'+(t.interrupted?' · Kesildi':'');
           upsertLiveMessage({
             id:t.assistantMsgId,
