@@ -697,16 +697,34 @@
     });on(daily,'click',function(){enableOutputFromSend();if(!accountKey||answerBusy)return;stopSpeech();if(brainOn){brainTurn('Bugün stüdyoda neler oldu? Kısaca özetle.',-1);return;}answerRead('Bugün neler oldu?',-1,false);});
     /* Microphone engine choice. 'speech' (default) = phone recognizer + Groq text brain; 'live' = Gemini Live audio session.
        options.voiceMode wins; otherwise the per-device setting localStorage['oryvona.argon.voiceMode'] ('live' | 'speech'). */
-    /* v2.3 'live-first' (production): Gemini Live answers the microphone while its free quota lasts. If Live cannot start
-       (quota, network, setup) the same tap continues with the phone recognizer + Groq, and Live rests for a while: 60 min after
-       a quota error, 30 min after a microphone-capture error (the phone recognizer still works then), 10 min after any other
-       failure; then it is tried again by itself. A device setting
+    /* v2.6 'live-first' (production): Gemini Live answers the microphone while its free quota lasts. If Live cannot start
+       (quota, network, setup, microphone) the same tap continues with the phone recognizer + Groq, and Live rests: 60 min after
+       a quota error, 10 min after any other failure; then it is tried again by itself. Quota and other rests survive a reload
+       (localStorage 'oryvona.argon.liveRest.v2' = {kind,at,until,mark}); a microphone rest is kept in memory only, so reopening
+       the app tries Live again. The old v2.3 key 'oryvona.argon.liveCooldownUntil' is ignored and removed. The rest note says
+       when Live last failed, why, and when it will be tried again. A device setting
        localStorage['oryvona.argon.voiceMode'] = 'speech' | 'live' still wins. */
-    var LIVE_COOLDOWN_KEY='oryvona.argon.liveCooldownUntil',liveCooldownUntil=0;
+    var LIVE_REST_KEY='oryvona.argon.liveRest.v2',liveRest=null;
+    try{if(win.localStorage&&typeof win.localStorage.removeItem==='function')win.localStorage.removeItem('oryvona.argon.liveCooldownUntil');}catch(_e){}
     function liveQuotaError(why){return /quota|kota|RESOURCE_EXHAUSTED|exceeded|\b429\b|rate.?limit/i.test(String(why||''));}
     function liveMicError(why){return /MIC_PERMISSION|NotReadable|NotAllowed|NotFound|AudioCapture|Mikrofon izni/i.test(String(why||''));}
-    function startLiveCooldown(why){var until=Date.now()+(liveQuotaError(why)?3600000:liveMicError(why)?1800000:600000);liveCooldownUntil=until;try{if(win.localStorage)win.localStorage.setItem(LIVE_COOLDOWN_KEY,String(until));}catch(_e){}}
-    function liveCoolingDown(){var until=liveCooldownUntil;try{var v=Number(win.localStorage&&win.localStorage.getItem(LIVE_COOLDOWN_KEY));if(Number.isFinite(v)&&v>until)until=v;}catch(_e){}return until>Date.now();}
+    function startLiveCooldown(why){
+      var kind=liveQuotaError(why)?'quota':liveMicError(why)?'mic':'other',at=Date.now();
+      var mark=(String(why||'').match(/NotReadableError|NotAllowedError|NotFoundError|AudioCapture\w*|RESOURCE_EXHAUSTED|\b429\b|LIVE_[A-Z_]{2,40}|GOOGLE_[A-Z_]{2,40}/)||[''])[0];
+      liveRest={kind:kind,at:at,until:at+(kind==='quota'?3600000:600000),mark:mark};
+      if(kind!=='mic'){try{if(win.localStorage)win.localStorage.setItem(LIVE_REST_KEY,JSON.stringify(liveRest));}catch(_e){}}
+    }
+    function storedLiveRest(){
+      try{var r=JSON.parse(win.localStorage&&win.localStorage.getItem(LIVE_REST_KEY)||'null'),now=Date.now();
+        return r&&(r.kind==='quota'||r.kind==='other')&&typeof r.at==='number'&&typeof r.until==='number'&&r.until>now&&r.until-now<=3600000&&/^[A-Za-z0-9_]{0,48}$/.test(String(r.mark||''))?r:null;}catch(_e){return null;}
+    }
+    function currentLiveRest(){var now=Date.now(),r=liveRest&&liveRest.until>now?liveRest:null,s=storedLiveRest();return s&&(!r||s.until>r.until)?s:r;}
+    function liveCoolingDown(){return !!currentLiveRest();}
+    function clockText(ms){var d=new Date(ms);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+    function liveRestNote(r){
+      var why=r.kind==='quota'?'ücretsiz kota doldu':(r.kind==='mic'?'mikrofon açılamadı':'bağlantı kurulamadı')+(r.mark?' ('+r.mark+')':'');
+      return 'Canlı ses dinlenmede (son hata '+clockText(r.at)+': '+why+'; yeniden deneme '+clockText(r.until)+'). Telefon tanımasıyla dinliyorum; konuşman bitince mesajın gönderilecek.';
+    }
     function liveVoicePreferred(){if(options.voiceMode==='live')return true;if(options.voiceMode==='speech')return false;var stored=null;try{stored=win.localStorage&&win.localStorage.getItem('oryvona.argon.voiceMode');}catch(_e){}if(stored==='live')return true;if(stored==='speech')return false;return options.voiceMode==='live-first'&&!liveCoolingDown();}
     function micClick(forceSpeech,note){
       if(destroyed||!worldActive()||!accountKey)return;
@@ -721,13 +739,13 @@
       /* v1.0: the phone's own speech recognizer is the default microphone (tap → speak → sent → Groq reply → Charon or phone voice).
          Gemini Live stays available but only runs when the phone has no recognizer or Deniz explicitly selects it (voiceMode 'live'). */
       var liveFirst=options.voiceMode==='live-first'&&canUseLegacySpeech,useLiveVoice=!forceSpeech&&canUseLiveVoice&&(!canUseLegacySpeech||liveVoicePreferred());
-      if(!useLiveVoice&&!note&&liveFirst&&!forceSpeech&&liveCoolingDown())note='Canlı ses şimdilik dinleniyor; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.';
+      if(!useLiveVoice&&!note&&liveFirst&&!forceSpeech){var rest=currentLiveRest();if(rest)note=liveRestNote(rest);}
       /* Live could not start: unless the tap was cancelled, this same tap continues with the phone recognizer. A microphone
          capture error (e.g. NotReadableError inside the app's web view) does not stop the phone recognizer, which has its own access. */
       function fallBackFromLive(reason,detail){
         var why=String(reason||'')+' '+String(detail||'');
         if(!liveFirst||/PHONE_GESTURE|CANCELLED/i.test(why))return false;
-        startLiveCooldown(why);
+        startLiveCooldown(String(detail||'')+' '+String(reason||''));
         var mark=(String(detail||'').match(/NotReadableError|NotAllowedError|NotFoundError|AudioCapture\w*/)||[])[0];
         micClick(true,liveQuotaError(why)?'Canlı sesin ücretsiz kotası şimdilik doldu; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.'
           :liveMicError(why)?'Canlı ses mikrofona ulaşamadı'+(mark?' ('+mark+')':'')+'; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.'
