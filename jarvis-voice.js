@@ -453,6 +453,17 @@
       });
     }
     function stopReading() { if (!reading) return; epoch++; stopPlayback(); state.mode = live ? 'listening' : 'idle'; state.notice = 'Okuma durduruldu.'; emit(); }
+    /* v2.5: some phones refuse to open the microphone with every voice-processing flag, or the phone recognizer still holds it for a
+       moment after a dictation (NotReadableError). One short retry keeps echo cancellation, otherwise Argon would hear and interrupt
+       itself. A refusal (NotAllowedError) is not retried. */
+    async function openMicrophone() {
+      try { return await win.navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false }); }
+      catch (first) {
+        if (!/NotReadable|TrackStart|AbortError|Overconstrained|Could not start/i.test(String(first && (first.name || first.message) || ''))) throw first;
+        await new Promise(function (resolve) { setTimeout(resolve, 600); });
+        return await win.navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true }, video: false });
+      }
+    }
     async function startConversation(handlers) {
       handlers = handlers || {};
       if (!ownerCurrent() || !gesture()) return fail('PHONE_GESTURE_REQUIRED', 'Canlı ses yalnız telefonda mikrofon düğmesine dokunulduğunda açılır.');
@@ -461,7 +472,7 @@
       state.mode = 'starting'; state.notice = 'Google canlı ses bağlantısı kuruluyor…'; state.error = null; emit();
       try {
         await pendingUnlock; if (!current(ticket, captured)) return { ok: false, reason: 'CANCELLED' };
-        stream = await win.navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+        stream = await openMicrophone();
         if (!current(ticket, captured)) { stream.getTracks().forEach(function (t) { t.stop(); }); return { ok: false, reason: 'CANCELLED' }; }
         capture = { stream: stream, source: null, processor: null, gain: null };
         var session = await client.startLive({ gesture: true, voice: 'Charon', onTranscript: function (value, meta) { if (current(ticket, captured) && handlers.onTranscript) handlers.onTranscript(value, meta); }, onReply: function (value, meta) { if (current(ticket, captured) && handlers.onReply) handlers.onReply(value, meta); }, onTask: function (r) { if (current(ticket, captured) && handlers.onTask) handlers.onTask(r); }, onInteraction: function (status) { if (!current(ticket, captured)) return; state.mode = status === 'IN_PROGRESS' ? 'thinking' : sources.size ? 'speaking' : 'listening'; state.notice = status === 'IN_PROGRESS' ? 'Argon arka planda düşünüyor; konuşmaya devam edebilirsin.' : 'Dinliyorum.'; emit(); if (handlers.onInteraction) handlers.onInteraction(status); }, onAudio: function (data, mime, meta) { if (!current(ticket, captured) || !enabled) return; try { var pcm = bytes(data), rate = Number((/rate=(\d+)/.exec(mime) || [])[1]) || 24000; if (pcm.byteLength % 2) return; var buffer = context.createBuffer(1, pcm.length / 2, rate), channel = buffer.getChannelData(0), view = new DataView(pcm.buffer); for (var i = 0; i < channel.length; i++) channel[i] = view.getInt16(i * 2, true) / 32768; playBuffer(buffer, ticket, captured, true, function () { if (handlers.onAudioStart) handlers.onAudioStart(meta); }); } catch (_) {} }, onInterrupted: function (meta) { if (current(ticket, captured)) { stopPlayback(); state.mode = 'listening'; state.notice = 'Araya girdin; önceki yanıt durduruldu, seni dinliyorum.'; emit(); if (handlers.onInterrupted) handlers.onInterrupted(meta); } }, onTurnComplete: function (meta) { if (current(ticket, captured) && handlers.onTurnComplete) handlers.onTurnComplete(meta); }, onEnd: function (r) { if (!current(ticket, captured)) return; live = null; stopCapture(); stopPlayback(); state.mode = 'idle'; state.notice = 'Canlı ses bağlantısı kapandı. Mikrofon düğmesinden yeniden açabilirsin.'; emit(); if (handlers.onEnd) handlers.onEnd(r); } });
