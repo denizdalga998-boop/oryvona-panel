@@ -699,11 +699,13 @@
        options.voiceMode wins; otherwise the per-device setting localStorage['oryvona.argon.voiceMode'] ('live' | 'speech'). */
     /* v2.3 'live-first' (production): Gemini Live answers the microphone while its free quota lasts. If Live cannot start
        (quota, network, setup) the same tap continues with the phone recognizer + Groq, and Live rests for a while: 60 min after
-       a quota error, 10 min after any other failure; then it is tried again by itself. A device setting
+       a quota error, 30 min after a microphone-capture error (the phone recognizer still works then), 10 min after any other
+       failure; then it is tried again by itself. A device setting
        localStorage['oryvona.argon.voiceMode'] = 'speech' | 'live' still wins. */
     var LIVE_COOLDOWN_KEY='oryvona.argon.liveCooldownUntil',liveCooldownUntil=0;
     function liveQuotaError(why){return /quota|kota|RESOURCE_EXHAUSTED|exceeded|\b429\b|rate.?limit/i.test(String(why||''));}
-    function startLiveCooldown(why){var until=Date.now()+(liveQuotaError(why)?3600000:600000);liveCooldownUntil=until;try{if(win.localStorage)win.localStorage.setItem(LIVE_COOLDOWN_KEY,String(until));}catch(_e){}}
+    function liveMicError(why){return /MIC_PERMISSION|NotReadable|NotAllowed|NotFound|AudioCapture|Mikrofon izni/i.test(String(why||''));}
+    function startLiveCooldown(why){var until=Date.now()+(liveQuotaError(why)?3600000:liveMicError(why)?1800000:600000);liveCooldownUntil=until;try{if(win.localStorage)win.localStorage.setItem(LIVE_COOLDOWN_KEY,String(until));}catch(_e){}}
     function liveCoolingDown(){var until=liveCooldownUntil;try{var v=Number(win.localStorage&&win.localStorage.getItem(LIVE_COOLDOWN_KEY));if(Number.isFinite(v)&&v>until)until=v;}catch(_e){}return until>Date.now();}
     function liveVoicePreferred(){if(options.voiceMode==='live')return true;if(options.voiceMode==='speech')return false;var stored=null;try{stored=win.localStorage&&win.localStorage.getItem('oryvona.argon.voiceMode');}catch(_e){}if(stored==='live')return true;if(stored==='speech')return false;return options.voiceMode==='live-first'&&!liveCoolingDown();}
     function micClick(forceSpeech,note){
@@ -720,12 +722,16 @@
          Gemini Live stays available but only runs when the phone has no recognizer or Deniz explicitly selects it (voiceMode 'live'). */
       var liveFirst=options.voiceMode==='live-first'&&canUseLegacySpeech,useLiveVoice=!forceSpeech&&canUseLiveVoice&&(!canUseLegacySpeech||liveVoicePreferred());
       if(!useLiveVoice&&!note&&liveFirst&&!forceSpeech&&liveCoolingDown())note='Canlı ses şimdilik dinleniyor; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.';
-      /* Live could not start: unless it is a microphone permission or a cancel, this same tap continues with the phone recognizer. */
+      /* Live could not start: unless the tap was cancelled, this same tap continues with the phone recognizer. A microphone
+         capture error (e.g. NotReadableError inside the app's web view) does not stop the phone recognizer, which has its own access. */
       function fallBackFromLive(reason,detail){
         var why=String(reason||'')+' '+String(detail||'');
-        if(!liveFirst||/MIC_PERMISSION|PHONE_GESTURE|CANCELLED|Mikrofon izni/i.test(why))return false;
+        if(!liveFirst||/PHONE_GESTURE|CANCELLED/i.test(why))return false;
         startLiveCooldown(why);
-        micClick(true,liveQuotaError(why)?'Canlı sesin ücretsiz kotası şimdilik doldu; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.':'Canlı ses şu an açılamadı; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.');
+        var mark=(String(detail||'').match(/NotReadableError|NotAllowedError|NotFoundError|AudioCapture\w*/)||[])[0];
+        micClick(true,liveQuotaError(why)?'Canlı sesin ücretsiz kotası şimdilik doldu; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.'
+          :liveMicError(why)?'Canlı ses mikrofona ulaşamadı'+(mark?' ('+mark+')':'')+'; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.'
+          :'Canlı ses şu an açılamadı; telefon tanımasıyla dinliyorum. Konuşman bitince mesajın gönderilecek.');
         return true;
       }
       speechKind=useLiveVoice?'live':'speech';
