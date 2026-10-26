@@ -14,12 +14,53 @@
   /* v1.6: an answer about files is shown in full (lines kept, stray markdown removed); only a short summary is spoken. */
   function shapeAttachmentReply(text){var out=String(text||'').replace(/\r\n?/g,'\n').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').replace(/\*\*/g,'').replace(/^[ \t]*#{1,6}[ \t]+/gm,'').replace(/`{3}[a-z0-9_-]*\n?/gi,'').trim();var lines=out.split('\n');if(lines.length>120)out=lines.slice(0,120).join('\n').trim();if(out.length>8000){var head=out.slice(0,8000),cut=Math.max(head.lastIndexOf('. '),head.lastIndexOf('\n'));out=(cut>4000?head.slice(0,cut+1):head).trim()+(cut>4000?'':'…');}return out;}
   /* v1.7: replies are shown, copied, shared and read without markdown marks (**bold**, `code`, # titles, - bullets). */
-  function plainReply(text){return String(text||'').replace(/\r\n?/g,'\n').replace(/^[ \t]*`{3}[^\n]*\n?/gm,'').replace(/`+/g,'').replace(/\*\*([^*\n]+)\*\*/g,'$1').replace(/\*\*/g,'').replace(/^[ \t]*#{1,6}[ \t]+/gm,'').replace(/^([ \t]*)[*-][ \t]+/gm,'$1• ').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();}
+  /* v2.1: a markdown table is shown as one readable line per row ("• Başlık: değer · …"), never as raw pipes. */
+  function tableCells(row){return String(row).trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(function(c){return c.trim();});}
+  function tablesToLines(text){var lines=String(text||'').split('\n'),out=[],i=0;while(i<lines.length){var t=lines[i].trim();if(/^\|.*\|$/.test(t)&&i+1<lines.length&&/^\|?\s*:?-{2,}:?\s*(?:\|\s*:?-{2,}:?\s*)*\|?$/.test(lines[i+1].trim())){var head=tableCells(t);i+=2;while(i<lines.length&&/^\|.*\|$/.test(lines[i].trim())){var cells=tableCells(lines[i]);out.push('• '+cells.map(function(v,k){return v&&head[k]?head[k]+': '+v:v;}).filter(Boolean).join(' · '));i++;}continue;}out.push(lines[i]);i++;}return out.join('\n');}
+  function plainReply(text){return tablesToLines(String(text||'').replace(/\r\n?/g,'\n')).replace(/^[ \t]*`{3}[^\n]*\n?/gm,'').replace(/`+/g,'').replace(/\*\*([^*\n]+)\*\*/g,'$1').replace(/\*\*/g,'').replace(/^[ \t]*#{1,6}[ \t]+/gm,'').replace(/^([ \t]*)[*-][ \t]+/gm,'$1• ').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();}
   /* v2: every reply is shown in full; only a short summary is spoken. A design card (3+ of its headings) is announced, not read aloud. */
   function looksLikeDesignCard(text){var t=String(text||'');return [/Mekanik\s*&\s*Oynanış/i,/Denge\s*&\s*Kurallar/i,/Gereken\s+Depo\s+Varlıkları/i,/İşçi\s+Görev\s+Dağılımı/i].filter(function(re){return re.test(t);}).length>=3;}
   /* v2: a long assistant turn keeps its head and tail in history (the approval line at the end survives); never longer than max. */
   function clipHistoryText(text,max){var t=String(text==null?'':text),m=max||1200;if(t.length<=m)return t;var tail=Math.min(300,Math.floor(m/4));return t.slice(0,m-tail-3).replace(/\s+$/,'')+' … '+t.slice(t.length-tail).replace(/^\s+/,'');}
-  function spokenSummary(text){if(looksLikeDesignCard(text))return 'Tasarım kartını ekrana getirdim efendim. Uygunsa “Evet, kodla” demeniz yeterli.';var flat=String(text||'').replace(/\s*\n+\s*/g,' ').replace(/\s{2,}/g,' ').trim(),short=limitDailyReplySentences(flat,3);if(short.length>600){var cut=short.slice(0,600),end=Math.max(cut.lastIndexOf('. '),cut.lastIndexOf('! '),cut.lastIndexOf('? '));short=(end>200?cut.slice(0,end+1):cut).trim();}return short.length<flat.length-2?short+' Ayrıntılar ekranda efendim.':short;}
+  /* v2.1: speech never reads tables, code, links, ID numbers (UUID/commit/hash), emoji or list/format marks; every line becomes a
+     sentence, ISO dates are read as "26 Ekim" and UTC (Z) times in Türkiye time. Same rules as KOZA studio-gemini-api.mjs. */
+  var TR_MONTHS=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'],DESIGN_CARD_SPEECH='Tasarım kartını ekrana getirdim efendim. Uygunsa “Evet, kodla” demeniz yeterli.',SPEECH_MORE=' Ayrıntılar ekranda efendim.',SPEECH_CONTINUES=' Devamı ekranda efendim.';
+  function spokenDate(m,y,mo,d,h,mi,z){var Y=Number(y),M=Number(mo),D=Number(d),H=h==null?null:Number(h),Mi=mi==null?null:Number(mi);if(!TR_MONTHS[M-1]||D<1||D>31||(H!=null&&(H>23||Mi>59)))return m;if(z&&H!=null){var t=new Date(Date.UTC(Y,M-1,D,H,Mi)+3*3600e3);Y=t.getUTCFullYear();M=t.getUTCMonth()+1;D=t.getUTCDate();H=t.getUTCHours();Mi=t.getUTCMinutes();}return D+' '+TR_MONTHS[M-1]+(H==null?'':' saat '+String(H).padStart(2,'0')+':'+String(Mi).padStart(2,'0'));}
+  function speakableText(text){
+    var omitted=false,drop=function(){omitted=true;return '';};
+    var s=String(text==null?'':text).replace(/\r\n?/g,'\n');
+    s=s.replace(/```[\s\S]*?(?:```|$)/g,function(){omitted=true;return '\n';}).replace(/`+/g,'');
+    s=s.replace(/\S+/g,function(tok){var t=tok.replace(/^[(“"'‘]+|[)”"'’.,;:!?]+$/g,'');return /^(?:~|\.{1,2}|[A-Za-z]:)?[\/\\]\S/.test(t)||(/[\/\\]/.test(t)&&/\.[A-Za-z0-9]{1,6}$/.test(t))?drop():tok;});
+    s=s.split('\n').filter(function(line){if(/^\s*\|.*\|\s*$/.test(line)||(/^\s*\|?\s*:?-{2,}:?\s*(?:\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(line)&&/-{2,}/.test(line)&&/\|/.test(line))){omitted=true;return false;}return true;}).join('\n');
+    s=s.replace(/https?:\/\/\S+/g,drop).replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,drop).replace(/\b(?=[0-9a-f]*[a-f])(?=[0-9a-f]*\d)[0-9a-f]{12,64}\b/gi,drop)
+      .replace(/\p{Extended_Pictographic}|[\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u200D\uFE0E\uFE0F\u20E3]/gu,'')
+      .replace(/\b(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?(Z)?)?(?![\d:])/g,spokenDate).replace(/\b(\d{1,2}):(\d{2}):\d{2}\b/g,'$1:$2');
+    var lines=s.split('\n').map(function(line){
+      var t=line.replace(/^\s*(?:[-*•–—+>]+|\d{1,2}[.)]|[A-Za-z][.)])\s+/,'').replace(/^\s*#{1,6}\s*/,'').replace(/\*\*|__|~~|`+/g,'').replace(/\s+&\s+/g,' ve ')
+        .replace(/(\p{L})[-_/](?=\p{L})/gu,'$1 ').replace(/(\d)\s*[-–]\s*(?=\d)/g,'$1 ile ').replace(/\s*(?:->|=>|→|—|–|•|\|)\s*/g,', ').replace(/\s+-\s+/g,', ')
+        .replace(/[*_#=<>{}\[\]~^\\]/g,' ').replace(/\s{2,}/g,' ').trim().replace(/^[,;:.\s]+/,'').replace(/[,;]+$/,'');
+      return t&&!/[.!?…:]$/.test(t)?t+'.':t;
+    }).filter(Boolean);
+    var out=lines.join(' ').replace(/\s+([.,!?;:…])/g,'$1').replace(/([,;:])(?=[.!?])/g,'').replace(/([.!?])[.,;:]+/g,'$1').replace(/\(\s*\)/g,'').replace(/\s{2,}/g,' ').trim();
+    return {text:out,omitted:omitted};
+  }
+  function sentenceEnds(text){var out=[],re=/[.!?…]+/g,m;while((m=re.exec(text))){var end=m.index+m[0].length,next=text.slice(end),prev=text.slice(0,m.index);if(next&&!/^\s/.test(next))continue;if(m[0]==='.'&&(/(?:^|[\s.])[A-ZÇĞİÖŞÜ]$/.test(prev)||(/\d$/.test(prev)&&/^\s+[a-zçğıöşü]/.test(next))))continue;out.push(end);}return out;}
+  /* v2.1 reading rule: the speakable answer is read in full up to ~1500 characters; a longer one stops at a real sentence end and
+     says "Devamı ekranda efendim."; if a table/code/link/ID stayed on the screen it says "Ayrıntılar ekranda efendim." */
+  function replySpeech(text,maxChars){
+    if(looksLikeDesignCard(text))return DESIGN_CARD_SPEECH;
+    var max=maxChars||1500,c=speakableText(text),s=c.text;
+    if(!s)return c.omitted?SPEECH_MORE.trim():'';
+    if(s.length<=max)return c.omitted?s+SPEECH_MORE:s;
+    var ends=sentenceEnds(s).filter(function(e){return e<=max;}),head=s.slice(0,max),end=ends.length?ends[ends.length-1]:-1;
+    if(end<max*0.3)end=Math.max(end,head.lastIndexOf(', ')+1,head.lastIndexOf('; ')+1);
+    if(end<1)end=head.lastIndexOf(' ');
+    return (end>0?s.slice(0,end):head).trim().replace(/[,;]$/,'.')+SPEECH_CONTINUES;
+  }
+  /* The sound button under a reply reads the whole speakable answer (nothing is cut; what cannot be spoken stays on the screen). */
+  function replayText(text){var c=speakableText(text);return c.text?c.text+(c.omitted?SPEECH_MORE:''):'';}
+  /* v1.6 file answers: only a short, clean opening is spoken. */
+  function spokenSummary(text){if(looksLikeDesignCard(text))return DESIGN_CARD_SPEECH;var c=speakableText(text),flat=c.text,short=limitDailyReplySentences(flat,3);if(short.length>600){var cut=short.slice(0,600),end=Math.max(cut.lastIndexOf('. '),cut.lastIndexOf('! '),cut.lastIndexOf('? '));short=(end>200?cut.slice(0,end+1):cut).trim();}return short.length<flat.length-2||c.omitted?short+SPEECH_MORE:short;}
   function contextAttachmentNames(result){return result&&Array.isArray(result.context_attachments)?result.context_attachments.filter(function(n){return typeof n==='string'&&n.trim();}).slice(0,4).map(function(n){return safeText(n,120);}):[];}
   function formatAttachmentSize(bytes){var b=Number(bytes)||0;if(b<=0)return '';if(b<1024)return b+' B';if(b<1024*1024)return Math.max(1,Math.round(b/1024))+' KB';return (b/(1024*1024)).toFixed(1).replace(/\.0$/,'')+' MB';}
   function attachmentExtBadge(a){var raw=String(a&&a.name||'').trim(),m=/\.([A-Za-z0-9]{1,8})$/.exec(raw);if(m)return m[1].toUpperCase();if(a&&a.mime==='application/pdf')return 'PDF';if(a&&/^text\//i.test(a.mime||''))return 'TXT';return 'DOSYA';}
@@ -99,7 +140,8 @@
         var next=normalized[i+1]||'',prev=normalized.slice(0,i);
         var isDecimal=ch==='.'&&/\d$/.test(prev)&&/^\d/.test(next);
         var isInitial=ch==='.'&&/(?:^|\s|\.)[A-ZÇĞİÖŞÜ]$/.test(prev);
-        if(!isDecimal&&!isInitial&&(!next||/\s/.test(next))){
+        var isOrdinal=ch==='.'&&/\d$/.test(prev)&&/^\s+[a-zçğıöşü]/.test(normalized.slice(i+1));
+        if(!isDecimal&&!isInitial&&!isOrdinal&&(!next||/\s/.test(next))){
           while(i+1<normalized.length&&/[.!?…]/.test(normalized[i+1]))i++;
           count++;
           if(count>=limit){end=i+1;break;}
@@ -311,7 +353,7 @@
         var stopWatching=null;
         try{
           var outputDisabled=new Promise(function(resolve){if(typeof voice.subscribe==='function')stopWatching=voice.subscribe(function(v){if(v&&v.enabled===false)resolve({ok:false,reason:'VOICE_DISABLED'});});});
-          speechResult=await Promise.race([voice.speak({id:id,requestId:turn.ttsRequestId,text:spokenSummary(body),audioB64:res.audio_b64||null,audio:res.audio||null,audioStatus:res.audio_status||null,accountKey:owner,serverAudioOnly:typeof turn.audioOutput==='boolean',onStart:function(voiceMeta){showReply(res,voiceMeta);}}),outputDisabled]);
+          speechResult=await Promise.race([voice.speak({id:id,requestId:turn.ttsRequestId,text:attIds.length>0||contextAttachmentNames(res).length>0?spokenSummary(body):replySpeech(body),audioB64:res.audio_b64||null,audio:res.audio||null,audioStatus:res.audio_status||null,accountKey:owner,serverAudioOnly:typeof turn.audioOutput==='boolean',onStart:function(voiceMeta){showReply(res,voiceMeta);}}),outputDisabled]);
         }catch(_speechError){speechResult={ok:false,reason:'AUDIO_UNAVAILABLE'};}
         finally{if(stopWatching)stopWatching();}
         if(!owns(owner,ticket))return;
@@ -467,7 +509,7 @@
     function renderActions(message){
       var row=el('div','jw-actions'),text=plainReply(message.body),copy=btn('copy','jw-action jw-action-copy','Kopyala'),listen=btn('listen','jw-action jw-action-listen','Sesli dinle'),share=btn('share','jw-action jw-action-share','Paylaş');
       row.setAttribute('role','group');row.setAttribute('aria-label','Yanıt kısayolları');copy.dataset.state='idle';listen.dataset.state='idle';listen.dataset.messageId=safeText(message.id,200);
-      dynamicOn(copy,'click',function(){copyReply(text,copy);});dynamicOn(listen,'click',function(){listenReply(message,text);});dynamicOn(share,'click',function(){shareReply(text);});
+      dynamicOn(copy,'click',function(){copyReply(text,copy);});dynamicOn(listen,'click',function(){listenReply(message,replayText(message.body));});dynamicOn(share,'click',function(){shareReply(text);});
       row.append(copy,listen,share);return row;
     }
     /* v1.8: message time (HH:MM on the phone's clock) and the messenger stamp on Deniz's bubbles (✓✓ once it left). */
