@@ -88,6 +88,8 @@
     if(!result||result.ok!==true)return null;
     var v=voiceEvidenceSuffix(voiceMeta);
     if(result.provider==='groq'&&result.transport==='groq-api'){
+      /* v2.8: planlama halkası cevabı DJ-KABIN'in plan kaydından kurulur; model çağrılmadığı açıkça görünür. */
+      if(result.generation_mode==='planning-ring'&&result.model_verified!==true)return {kind:'local',...(v.voiceLabel?{voiceLabel:v.voiceLabel}:{}),evidenceLabel:'DJ-KABIN plan kaydından hazırlandı (planlama halkası). Model çağrısı yok.'+v.suffix};
       return {kind:'model',provider:'Groq',model:safeText(result.model||'openai/gpt-oss-120b',100),modelVerified:result.model_verified===true,...(v.voiceLabel?{voiceLabel:v.voiceLabel}:{}),evidenceLabel:'Groq API yanıtında doğrulanan model (düşünme: orta). Günlük sohbet Codex işçisine gönderilmez.'+v.suffix};
     }
     if(!['google','gemini'].includes(result.provider)||result.transport!=='google-ai-studio-api')return null;

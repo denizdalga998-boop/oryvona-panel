@@ -11,7 +11,7 @@
 function classifyOwnerSource(text, catalog) {
   if (typeof text !== 'string' || !text.trim() || text.length > 8000 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(text)) return { explicit: false, project: null, reason: 'invalid_source' };
   const normalized = fold(text);
-  const names = [ ['koza', /\bkoza(?:nin|yi|ya|da|daki|dan)?\b/], ['charm-drop', /\bcharm[\s-]*drop(?:ta|taki|u|da)?\b/], ['forge-run', /\bforge[\s-]*run(?:da|daki|i|u)?\b/], ['aeryo', /\baeryo(?:da|daki|yu|nun)?\b/], ['tupsper', /\b(?:tupsper|tuckspire|boks oyunu)\b/], ['oryvona-panel', /\b(?:oryvona[\s-]*panel|panel(?:i|de|deki|in|imiz)?|uygulama(?:yi|da|daki|nin)?)\b/] ];
+  const names = [ ['koza', /\bkoza(?:nin|yi|ya|da|daki|dan)?\b/], ['charm-drop', /\b(?:charm[\s-]*drop|chandrop)(?:ta|taki|u|da|a|un)?\b/], ['forge-run', /\bforge[\s-]*run(?:da|daki|i|u)?\b/], ['aeryo', /\baeryo(?:da|daki|yu|nun)?\b/], ['tupsper', /\b(?:tupsper|tuckspire|boks oyunu)\b/], ['oryvona-panel', /\b(?:oryvona[\s-]*panel|panel(?:i|de|deki|in|imiz)?|uygulama(?:yi|da|daki|nin)?)\b/] ];
   const matches = names.filter(([, re]) => re.test(normalized)).map(([id]) => id);
   (Array.isArray(catalog)?catalog:[]).forEach(function(p){
     if(!p||!/^[a-z][a-z0-9-]{0,63}$/.test(p.id))return;
@@ -24,7 +24,9 @@ function classifyOwnerSource(text, catalog) {
   // Target must occur in the owner's source. Neither model output nor a client hint grants scope.
   const project = matches.length === 1 ? matches[0] : null;
   if (/\b(?:yapma|degistirme|duzeltme|baslatma|gonderme|calistirma|olusturma|ekleme|silme|kod yazma|gorev verme|sadece sohbet|sadece fikir|sadece soruyorum|istemiyorum|desem|desek|dersem|dersek|deseydim|deseydik|diyelim|varsayalim|farz|ornek|ornegin|hypothetical|example|nasil|neden|niye)\b/.test(normalized)) return { explicit: false, project, reason: 'non_action_or_negated' };
-  const command = /\b(?:duzelt|duzeltir misin|duzeltebilir misin|gelistir|gelistirebilir misin|gelistirir misin|ekle|ekler misin|ekleyebilir misin|uygula|degistir|olustur|kodla|tamir et|test et|incele|denetle|onar|iyilestir|hazirla|guncelle|dizayn et|tasarla)\b/.test(normalized);
+  // v2.8 planlama halkası: ayrıntısız sonuç hedefi ("Charm Drop'u bitir", "Charm Drop'a devam et") da açık iştir; planlamayı sunucu doğrular.
+  const command = /\b(?:duzelt|duzeltir misin|duzeltebilir misin|gelistir|gelistirebilir misin|gelistirir misin|ekle|ekler misin|ekleyebilir misin|uygula|degistir|olustur|kodla|tamir et|test et|incele|denetle|onar|iyilestir|hazirla|guncelle|dizayn et|tasarla)\b/.test(normalized)
+    || /(?<![\p{L}\p{N}])(?:bitir|tamamla|ilerlet|surdur|sonuclandir|hallet|halled|devam\s+e[td]|sonraki\s+(?:asama|adim)\p{L}*\s+(?:gec|tasi)|ne\s+gerekiyorsa\s+yap)/u.test(normalized);
   const requestedFault = /\b(?:hata|bug|bozuk|calismiyor|tasiyor|kesiliyor|donuyor|cokuyor|duzeltme|gelistirme)\b/.test(normalized) && /\b(?:istiyorum|istiyoruz|gider|coz|gorev|yapabilir misin)\b/.test(normalized);
   const directFaultReport = Boolean(project) && !/[?？]/.test(text) && /\b(?:calismiyor|tasiyor|kesiliyor|donuyor|cokuyor|bozuk|hata var|hata veriyor|acilmiyor|titriyor|takiliyor)\b/.test(normalized);
   if (!(command || requestedFault || directFaultReport)) return { explicit: false, project, reason: 'conversation_only' };
