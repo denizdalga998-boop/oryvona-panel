@@ -3,6 +3,10 @@
 body.oryvona-v26{background:#07040d;color:var(--studio-text);overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:auto;-webkit-tap-highlight-color:transparent}
 body.oryvona-v26::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:#07040d url("theme/kara-delik-dikey.webp") center top/cover no-repeat}
 @media(orientation:landscape){body.oryvona-v26::before{background-image:url("theme/kara-delik-yatay.webp");background-position:center center}}
+.ov-sky-canvas{position:fixed;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:-1}
+.ov-sky-canvas[hidden],.ov-sky-canvas[data-sky-fallback]{display:none!important}
+html[data-sky-active="true"] body.oryvona-v26::before,html[data-sky-active="true"] .sv-hero-hole{background:transparent;background-image:none}
+html[data-ov-intro][data-sky-active="true"] .ov-sky-canvas{z-index:99999}
 body.oryvona-v26 #topbar{background:rgba(7,4,13,.88);border-bottom:1px solid rgba(160,118,255,.22);box-shadow:0 6px 24px #0004;color:var(--studio-text)}
 body.oryvona-v26 .app-top-inner{max-width:1200px}body.oryvona-v26 .app-head{gap:8px}body.oryvona-v26 .iconbtn{min-width:44px;min-height:44px;background:rgba(12,8,22,.72);border-color:rgba(160,118,255,.22);color:var(--studio-text)}
 body.oryvona-v26 #gameSwitcherBar{display:none!important}body.oryvona-v26 #titleBtn{min-width:0;overflow:hidden;pointer-events:none}body.oryvona-v26 #topTitle{font-size:11px!important;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:#b9a8ec}body.oryvona-v26 .loc-chip{display:none!important}body.oryvona-v26 #titleBtn .eyebrow{font-size:13px;font-weight:300;letter-spacing:.38em;color:#f1ebff}
@@ -115,22 +119,27 @@ body.oryvona-v26 #gate input{background:rgba(7,4,13,.82);border-color:rgba(160,1
 body.oryvona-v26 #gate .langs button{border-color:rgba(160,118,255,.22)}
 body.oryvona-v26 #gate .langs button[aria-pressed="true"]{background:#f1ebff;color:#07040d}
 body.oryvona-v26 #gate button[type="submit"],body.oryvona-v26 #gate .btn-primary{border:1px solid rgba(160,118,255,.45);background:#7c4dff;color:#f1ebff;box-shadow:0 10px 26px rgba(124,77,255,.32)}
-/* Opening screen (#ovIntro, <= 1.6s, once per session): black hole fades in and zooms gently (1.08 -> 1), thin wide ORYVONA + small GAMES. No WebGL, no blur animation. */
-#ovIntro{position:fixed;inset:0;z-index:100000;background:#07040d;overflow:hidden;pointer-events:auto;transition:opacity .22s ease}
-#ovIntro .ovi-sky{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transform:scale(1.08);background:#07040d url("theme/kara-delik-dikey.webp") center 32%/cover no-repeat}
+/* Opening screen (#ovIntro, <= 1.8s, once per session): shares single #ovSkyCanvas (1.6 -> 1 in 0-1.3s, text at 0.5s via opacity+transform, dive 1 -> 3 & darken in 1.3-1.75s). */
+#ovIntro{position:fixed;inset:0;z-index:100000;background:#07040d;overflow:hidden;pointer-events:auto;transition:opacity .18s ease}
+html[data-ov-intro][data-sky-active="true"] #ovIntro{background:transparent}
+html[data-ov-intro][data-sky-active="true"] #ovIntro .ovi-sky{display:none}
+#ovIntro .ovi-sky{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;transform:scale(1.6);background:#07040d url("theme/kara-delik-dikey.webp") center top/cover no-repeat}
 @media(orientation:landscape){#ovIntro .ovi-sky{background-image:url("theme/kara-delik-yatay.webp");background-position:center center}}
-#ovIntro .ovi-title{position:absolute;left:0;right:0;top:66%;text-align:center;color:#f1ebff;pointer-events:none;text-shadow:0 0 22px rgba(124,77,255,.45)}
+#ovIntro .ovi-title{position:absolute;left:0;right:0;top:66%;text-align:center;color:#f1ebff;pointer-events:none;text-shadow:0 0 22px rgba(124,77,255,.45);transition:opacity .32s ease,transform .42s ease}
 #ovIntro .ovi-name{display:block;font:300 clamp(30px,9.4vw,52px)/1.1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.42em;padding-left:.42em;white-space:nowrap;color:#f1ebff}
 #ovIntro .ovi-name i{display:inline-block;font-style:normal;opacity:0;transform:translateY(8px)}
-#ovIntro .ovi-sub{display:block;margin-top:14px;font:500 clamp(10px,2.8vw,13px)/1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.78em;padding-left:.78em;color:#b9a8ec;opacity:0}
-#ovIntro .ovi-line{display:block;width:0;height:1px;margin:14px auto 0;background:linear-gradient(90deg,transparent,rgba(160,118,255,.65),transparent)}
-#ovIntro.ovi-play .ovi-sky{animation:ovi-sky 1.3s ease-out forwards}
-#ovIntro.ovi-play .ovi-name i{animation:ovi-letter .55s cubic-bezier(.16,.8,.24,1) forwards;animation-delay:calc(.12s + var(--i) * .045s)}
-#ovIntro.ovi-play .ovi-line{animation:ovi-line .6s .32s cubic-bezier(.2,.8,.2,1) forwards}
-#ovIntro.ovi-play .ovi-sub{animation:ovi-sub .6s .38s ease-out forwards}
-#ovIntro.ovi-still .ovi-sky,#ovIntro.ovi-still .ovi-name i,#ovIntro.ovi-still .ovi-sub{opacity:1;transform:none}#ovIntro.ovi-still .ovi-line{width:44%}
+#ovIntro .ovi-sub{display:block;margin-top:14px;font:500 clamp(10px,2.8vw,13px)/1 system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:.78em;padding-left:.78em;color:#b9a8ec;opacity:0;transform:translateY(4px)}
+#ovIntro .ovi-line{display:block;width:44%;height:1px;margin:14px auto 0;opacity:0;transform:scaleX(0);background:linear-gradient(90deg,transparent,rgba(160,118,255,.65),transparent)}
+#ovIntro.ovi-play .ovi-sky{animation:ovi-sky 1.3s cubic-bezier(.16,.84,.26,1) forwards}
+#ovIntro.ovi-play .ovi-name i{animation:ovi-letter .48s cubic-bezier(.16,.8,.24,1) forwards;animation-delay:calc(.5s + var(--i) * .035s)}
+#ovIntro.ovi-play .ovi-line{animation:ovi-line .45s .54s cubic-bezier(.2,.8,.2,1) forwards}
+#ovIntro.ovi-play .ovi-sub{animation:ovi-sub .45s .58s ease-out forwards}
+#ovIntro.ovi-dive .ovi-title{opacity:0;transform:scale(1.12)}
+#ovIntro.ovi-dive .ovi-sky{animation:ovi-dive .45s ease-in forwards}
+#ovIntro.ovi-still .ovi-sky,#ovIntro.ovi-still .ovi-name i,#ovIntro.ovi-still .ovi-sub,#ovIntro.ovi-still .ovi-line{opacity:1;transform:none}
 #ovIntro.ovi-out{opacity:0;pointer-events:none}
-@keyframes ovi-sky{0%{opacity:0;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@keyframes ovi-sky{0%{opacity:0;transform:scale(1.6)}100%{opacity:1;transform:scale(1)}}
+@keyframes ovi-dive{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(3)}}
 @keyframes ovi-letter{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:none}}
-@keyframes ovi-line{0%{width:0;opacity:0}100%{width:44%;opacity:1}}
+@keyframes ovi-line{0%{opacity:0;transform:scaleX(0)}100%{opacity:1;transform:scaleX(1)}}
 @keyframes ovi-sub{0%{opacity:0;transform:translateY(4px)}100%{opacity:1;transform:none}}

@@ -157,6 +157,8 @@
 .jw-root .jw-shell{background:transparent}
 .jw-root .jw-shell .jw-orb-stage,.jw-root .jw-shell[data-conversation="true"] .jw-orb-stage,.jw-root .jw-shell[data-compact="true"] .jw-orb-stage{position:fixed;inset:0;top:0;left:0;transform:none;z-index:0;display:block;opacity:1;padding:0;pointer-events:none;overflow:hidden;background:#07040d url("theme/kara-delik-dikey.webp") center top/cover no-repeat}
 @media(orientation:landscape){.jw-root .jw-shell .jw-orb-stage,.jw-root .jw-shell[data-conversation="true"] .jw-orb-stage,.jw-root .jw-shell[data-compact="true"] .jw-orb-stage{background-image:url("theme/kara-delik-yatay.webp");background-position:center center}}
+html[data-sky-active="true"] .jw-root{background:transparent}
+html[data-sky-active="true"] .jw-root .jw-shell .jw-orb-stage,html[data-sky-active="true"] .jw-root .jw-shell[data-conversation="true"] .jw-orb-stage,html[data-sky-active="true"] .jw-root .jw-shell[data-compact="true"] .jw-orb-stage{background:transparent;background-image:none}
 .jw-root .jw-shell[data-conversation="true"] .jw-orb-stage::before{content:"";position:absolute;inset:0;background:rgba(7,4,13,.38);pointer-events:none}
 .jw-root .jw-shell[data-tight="true"] .jw-orb-stage{display:none}
 .jw-root .jw-shell .jw-energy,.jw-root .jw-shell[data-compact="true"] .jw-energy{position:absolute;inset:0;width:100%;height:100%;max-width:none;border-radius:0;background:none;overflow:hidden;pointer-events:none}

@@ -369,27 +369,28 @@ textarea{width:100%;min-height:80px;resize:vertical}
 @media (max-width:420px){.app-head #topLocChip{display:none}}
 </style>
 <link rel="stylesheet" href="native-shell.css?v=20261020-gemini1">
-<link rel="stylesheet" href="jarvis-world.css?v=20261021-v19">
+<link rel="stylesheet" href="jarvis-world.css?v=20261021-v20">
 <link rel="stylesheet" href="jarvis-v23-shell.css?v=20261021-v18">
-<link rel="stylesheet" href="studio-v26.css?v=20261021-v20">
+<link rel="stylesheet" href="studio-v26.css?v=20261021-v21">
 <link rel="stylesheet" href="studio-integration-v26.css?v=20261021-v18">
 <script src="studio-facade-v26.js?v=20261021-personal2"></script>
 <script src="studio-decisions-v26.js?v=20261020-gemini1"></script>
 <link rel="stylesheet" href="studio-flow.css?v=20261026-independent-workers2">
 </head>
 <body class="oryvona-v26">
-<!-- v1.9 opening title "uzaya giriş" (<= 1.6 s, once per app start): black hole image fades in and zooms gently (1.08 -> 1), thin wide ORYVONA and small GAMES underneath. Tap skips. -->
+<!-- v1.9 opening title "uzaya giriş" (<= 1.8 s, once per app start): shares single #ovSkyCanvas (zoom 1.6 -> 1 in 0-1.3s, ORYVONA / GAMES at 0.5s via opacity+transform, dive 1 -> 3 & darken in 1.3-1.75s). Tap skips. -->
 <script src="jarvis-energy.js?v=20261021-v19"></script>
+<script src="jarvis-sky.js?v=20261021-r1"></script>
 <div id="ovIntro" aria-hidden="true"><div class="ovi-sky"></div><div class="ovi-title"><span class="ovi-name"><i style="--i:0">O</i><i style="--i:1">R</i><i style="--i:2">Y</i><i style="--i:3">V</i><i style="--i:4">O</i><i style="--i:5">N</i><i style="--i:6">A</i></span><span class="ovi-line"></span><span class="ovi-sub">GAMES</span></div></div>
-<script>(()=>{const el=document.getElementById("ovIntro");if(!el)return;const root=document.documentElement;let seen=false;try{seen=sessionStorage.getItem("ov-intro")==="1";sessionStorage.setItem("ov-intro","1");}catch(_){}
-if(seen){el.remove();return;}
+<script>(()=>{const sky=window.OryvonaJarvisSky||null;const el=document.getElementById("ovIntro");if(!el){sky?.ensure?.();return;}const root=document.documentElement;let seen=false;try{seen=sessionStorage.getItem("ov-intro")==="1";sessionStorage.setItem("ov-intro","1");}catch(_){}
+if(seen){el.remove();sky?.ensure?.();return;}
 const reduce=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);root.setAttribute("data-ov-intro","");
-let ended=false,t1=0,t2=0;
-const finish=()=>{if(ended)return;ended=true;clearTimeout(t1);clearTimeout(t2);el.classList.add("ovi-out");root.removeAttribute("data-ov-intro");try{document.dispatchEvent(new Event("ov-intro-end"));}catch(_){}
-  setTimeout(()=>{try{el.remove();}catch(_){}},220);};
+const inst=sky?.ensure?.({introTime:reduce?null:0});let ended=false,t1=0,t2=0;
+const finish=()=>{if(ended)return;ended=true;clearTimeout(t1);clearTimeout(t2);inst?.setIntroTime?.(null);el.classList.add("ovi-out");root.removeAttribute("data-ov-intro");try{document.dispatchEvent(new Event("ov-intro-end"));}catch(_){}
+  setTimeout(()=>{try{el.remove();}catch(_){}},180);};
 el.addEventListener("pointerdown",()=>finish(),{once:true});
 if(reduce){el.classList.add("ovi-still");t1=setTimeout(finish,900);return;}
-el.classList.add("ovi-play");t1=setTimeout(finish,1350);t2=setTimeout(finish,1550);})();</script>
+el.classList.add("ovi-play");t1=setTimeout(()=>el.classList.add("ovi-dive"),1300);t2=setTimeout(finish,1750);})();</script>
 <header class="app-shell-top" id="topbar">
   <div class="app-top-inner">
     <div class="app-head">
@@ -637,6 +638,7 @@ el.classList.add("ovi-play");t1=setTimeout(finish,1350);t2=setTimeout(finish,155
     <div class="list">
       <div class="item wrap"><span class="ic" id="icLang"></span><div class="tx"><b data-i18n="set.lang">Dil</b><span data-i18n="set.langSub">Uygulamanın tüm yazıları</span></div><div class="seg" id="langSeg"><button data-l="tr" aria-pressed="true">Türkçe</button><button data-l="en">English</button></div></div>
       <div class="item wrap"><span class="ic" id="icTheme"></span><div class="tx"><b data-i18n="set.theme">Tema</b><span data-i18n="set.themeSub">Telefonun ayarını izler ya da sabit kalır</span></div><div class="seg" id="themeSeg"><button data-t="light" aria-pressed="true" data-i18n="set.light">Açık</button><button data-t="dark" data-i18n="set.dark">Koyu</button><button data-t="system" data-i18n="set.system">Telefona göre</button></div></div>
+      <div class="item"><span class="ic" id="icSkyMotion"></span><div class="tx"><b data-i18n="set.skyMotion">Hareketli arka plan</b><span id="skyMotionInfo" data-i18n="set.skyMotionSub">Kara delik diski hafifçe akar; kapatınca sabit resim görünür</span></div><button class="act on" id="skyMotionToggle" type="button" role="switch" aria-checked="true">Açık</button></div>
     </div>
     <div class="secthead" data-i18n="set.data">Veri</div>
     <div class="list">
@@ -735,7 +737,7 @@ el.classList.add("ovi-play");t1=setTimeout(finish,1350);t2=setTimeout(finish,155
     star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="m12 3 2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.4l-5.7 3.1 1.2-6.4L2.8 9.7l6.4-.8z"/></svg>',
     link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',
     out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 4H5v16h5"/><path d="M14 8l4 4-4 4M18 12H9"/></svg>'};
-  for(const [id,ic] of [["menuBtn","menu"],["dIcHelp","help"],["dIcSettings","gear"],["refreshBtn","refresh"],["settingsTopBtn","gear"],["backBtn","back"],["gameBack","back"],["icNow","bolt"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icLang","globe"],["icTheme","moon"],["icLive","bolt"],["icRunner","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabJarvis","jarvis"],["tabFeed","list"],["tabTests","check"],["tabStore","store"],["tabSettings","gear"]]){if($(id))$(id).innerHTML=I[ic];}
+  for(const [id,ic] of [["menuBtn","menu"],["dIcHelp","help"],["dIcSettings","gear"],["refreshBtn","refresh"],["settingsTopBtn","gear"],["backBtn","back"],["gameBack","back"],["icNow","bolt"],["icTurn","user"],["icStage","flag"],["icQa","check"],["icAuto","clock"],["icWork","bolt"],["icAcc","user"],["icLang","globe"],["icTheme","moon"],["icSkyMotion","star"],["icLive","bolt"],["icRunner","bolt"],["icApp","box"],["icApk","phone"],["icHelp","help"],["icBell","bell"],["icPrefs","sliders"],["tabHome","home"],["tabJarvis","jarvis"],["tabFeed","list"],["tabTests","check"],["tabStore","store"],["tabSettings","gear"]]){if($(id))$(id).innerHTML=I[ic];}
 
   // ---------- language (TR default, EN) ----------
   const L={};
@@ -824,7 +826,7 @@ el.classList.add("ovi-play");t1=setTimeout(finish,1350);t2=setTimeout(finish,155
       pipeline:"Canlı veri hattı",pipeOn:"çalışıyor",pipeOff:"sinyal bekliyor",pipeSub:v=>`Yapılan her değişiklik anında panele düşer. Son sinyal: ${v}`,wake:"OpenAI otomatik geçişi",on:"etkin",off:"kapalı",wakeSub:v=>`Claude çalışmasını bitirince OpenAI kendiliğinden devreye girer. Son hareket: ${v}`,claudeCheck:"Claude kontrolü",lastRun:(a,r)=>`Son çalışma ${a}${r?" — "+r:""}`,claudeManual:"Claude görev geldiğinde otomatik veya Komut Kutusu ile çalışır.",repo:"Proje bağlantısı: ",openRepo:"Proje sayfasını aç ›",lastPush:v=>` · son güncelleme ${v}`,openCommit:"Son değişikliği gör ›",last3:"Son 3 gün · sıra kimdeydi",claudeWorked:"Claude çalıştı",workWorked:"OpenAI çalıştı",
       workNoteTitle:"OpenAI'nin notu",noWorkNote:"OpenAI henüz not bırakmadı.",prevNotes:"Önceki notlar"},
     terms:[["Argon","Tek beyin komuta asistanı. Doğrudan seninle konuşur, durum kartını okur ve arka plan işlerini kredi yakmadan yönetir."],["Claude","Geliştirici yapay zeka. Oyunun kodunu, düzeltmelerini ve testlerini hazırlar."],["OpenAI","Kalite kontrol uzmanı (ChatGPT). Bulut testlerinin sonuçlarını inceler ve bir sonraki adımı belirler."],["Deniz","Stüdyo sahibi. Tüm otomatik testler bittiğinde oyunu bizzat dener ve yayın kararını verir."],["Sıra","Aynı anda tek bir uzman çalışır; böylece çalışmalar birbirine karışmaz."],["Engel","Oyun içindeki bir hata değil; bulut veya sistem kaynaklı teknik bir sınır."],["Testler","Kod kontrolü, tarayıcı testi, gerçek oynanış ve sekme/çıkış dayanıklılık testleri."],["Mağaza","Google Play üzerindeki test aşamaları, oyuncu yorumları, gelen e-postalar ve ekip notları."],["Komut Kutusu","Doğrudan Argon'a sesle, yazıyla veya ekran görüntüsüyle emir vermeni sağlayan alan."]],
-    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.6.6-STUDIO2 (v26) · Doğrulanmış Teslim & Argon Stüdyo Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Argon, Claude, OpenAI ve süreç adımları",
+    set:{title:"Ayarlar",account:"Hesap",signOut:"Çıkış",look:"Görünüm",lang:"Dil",langSub:"Uygulamanın tüm yazıları",theme:"Tema",themeSub:"Telefonun ayarını izler ya da sabit kalır",light:"Açık",dark:"Koyu",system:"Telefona göre",skyMotion:"Hareketli arka plan",skyMotionSub:"Kara delik diski hafifçe akar; kapatınca sabit resim görünür",skyMotionOn:"Açık",skyMotionOff:"Kapalı",data:"Veri",live:"Canlı bağlantı",push:"Bildirimler",pushTitle:"Telefona bildirim",when:"Ne zaman?",whenSub:"Seçtiklerin olunca bildirim gelir",pushTest:"Deneme bildirimi",team:"Ekip (sahip)",app:"Uygulama",ver:"Sürüm 3.6.6-STUDIO2 (v26) · Doğrulanmış Teslim & Argon Stüdyo Merkezi",apk:"Android kurulum dosyası",apkSub:"Telefona kurmak için APK",termsSub:"Argon, Claude, OpenAI ve süreç adımları",
       demoView:"Örnek görünüm",notSignedIn:"Giriş yapılmadı",ownerRole:"Stüdyo sahibi",memberRole:"Ekip üyesi",liveInfo:(t,src)=>`Son güncelleme ${t} · ${src}`,ghSignal:"Canlı senkronizasyon aktif",noDataYet:"Henüz veri yok",
       pushOn:"Açık",pushOff:"Aç",pushDemo:"Örnek görünümde kapalı",pushUnsup:"Bu tarayıcı desteklemiyor",pushDenied:"Bildirim izni kapalı; telefonun uygulama ayarlarından aç",pushActive:"Bu cihaza bildirim gelir. Bildirim \"Chrome\" adıyla geliyorsa: telefon Ayarlar → Uygulamalar → Oryvona → Bildirimler'i aç.",pushIdle:"Uygulama kapalıyken de haber verir",pushSaveErr:"Kaydedilemedi: ",pushAsking:"İzin isteniyor…",pushClosed:"İzin kutusu kapandı; tekrar Aç'a bas ve İzin ver'i seç.",pushFail:"Açılamadı: ",pushSending:"Gönderiliyor…",pushSendFail:"Gönderilemedi: ",pushSent:n=>`Deneme gönderildi · ${n} cihaz. Birkaç saniye içinde gelir.`},
     pref:{mine:"Sıra bana geçince (son test)",blocked:"Bir engel kaydedilince",turns:"Her sıra değişiminde (Claude ↔ OpenAI)",runs:"Bulut testi bitince",store:"Mağaza: yeni yorum, e-posta, durum değişikliği"},
@@ -929,7 +931,7 @@ el.classList.add("ovi-play");t1=setTimeout(finish,1350);t2=setTimeout(finish,155
       pipeline:"Live data pipeline",pipeOn:"running",pipeOff:"waiting for signal",pipeSub:v=>`Every change lands in the panel instantly. Last signal: ${v}`,wake:"OpenAI auto-handoff",on:"enabled",off:"off",wakeSub:v=>`When Claude finishes, OpenAI steps in automatically. Last activity: ${v}`,claudeCheck:"Claude check",lastRun:(a,r)=>`Last run ${a}${r?" — "+r:""}`,claudeManual:"Claude runs automatically on new tasks or via the Command Box.",repo:"Project link: ",openRepo:"Open project page ›",lastPush:v=>` · last update ${v}`,openCommit:"View latest change ›",last3:"Last 3 days · whose turn",claudeWorked:"Claude worked",workWorked:"OpenAI worked",
       workNoteTitle:"OpenAI's note",noWorkNote:"OpenAI has not left a note yet.",prevNotes:"Earlier notes"},
     terms:[["Argon","Single-brain command assistant. Talks directly with you, reads the status card, and orchestrates background tasks without wasting credits."],["Claude","Developer AI. Prepares game code, fixes, and tests."],["OpenAI","Quality control specialist (ChatGPT). Reviews cloud test evidence and defines the next step."],["Deniz","Studio owner. Plays the final build once automated tests pass and makes the release decision."],["Turn","Only one specialist works at a time so work never clashes."],["Blocker","Not a game bug; a technical or cloud infrastructure limit."],["Tests","Code checks, browser tests, real gameplay, and tab-switch/quit resilience."],["Store","Google Play test stages, player reviews, incoming e-mails, and team notes."],["Command Box","Send voice, text, or annotated screenshot commands directly to Argon."]],
-    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.6.6-STUDIO2 (v26) · Verified Delivery & Argon Studio Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Argon, Claude, OpenAI and workflow steps",
+    set:{title:"Settings",account:"Account",signOut:"Sign out",look:"Appearance",lang:"Language",langSub:"All text in the app",theme:"Theme",themeSub:"Follows your phone or stays fixed",light:"Light",dark:"Dark",system:"Match phone",skyMotion:"Animated background",skyMotionSub:"Gentle black-hole disk flow; shows the static image when off",skyMotionOn:"On",skyMotionOff:"Off",data:"Data",live:"Live connection",push:"Notifications",pushTitle:"Phone notifications",when:"When?",whenSub:"You get notified when the selected things happen",pushTest:"Test notification",team:"Team (owner)",app:"App",ver:"Version 3.6.6-STUDIO2 (v26) · Verified Delivery & Argon Studio Center",apk:"Android install file",apkSub:"APK to install on a phone",termsSub:"Argon, Claude, OpenAI and workflow steps",
       demoView:"Sample view",notSignedIn:"Not signed in",ownerRole:"Studio owner",memberRole:"Team member",liveInfo:(t,src)=>`Last update ${t} · ${src}`,ghSignal:"Live sync active",noDataYet:"No data yet",
       pushOn:"On",pushOff:"Turn on",pushDemo:"Off in the sample view",pushUnsup:"This browser does not support it",pushDenied:"Notification permission is off; enable it in the phone's app settings",pushActive:"This device receives notifications. If they arrive as \"Chrome\": open phone Settings → Apps → Oryvona → Notifications.",pushIdle:"Alerts you even when the app is closed",pushSaveErr:"Could not save: ",pushAsking:"Asking for permission…",pushClosed:"The permission box closed; tap Turn on again and choose Allow.",pushFail:"Could not enable: ",pushSending:"Sending…",pushSendFail:"Could not send: ",pushSent:n=>`Test sent · ${n} device(s). It arrives within seconds.`},
     pref:{mine:"When the turn comes to me (final test)",blocked:"When a blocker is recorded",turns:"On every hand-over (Claude ↔ OpenAI)",runs:"When a cloud test finishes",store:"Store: new review, mail, status change"},
@@ -959,7 +961,7 @@ el.classList.add("ovi-play");t1=setTimeout(finish,1350);t2=setTimeout(finish,155
     document.querySelectorAll("[data-i18n-aria]").forEach(el=>{const v=T(el.dataset.i18nAria);if(typeof v==="string"){el.setAttribute("aria-label",v);el.title=v;}});
     document.querySelectorAll("[data-i18n-ph]").forEach(el=>{const v=T(el.dataset.i18nPh);if(typeof v==="string")el.placeholder=v;});
     document.querySelectorAll("#langSeg button,#gate .langs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.l===lang)));
-    $("inboxHead").textContent=T("store.inbox")+" · oryvonagames@gmail.com";}
+    $("inboxHead").textContent=T("store.inbox")+" · oryvonagames@gmail.com";if(typeof renderSkyMotion==="function")renderSkyMotion();}
   function setLang(l){if(!L[l])return;lang=l;try{localStorage.setItem("oryvona.lang",l);}catch{}applyLang();rerenderAll();}
   document.addEventListener("click",e=>{const b=e.target.closest("#langSeg button[data-l],#gate .langs button[data-l]");if(b)setLang(b.dataset.l);});
 
@@ -1365,6 +1367,10 @@ el.classList.add("ovi-play");t1=setTimeout(finish,1350);t2=setTimeout(finish,155
   const themePref=()=>{try{return localStorage.getItem("oryvona.theme")||"light";}catch{return"light";}};
   applyTheme(themePref());mq.addEventListener("change",()=>{if(themePref()==="system")applyTheme("system");});
   $("themeSeg").addEventListener("click",e=>{const b=e.target.closest("button[data-t]");if(!b)return;try{localStorage.setItem("oryvona.theme",b.dataset.t);}catch{}applyTheme(b.dataset.t);});
+  const skyMotionPref=()=>{try{if(window.OryvonaJarvisSky?.isMotionEnabled)return window.OryvonaJarvisSky.isMotionEnabled();const v=localStorage.getItem("oryvona.sky.motion");return v!=="0"&&v!=="false"&&v!=="off";}catch{return true;}};
+  const renderSkyMotion=()=>{const btn=$("skyMotionToggle");if(!btn)return;const on=skyMotionPref(),St=S().set;btn.setAttribute("aria-checked",String(on));btn.setAttribute("aria-pressed",String(on));btn.className="act"+(on?" on":"");btn.textContent=on?(St.skyMotionOn||"Açık"):(St.skyMotionOff||"Kapalı");};
+  $("skyMotionToggle")?.addEventListener("click",()=>{const next=!skyMotionPref();try{localStorage.setItem("oryvona.sky.motion",next?"1":"0");}catch{}window.OryvonaJarvisSky?.setMotionEnabled?.(next);renderSkyMotion();});
+  renderSkyMotion();
 
   // ---------- navigation & horizontal game switcher bar ----------
   const VIEWS=["games","home","jarvis","feed","tests","store","game","settings","detail"];let view="home",detailKey=null,handlingPwaBack=false,pwaGestureArmed=false;
@@ -1581,7 +1587,7 @@ el.classList.add("ovi-play");t1=setTimeout(finish,1350);t2=setTimeout(finish,155
   // ---------- settings ----------
   function renderSettings(){window.OryvonaGameNavigation.renderVersion();const St=S().set;$("accEmail").textContent=PERSONAL_MODE?"Deniz · Kişisel cihaz":session?.user?.email||(demo?St.demoView:"—");$("accRole").textContent=demo?St.notSignedIn:isOwner?St.ownerRole:St.memberRole;
     $("liveInfo").textContent=status?St.liveInfo(fmt(status.updatedAt),status.source==="github-webhook"?St.ghSignal:St.ghSignal):St.noDataYet;
-    $("teamSection").hidden=PERSONAL_MODE||!isOwner;if(isOwner&&!PERSONAL_MODE)$("teamBody").innerHTML=sheetTeam();renderRunner();renderPush();}
+    $("teamSection").hidden=PERSONAL_MODE||!isOwner;if(isOwner&&!PERSONAL_MODE)$("teamBody").innerHTML=sheetTeam();renderRunner();renderPush();renderSkyMotion();}
 
   // ---------- store (Play Store tracking: games, tracks, reviews, mail, notes) ----------
   const STAGE_CLS={development:"warn",closed_testing:"info",open_testing:"brand",production:"good",paused:"warn"};
@@ -2404,7 +2410,7 @@ el.classList.add("ovi-play");t1=setTimeout(finish,1350);t2=setTimeout(finish,155
 <script src="studio-gemini-client.js?v=20261021-v21"></script>
 <script src="jarvis-voice.js?v=20261021-sync3"></script>
 <script src="studio-world-v26.js?v=20261021-v21"></script>
-<script src="jarvis-world.js?v=20261021-v28"></script>
+<script src="jarvis-world.js?v=20261021-v29"></script>
 <script src="studio-v26-bootstrap.js?v=20261021-personal3"></script>
 <script src="studio-flow.js?v=20261026-argon-canli1"></script>
 <script src="studio-flow-bootstrap.js?v=20261026-independent-workers2"></script>

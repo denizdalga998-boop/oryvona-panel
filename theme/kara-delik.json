@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "shader": {
+    "AMP": 0.48,
+    "FALL": 1.65,
+    "RING_R": 1.12,
+    "RING_W": 0.09
+  },
+  "portrait": {
+    "file": "theme/kara-delik-dikey.webp",
+    "width": 1080,
+    "height": 2340,
+    "aspect": 0.4615,
+    "center": [0.4657, 0.7389],
+    "centerTopDown": [0.4657, 0.2611],
+    "shadowRadius": 0.0718,
+    "phi": 0.5635,
+    "phiDeg": 32.29,
+    "tilt": [0.8454, 0.5341],
+    "q": 0.6277
+  },
+  "landscape": {
+    "file": "theme/kara-delik-yatay.webp",
+    "width": 1920,
+    "height": 1080,
+    "aspect": 1.7778,
+    "center": [0.6948, 0.6861],
+    "centerTopDown": [0.6948, 0.3139],
+    "shadowRadius": 0.0796,
+    "phi": 0.5482,
+    "phiDeg": 31.41,
+    "tilt": [0.8535, 0.5212],
+    "q": 0.6206
+  }
+}
