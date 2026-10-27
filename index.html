@@ -89,7 +89,7 @@ a{color:var(--brand);font-weight:800}
 .band .hero{background:none;box-shadow:none;padding:10px 0 0;border-radius:0}
 .band .hero::before,.band .hero::after{display:none}
 .drawer{position:fixed;inset:0;z-index:45}
-.scrim{position:absolute;inset:0;background:rgba(10,9,30,.52);backdrop-filter:blur(4px)}
+.scrim{position:absolute;inset:0;background:rgba(10,9,30,.68)}
 .dpanel{position:absolute;left:0;top:0;bottom:0;width:min(310px,85vw);background:var(--surface);color:var(--fg);box-shadow:16px 0 44px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:6px;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 20px;overflow:auto;animation:slidein .22s ease-out}
 @keyframes slidein{from{transform:translateX(-30px);opacity:0}to{transform:none;opacity:1}}
 .dhead{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--ink),var(--ink-2));color:#fff;border-radius:18px;padding:14px}
@@ -172,7 +172,7 @@ main{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-rig
 .play-link-btn:active{transform:scale(.95);background:rgba(255,255,255,.22)}
 
 /* Real Test Link / APK Modal (#linkModal) */
-#linkModal{position:fixed;inset:0;z-index:60;background:rgba(12,11,30,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px}
+#linkModal{position:fixed;inset:0;z-index:60;background:rgba(12,11,30,.82);display:flex;align-items:center;justify-content:center;padding:16px}
 .lm-card{max-width:440px;width:100%;background:var(--surface);color:var(--fg);border:1px solid var(--line-2);border-radius:24px;padding:20px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:14px}
 .lm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .lm-head b{font-size:1.1rem;font-weight:900; display:block}
@@ -331,13 +331,13 @@ textarea{width:100%;min-height:80px;resize:vertical}
 .rev .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap} .rev .h b{font-weight:800} .rev .h time{font-size:.78rem;color:var(--fg-3)}
 .rev .m{font-size:.95rem;overflow-wrap:anywhere} .rev .reply{background:var(--surface-2);border-radius:10px;padding:8px 12px;font-size:.88rem;color:var(--fg-2)}
 .track{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:var(--r-s);background:var(--surface-2)} .track b{font-weight:900} .track span{font-size:.88rem;color:var(--fg-2)}
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--glass);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);border-top:1px solid var(--line);box-shadow:0 -8px 28px -12px rgba(19,18,43,.12);display:flex;justify-content:space-around;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--glass);border-top:1px solid var(--line);box-shadow:0 -8px 28px -12px rgba(19,18,43,.12);display:flex;justify-content:space-around;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
 .tabs button{flex:1;max-width:140px;border:0;background:transparent;color:var(--fg-3);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:14px;font-weight:800;font-size:.71rem;cursor:pointer;position:relative;transition:color .15s}
 .tabs button svg{width:23px;height:23px} .tabs button[aria-selected="true"]{color:var(--brand)} .tabs button[aria-selected="true"] .pill{background:var(--brand-soft)}
 .tabs .pill{padding:3px 15px;border-radius:999px;display:grid;transition:background .15s}
 .tabs .badge{position:absolute;top:2px;right:calc(50% - 22px);min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:900;display:grid;place-items:center;padding:0 5px}
 #gate{position:fixed;inset:0;z-index:50;background:linear-gradient(160deg,#1b1a3e,#2a2466 60%,#3a2a7a);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
-#gate form{width:min(420px,100%);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:26px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.35);backdrop-filter:blur(8px)}
+#gate form{width:min(420px,100%);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:26px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 #gate input{background:rgba(0,0,0,.25);color:#fff;border-color:rgba(255,255,255,.2);font-size:1rem}
 #gate .msg{min-height:1.2em;font-size:.9rem;color:#9af0bb;display:block}
 #gate .langs{display:flex;gap:8px;justify-content:center} #gate .langs button{border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:999px;padding:5px 12px;font-weight:800;font-size:.82rem;cursor:pointer} #gate .langs button[aria-pressed="true"]{background:#fff;color:#1b1a3e}
@@ -369,50 +369,27 @@ textarea{width:100%;min-height:80px;resize:vertical}
 @media (max-width:420px){.app-head #topLocChip{display:none}}
 </style>
 <link rel="stylesheet" href="native-shell.css?v=20261020-gemini1">
-<link rel="stylesheet" href="jarvis-world.css?v=20261021-v18">
+<link rel="stylesheet" href="jarvis-world.css?v=20261021-v19">
 <link rel="stylesheet" href="jarvis-v23-shell.css?v=20261021-v18">
-<link rel="stylesheet" href="studio-v26.css?v=20261021-v19">
+<link rel="stylesheet" href="studio-v26.css?v=20261021-v20">
 <link rel="stylesheet" href="studio-integration-v26.css?v=20261021-v18">
 <script src="studio-facade-v26.js?v=20261021-personal2"></script>
 <script src="studio-decisions-v26.js?v=20261020-gemini1"></script>
 <link rel="stylesheet" href="studio-flow.css?v=20261026-independent-workers2">
 </head>
 <body class="oryvona-v26">
-<!-- v1.9 opening title "uzaya giriş" (~3.4 s, once per app start): the camera flies in to the black hole, ORYVONA GAMES surfaces, then a dive into the hole reveals the app. Space sound is synthesised (no file). Tap skips. -->
+<!-- v1.9 opening title "uzaya giriş" (<= 1.6 s, once per app start): black hole image fades in and zooms gently (1.08 -> 1), thin wide ORYVONA and small GAMES underneath. Tap skips. -->
 <script src="jarvis-energy.js?v=20261021-v19"></script>
-<div id="ovIntro" aria-hidden="true"><canvas class="ovi-sky"></canvas><div class="ovi-title"><span class="ovi-name"><i style="--i:0">O</i><i style="--i:1">R</i><i style="--i:2">Y</i><i style="--i:3">V</i><i style="--i:4">O</i><i style="--i:5">N</i><i style="--i:6">A</i></span><span class="ovi-line"></span><span class="ovi-sub">GAMES</span></div><div class="ovi-flash"></div></div>
+<div id="ovIntro" aria-hidden="true"><div class="ovi-sky"></div><div class="ovi-title"><span class="ovi-name"><i style="--i:0">O</i><i style="--i:1">R</i><i style="--i:2">Y</i><i style="--i:3">V</i><i style="--i:4">O</i><i style="--i:5">N</i><i style="--i:6">A</i></span><span class="ovi-line"></span><span class="ovi-sub">GAMES</span></div></div>
 <script>(()=>{const el=document.getElementById("ovIntro");if(!el)return;const root=document.documentElement;let seen=false;try{seen=sessionStorage.getItem("ov-intro")==="1";sessionStorage.setItem("ov-intro","1");}catch(_){}
 if(seen){el.remove();return;}
 const reduce=!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);root.setAttribute("data-ov-intro","");
-let core=null,audio=null,raf=0,ended=false,going=false;const t0=performance.now();
-const finish=skip=>{if(ended)return;ended=true;cancelAnimationFrame(raf);el.classList.add("ovi-out");root.removeAttribute("data-ov-intro");try{document.dispatchEvent(new Event("ov-intro-end"));}catch(_){}
-  if(audio)audio.fade(skip===true);setTimeout(()=>{try{if(core)core.destroy();}catch(_){}el.remove();},480);};
-/* Camera flight (Schwarzschild radii, degrees): from far away and nearly edge-on, a steep diagonal disk turns towards us while we close in; then the dive. */
-const ease=u=>{u=Math.min(1,Math.max(0,u));return 0.5-0.5*Math.cos(Math.PI*u);};
-const cam=s=>{if(s<2.75){const e=ease(s/2.75),f=1-Math.pow(1-Math.min(1,s/2.75),2);return{dist:160*Math.pow(19/160,f),incl:87-23*e,tilt:62-82*e};}const u=Math.min(1,(s-2.75)/0.5),k=Math.pow(u,1.6);return{dist:19-17.2*k,incl:64-24*k,tilt:-20-90*k};};
-const tick=now=>{const s=(now-t0)/1000;if(core){try{core.setCamera(cam(s));}catch(_){}}if(s>=2.75&&!going){going=true;el.classList.add("ovi-go");if(audio)audio.dive();}if(s>=3.32){finish();return;}raf=requestAnimationFrame(tick);};
-el.addEventListener("pointerdown",()=>finish(true),{once:true});
-try{const E=window.JarvisEnergyCore;if(E&&typeof E.mount==="function"){core=E.mount(el.querySelector(".ovi-sky"),{state:"idle",fps:60,intro:true,reducedMotion:reduce});core.setCamera(reduce?{dist:22,incl:66,tilt:-16}:cam(0));}}catch(_){core=null;}
-if(reduce){el.classList.add("ovi-still");setTimeout(finish,1400);return;}
-el.classList.add("ovi-play");raf=requestAnimationFrame(tick);setTimeout(finish,4200);
-/* Space sound: a deep drone that swells, cosmic wind rising through a band filter, a high shimmer far away in a long
-   reverb, and at the dive a rushing sweep with a sub drop. Silent if the system keeps audio locked. */
-try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const ac=new AC(),out=ac.createGain(),comp=ac.createDynamicsCompressor();
-  comp.threshold.value=-16;comp.ratio.value=4;out.gain.value=0.85;out.connect(comp);comp.connect(ac.destination);
-  const sr=ac.sampleRate,len=Math.floor(sr*3.4),ir=ac.createBuffer(2,len,sr);for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.8);}
-  const verb=ac.createConvolver();verb.buffer=ir;const wet=ac.createGain();wet.gain.value=0.6;verb.connect(wet);wet.connect(out);
-  const brown=sec=>{const b=ac.createBuffer(2,Math.floor(sr*sec),sr);for(let c=0;c<2;c++){const d=b.getChannelData(c);let l=0;for(let i=0;i<d.length;i++){l=(l+0.02*(Math.random()*2-1))/1.02;d[i]=l*3.4;}}return b;};
-  const env=(g,t,peak,att,hold,rel)=>{g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+att);g.gain.setValueAtTime(peak,t+att+hold);g.gain.exponentialRampToValueAtTime(0.0001,t+att+hold+rel);};
-  let started=false;
-  const play=()=>{if(started)return;started=true;const T=ac.currentTime+0.03;
-    [[36.7,0.30],[55.0,0.15],[73.4,0.06]].forEach(([f,v])=>{const o=ac.createOscillator(),g=ac.createGain();o.type="sine";o.frequency.setValueAtTime(f,T);o.frequency.linearRampToValueAtTime(f*1.03,T+2.7);env(g,T,v,1.9,0.9,0.9);o.connect(g);g.connect(out);g.connect(verb);o.start(T);o.stop(T+3.8);});
-    {const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();s.buffer=brown(3.6);f.type="bandpass";f.Q.value=0.8;f.frequency.setValueAtTime(160,T);f.frequency.exponentialRampToValueAtTime(820,T+2.7);env(g,T,0.55,2.0,0.6,0.7);s.connect(f);f.connect(g);g.connect(out);g.connect(verb);s.start(T);s.stop(T+3.5);}
-    [659.25,987.77,1318.5,1760.0].forEach((f,k)=>{[-5,5].forEach(dt=>{const o=ac.createOscillator(),g=ac.createGain();o.type="sine";o.frequency.value=f;o.detune.value=dt;env(g,T+0.7+k*0.18,0.012,1.3,0.5,0.8);o.connect(g);g.connect(verb);o.start(T+0.6);o.stop(T+3.9);});});};
-  audio={dive:()=>{if(!started)return;const T=ac.currentTime+0.01;
-      {const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();s.buffer=brown(1.3);f.type="bandpass";f.Q.value=1.2;f.frequency.setValueAtTime(500,T);f.frequency.exponentialRampToValueAtTime(5200,T+0.45);f.frequency.exponentialRampToValueAtTime(300,T+1.1);env(g,T,0.95,0.32,0.05,0.8);s.connect(f);f.connect(g);g.connect(out);g.connect(verb);s.start(T);s.stop(T+1.3);}
-      {const o=ac.createOscillator(),g=ac.createGain();o.type="sine";o.frequency.setValueAtTime(96,T+0.32);o.frequency.exponentialRampToValueAtTime(28,T+1.6);env(g,T+0.32,0.85,0.02,0.05,1.5);o.connect(g);g.connect(out);g.connect(verb);o.start(T+0.3);o.stop(T+2.0);}},
-    fade:quick=>{try{out.gain.setTargetAtTime(0.0001,ac.currentTime+(quick?0.02:1.5),quick?0.12:0.5);setTimeout(()=>ac.close().catch(()=>{}),4200);}catch(_){}}};
-  if(ac.state==="running")play();else ac.resume().then(()=>{if(ac.state==="running")play();}).catch(()=>{});}catch(_){audio=null;}})();</script>
+let ended=false,t1=0,t2=0;
+const finish=()=>{if(ended)return;ended=true;clearTimeout(t1);clearTimeout(t2);el.classList.add("ovi-out");root.removeAttribute("data-ov-intro");try{document.dispatchEvent(new Event("ov-intro-end"));}catch(_){}
+  setTimeout(()=>{try{el.remove();}catch(_){}},220);};
+el.addEventListener("pointerdown",()=>finish(),{once:true});
+if(reduce){el.classList.add("ovi-still");t1=setTimeout(finish,900);return;}
+el.classList.add("ovi-play");t1=setTimeout(finish,1350);t2=setTimeout(finish,1550);})();</script>
 <header class="app-shell-top" id="topbar">
   <div class="app-top-inner">
     <div class="app-head">
@@ -2425,9 +2402,9 @@ try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const 
 <script src="studio-data-v26.js?v=20261021-v20"></script>
 <script src="jarvis-brief.js?v=20261020-gemini1"></script>
 <script src="studio-gemini-client.js?v=20261021-v21"></script>
-<script src="jarvis-voice.js?v=20261021-sync2"></script>
-<script src="studio-world-v26.js?v=20261021-v20"></script>
-<script src="jarvis-world.js?v=20261021-v27"></script>
+<script src="jarvis-voice.js?v=20261021-sync3"></script>
+<script src="studio-world-v26.js?v=20261021-v21"></script>
+<script src="jarvis-world.js?v=20261021-v28"></script>
 <script src="studio-v26-bootstrap.js?v=20261021-personal3"></script>
 <script src="studio-flow.js?v=20261026-argon-canli1"></script>
 <script src="studio-flow-bootstrap.js?v=20261026-independent-workers2"></script>

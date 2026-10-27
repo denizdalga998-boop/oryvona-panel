@@ -118,7 +118,7 @@
     function playBuffer(buffer, ticket, captured, streaming, onStart) {
       if (!current(ticket, captured) || !enabled || !gestureGranted || !phone() || !context || context.state !== 'running') return false;
       var source = context.createBufferSource(); source.buffer = buffer; source.connect(context.destination); sources.add(source);
-      var start = streaming ? Math.max(context.currentTime, nextAt) : context.currentTime; nextAt = start + buffer.duration;
+      var start = streaming ? (nextAt > context.currentTime ? nextAt : context.currentTime + 0.12) : context.currentTime; nextAt = start + buffer.duration;
       source.onended = function () { sources.delete(source); try { source.disconnect(); } catch (_) {} if (!sources.size && current(ticket, captured)) { state.mode = live ? 'listening' : 'idle'; state.audioLevel = null; if (reading && reading.ticket === ticket) reading = null; emit(); } };
       state.voiceName = 'Charon'; state.voiceProvider = 'google-ai-studio'; state.voiceLang = 'tr-TR'; state.localVoice = false;
       var meta = { ok: true, provider: streaming ? 'google-ai-studio-live' : 'google-ai-studio', voiceName: 'Charon', voiceLang: 'tr-TR', localVoice: false };
